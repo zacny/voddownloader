@@ -113,14 +113,14 @@
             }
         }
 
-        var handleError = function(data){
+        var handleError = function(data, w){
             var button = $('#'+properties.button.id);
             DownloadMedia.deny(button);
         }
 
-        var grabVideoFormats = function(data){
+        var grabVideoFormats = function(data, w){
             var formats = [];
-            if(data.result !== null && data.result[0].formats.wideo.mp4.length > 0){
+            if(data.result !== undefined && data.result[0].formats.wideo.mp4.length > 0){
                 $.each(data.result[0].formats.wideo.mp4, function( index, value ) {
                     formats.push({
                         quality: value.vertical_resolution,
@@ -129,7 +129,7 @@
                     });
                 });
                 DownloadMedia.numberModeSort(formats);
-                DownloadMedia.createDocument(data.result[0].meta.title, formats);
+                DownloadMedia.createDocument(w, data.result[0].meta.title, formats);
             }
             else {
                 handleError();
@@ -183,12 +183,12 @@
             }
         };
 
-        var handleError = function(data){
+        var handleError = function(data, w){
             var button = $('#'+properties.button.id);
             DownloadMedia.deny(button);
         }
 
-        var grabVideoFormats = function(data){
+        var grabVideoFormats = function(data, w){
             var formats = [];
             console.log(data);
             if(data.item !== undefined && data.item.videos.main.video_content != null && data.item.videos.main.video_content.length > 0){
@@ -207,7 +207,7 @@
                     title = data.item.serie_title + (title != '' ? ' - ' + title : '');
                 }
                 DownloadMedia.numberModeSort(formats);
-                DownloadMedia.createDocument(title, formats);
+                DownloadMedia.createDocument(w, title, formats);
             }
             else {
                 handleError();
@@ -274,12 +274,12 @@
             }
         };
 
-        var handleError = function(data){
+        var handleError = function(data, w){
             var button = $('#'+properties.button.id);
             DownloadMedia.deny(button);
         }
 
-        var grabVideoFormats = function(data){
+        var grabVideoFormats = function(data, w){
             var formats = [];
             if(data.status == 'OK' && data.formats != null){
                 $.each(data.formats, function( index, value ) {
@@ -292,7 +292,7 @@
                 });
             }
             DownloadMedia.numberModeSort(formats);
-            DownloadMedia.createDocument(data.title, formats);
+            DownloadMedia.createDocument(w, data.title, formats);
         };
 
         return TVP;
@@ -341,7 +341,7 @@
             DownloadMedia.checkWrapperExist(attempts, properties, detectVideoChange);
         };
 
-        var grabVideoFormats = function(data){
+        var grabVideoFormats = function(data, w){
             var formats = [];
             if(data.vod.copies != null){
                 $.each(data.vod.copies, function( index, value ) {
@@ -353,7 +353,7 @@
                 });
             }
             DownloadMedia.numberModeSort(formats);
-            DownloadMedia.createDocument(data.vod.title, formats);
+            DownloadMedia.createDocument(w, data.vod.title, formats);
         };
 
         var grabVideoId = function(){
@@ -367,7 +367,7 @@
             }
         };
 
-        var handleError = function(data){
+        var handleError = function(data, w){
             var button = $('#'+properties.button.id);
             DownloadMedia.deny(button);
         }
@@ -444,15 +444,16 @@
         };
 
         DownloadMedia.getVideoData = function(url, successAction, errorAction){
+            var w = window.open();
             $.ajax({
                 url: url,
                 method: 'GET',
                 dataType: 'json',
                 success: function (data) {
-                    successAction(data);
+                    successAction(data, w);
                 },
                 error: function (data) {
-                    errorAction(data);
+                    errorAction(data, w);
                 }
             });
         };
@@ -462,7 +463,7 @@
             console.warn('Błąd pobierania meteriału');
         }
 
-        DownloadMedia.createDocument = function(title, formats){
+        DownloadMedia.createDocument = function(w, title, formats){
             var content = $('<div>');
             $('<p>').text('Tytuł: ' + title).appendTo(content);
             $.each(formats, function( index, value ) {
@@ -478,11 +479,10 @@
                 par.appendTo(content);
             });
 
-            openInNewTab(content);
+            openInNewTab(w, content);
         };
 
-        var openInNewTab = function(content){
-            var w = window.open();
+        var openInNewTab = function(w, content){
             var body = $(w.document.body);
             body.append(content);
 
