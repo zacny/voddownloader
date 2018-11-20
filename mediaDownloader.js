@@ -25,6 +25,7 @@
     var $ = window.jQuery.noConflict(true);
 
     var ATTEMPTS = 20;
+    var UNLIMITED_ATTEMPTS = -1;
     var ATTEMPT_TIMEOUT = 1500;
     var NO_ID_ERROR_MESSAGE = 'Nie udało się pobrać idetyfikatora.';
     var API_ERROR_MESSAGE = 'Brak informacji o wybranym materiale.'
@@ -54,7 +55,7 @@
 
         var openVideoUrl = function(){
             var w = window.open();
-            var url = $(".pb-video-player").attr('src');
+            var url = $("video.pb-video-player").attr('src');
             if(url !== undefined){
                 w.location.href = url;
             }
@@ -144,7 +145,7 @@
                 return $(wrapper).length > 0;
             },
             button: {
-                id: 'btnTVN',
+                id: 'btnTVNNowy',
                 style: 'position:absolute; z-index: 100; font-size: 14px; font-weight: bold; padding: 10px 15px',
                 class: 'btn btn-primary'
             },
@@ -154,7 +155,7 @@
         };
 
         TVN.waitOnWrapper = function(){
-            DownloadMedia.checkWrapperExist(ATTEMPTS, properties);
+            DownloadMedia.checkWrapperExist(UNLIMITED_ATTEMPTS, properties, DownloadMedia.detectVideoChange);
         };
 
         var grabVideoId = function(){
@@ -170,7 +171,6 @@
 
         var grabVideoFormats = function(data, w){
             var formats = [];
-            console.log(data);
             if(data.item.videos.main.video_content !== undefined && data.item.videos.main.video_content.length > 0){
                 $.each(data.item.videos.main.video_content, function( index, value ) {
                     var lastPartOfUrl = DownloadMedia.deleteParametersFromUrl(value.url).split("/").pop();
@@ -318,7 +318,7 @@
         }
 
         IPLA.waitOnWrapper = function(){
-            DownloadMedia.checkWrapperExist(ATTEMPTS, properties, detectVideoChange);
+            DownloadMedia.checkWrapperExist(UNLIMITED_ATTEMPTS, properties, DownloadMedia.detectVideoChange);
         };
 
         var grabVideoFormats = function(data, w){
@@ -384,29 +384,45 @@
 
     var DownloadMedia = (function(DownloadMedia) {
         DownloadMedia.start = function() {
-            if(location.href.match(/^http[s]?:\/\/vod\.tvp\.pl\/[\d]{0,8}/)){
-                TVP.waitOnWrapper();
+            var matcher = [
+                {action: TVP.waitOnWrapper, pattern: /^http[s]?:\/\/vod\.tvp\.pl\//},
+                {action: TVN.waitOnWrapper, pattern: /^http[s]?:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
+                {action: VOD.waitOnWrapper, pattern: /^http[s]?:\/\/vod\.pl\//},
+                {action: CDA.waitOnWrapper, pattern: /^http[s]?:\/\/www\.cda\.pl\//},
+                {action: IPLA.waitOnWrapper, pattern: /^http[s]?:\/\/www\.ipla\.tv\//}
+            ];
+            $.each(matcher, function(index, item){
+                if(location.href.match(item.pattern)){
+                    item.action();
+                }
+            });
+        };
+
+        var onVideoChange = function(){
+            DownloadMedia.start();
+        };
+
+        var checkVideoChange = function(oldSrc) {
+            var src = window.location.href;
+            if(src !== undefined && oldSrc !== src){
+                return Promise.resolve().then(onVideoChange);
             }
-            else if(location.href.match(/^http[s]?:\/\/www\.ipla\.tv\//)){
-               IPLA.waitOnWrapper();
-            }
-            else if(location.href.match(/^http[s]?:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//)){
-                TVN.waitOnWrapper();
-            }
-            else if(location.href.match(/^http[s]?:\/\/vod\.pl\//)){
-                VOD.waitOnWrapper();
-            }
-            else if(location.href.match(/^http[s]?:\/\/www\.cda\.pl\//)){
-                CDA.waitOnWrapper();
+            else {
+                return Promise.resolve().then(setTimeout(checkVideoChange, ATTEMPT_TIMEOUT, oldSrc));
             }
         };
 
+        DownloadMedia.detectVideoChange = function(){
+            var src = window.location.href;
+            checkVideoChange(src);
+        };
+
         DownloadMedia.checkWrapperExist = function(attempt, properties, then) {
-            //console.log('check: ' + properties.isWrapperOnPage() + ', [' + attempt + ']');
-            if (properties.isWrapperOnPage() || attempt < 1) {
+            console.log('check: ' + properties.isWrapperOnPage() + ', [' + attempt + ']');
+            if (properties.isWrapperOnPage() || attempt == 0) {
                 return Promise.resolve().then(finalCheckStep(properties, then));
             } else {
-                attempt--;
+                attempt = (attempt > 0) ? attempt-1 : attempt;
                 return Promise.resolve().then(setTimeout(DownloadMedia.checkWrapperExist, ATTEMPT_TIMEOUT, attempt, properties, then));
             }
         };
