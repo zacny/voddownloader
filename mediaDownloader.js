@@ -13,7 +13,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      1.2.0
+// @version      1.2.1
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod
@@ -149,9 +149,7 @@
             prepareContentActions(w, content);
         };
 
-        Downloader.getVideoData = function(url, successAction, errorAction, w){
-            w = (w === undefined) ? window.open(): w;
-
+        var getVideoData = function(url, successAction, errorAction, w){
             $.ajax({
                 url: url,
                 method: 'GET',
@@ -211,6 +209,18 @@
             checkVideoChange(src);
         };
 
+        Downloader.grabVideoData = function(vod, urlTemplate, errorAction, w){
+            try {
+                var idn = vod.grabVideoIdAlgorithm();
+                var url = urlTemplate.replace(/\$idn/gi, idn); //replace: $idn
+                w = (w === undefined) ? window.open(): w;
+                getVideoData(url, vod.grabVideoFormats, errorAction, w);
+            }
+            catch(e){
+                Downloader.handleError(e, w);
+            }
+        };
+
         return Downloader;
     }(Downloader || {}));
 
@@ -251,7 +261,8 @@
                        'white-space: nowrap; font: bold 16px Arial, sans-serif; line-height: 24px; z-index: 100; padding: 0px 10px; border: none;'
             },
             clickAction: function(){
-                grabVideoId();
+                Downloader.grabVideoData(VOD, 'https://player-api.dreamlab.pl/?body[id]=$idn&body[jsonrpc]=2.0&body[method]=get_asset_detail&body[params][ID_Publikacji]=$idn' +
+                '&body[params][Service]=vod.onet.pl&content-type=application/jsonp&x-onet-app=player.front.onetapi.pl&callback=', VOD.tryDifferentUrl);
             }
         });
 
@@ -273,21 +284,12 @@
             return $('#player-wrapper').length > 0;
         };
 
-        var grabVideoId = function(){
-            var idn = grabVideoIdAlgorithm();
-            var url = 'https://player-api.dreamlab.pl/?body[id]='+idn+'&body[jsonrpc]=2.0&body[method]=get_asset_detail&body[params][ID_Publikacji]=' + idn +
-                '&body[params][Service]=vod.onet.pl&content-type=application/jsonp&x-onet-app=player.front.onetapi.pl&callback=';
-            Downloader.getVideoData(url, grabVideoFormats, tryDifferentUrl);
-        };
-
-        var tryDifferentUrl = function(){
-            var idn = grabVideoIdAlgorithm();
-            var url = 'https://qi.ckm.onetapi.pl/?body[id]=22D4B3BC014A3C200BCA14CDFF3AC018&body[jsonrpc]=2.0&body[method]=get_asset_detail&body[params][ID_Publikacji]=' + idn +
-                '&body[params][Service]=vod.onet.pl&content-type=application/jsonp&x-onet-app=player.front.onetapi.pl&_=1487536996333';
-            Downloader.getVideoData(url, grabVideoFormats);
+        VOD.tryDifferentUrl = function(w){
+            Downloader.grabVideoData(VOD, 'https://qi.ckm.onetapi.pl/?body[id]=$idn&body[jsonrpc]=2.0&body[method]=get_asset_detail&body[params][ID_Publikacji]=$idn' +
+                '&body[params][Service]=vod.onet.pl&content-type=application/jsonp&x-onet-app=player.front.onetapi.pl&_=1487536996333', undefined, w);
         }
 
-        var grabVideoFormats = function(data, w){
+        VOD.grabVideoFormats = function(data, w){
             var formats = [];
             if(data.result[0].formats.wideo.mp4 !== undefined && data.result[0].formats.wideo.mp4.length > 0){
                 $.each(data.result[0].formats.wideo.mp4, function( index, value ) {
@@ -304,7 +306,7 @@
             }
         };
 
-        var grabVideoIdAlgorithm = function(){
+        VOD.grabVideoIdAlgorithm = function(){
             try {
                 var id = $(".mvp").attr('id')
                 return id.match(/mvp:(.+)/)[1];
@@ -325,7 +327,7 @@
                        'white-space: nowrap; font: bold 16px Arial, sans-serif; line-height: 24px; z-index: 100; padding: 0px 10px; border: none;'
             },
             clickAction: function(){
-                grabVideoId();
+                Downloader.grabVideoData(VOD_IPLA, 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn');
             }
         });
 
@@ -333,7 +335,7 @@
             Downloader.checkWrapperExist(ATTEMPTS, properties);
         };
 
-        var grabVideoIdAlgorithm = function(){
+        VOD_IPLA.grabVideoIdAlgorithm = function(){
             try {
                 var script = $('script:last-child').text();
                 var match = script.match(/(window\.CP\.embedSetup\()(.*)\);/);
@@ -345,18 +347,7 @@
             }
         };
 
-        var grabVideoId = function(){
-            try {
-                var idn = grabVideoIdAlgorithm();
-                var url = 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=' + idn;
-                Downloader.getVideoData(url, grabVideoFormats);
-            }
-            catch(e){
-                Downloader.handleError(e);
-            }
-        };
-
-        var grabVideoFormats = function(data, w){
+        VOD_IPLA.grabVideoFormats = function(data, w){
             var formats = [];
             if(data.vod.copies != null){
                 $.each(data.vod.copies, function( index, value ) {
@@ -384,7 +375,7 @@
                 class: 'btn btn-primary'
             },
             clickAction: function(){
-                grabVideoId();
+                Downloader.grabVideoData(TVN, '/api/?platform=ConnectedTV&terminal=Panasonic&format=json&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=$idn');
             }
         });
 
@@ -392,18 +383,7 @@
             Downloader.checkWrapperExist(UNLIMITED_ATTEMPTS, properties, Downloader.detectVideoChange);
         };
 
-        var grabVideoId = function(){
-            try {
-                var idn = grabVideoIdAlgorithm();
-                var url = '/api/?platform=ConnectedTV&terminal=Panasonic&format=json&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=' + idn;
-                Downloader.getVideoData(url, grabVideoFormats);
-            }
-            catch(e) {
-                Downloader.handleError(e);
-            }
-        };
-
-        var grabVideoFormats = function(data, w){
+        TVN.grabVideoFormats = function(data, w){
             var formats = [];
             if(data.item !== undefined && data.item.videos.main.video_content !== undefined && data.item.videos.main.video_content.length > 0){
                 $.each(data.item.videos.main.video_content, function( index, value ) {
@@ -427,7 +407,7 @@
             }
         };
 
-        var grabVideoIdAlgorithm = function(){
+        TVN.grabVideoIdAlgorithm = function(){
             try {
                 var url = $('#quarticon-event-image').attr('src');
                 var dataParam = Downloader.getUrlParameter('data', url);
@@ -461,7 +441,7 @@
                 class: 'video-block__btn'
             },
             clickAction: function(){
-                grabVideoId();
+                Downloader.grabVideoData(TVP, 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn');
             }
         });
 
@@ -469,19 +449,17 @@
             Downloader.checkWrapperExist(ATTEMPTS, properties);
         };
 
-        var grabVideoId = function(){
+        TVP.grabVideoIdAlgorithm = function(){
             try {
                 var src = properties.getWrapper().attr('data-src');
-                var lastPartOfUrl = src.split("/").pop();
-                var url = 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=' + lastPartOfUrl;
-                Downloader.getVideoData(url, grabVideoFormats);
+                return src.split("/").pop();
             }
-            catch(e) {
-                Downloader.handleError(NO_ID_ERROR_MESSAGE);
+            catch(e){
+                throw NO_ID_ERROR_MESSAGE;
             }
-        };
+        }
 
-        var grabVideoFormats = function(data, w){
+        TVP.grabVideoFormats = function(data, w){
             var formats = [];
             if(data.status == 'OK' && data.formats !== undefined){
                 $.each(data.formats, function( index, value ) {
@@ -511,7 +489,7 @@
                        'font: bold 13px Montserrat, sans-serif; color: #000; background-color: #fff; cursor: pointer'
             },
             clickAction: function(){
-                grabVideoId();
+                Downloader.grabVideoData(IPLA, 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn');
             }
         });
 
@@ -523,7 +501,7 @@
             Downloader.checkWrapperExist(UNLIMITED_ATTEMPTS, properties, Downloader.detectVideoChange);
         };
 
-        var grabVideoFormats = function(data, w){
+        IPLA.grabVideoFormats = function(data, w){
             var formats = [];
             if(data.vod.copies != null){
                 $.each(data.vod.copies, function( index, value ) {
@@ -540,18 +518,7 @@
             }
         };
 
-        var grabVideoId = function(){
-            try {
-                var idn = grabVideoIdAlgorithm();
-                var url = 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=' + idn;
-                Downloader.getVideoData(url, grabVideoFormats);
-            }
-            catch(e){
-                Downloader.handleError(e);
-            }
-        };
-
-        var grabVideoIdAlgorithm = function(){
+        IPLA.grabVideoIdAlgorithm = function(){
             if(location.href.match(/[\a-z\d]{32}/) !== null){
                 return window.location.href.match(/[\a-z\d]{32}/)[0];
             }
