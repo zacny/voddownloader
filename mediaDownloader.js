@@ -13,7 +13,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      1.2.1
+// @version      1.2.2
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod
@@ -212,7 +212,7 @@
         Downloader.grabVideoData = function(vod, urlTemplate, errorAction, w){
             try {
                 var idn = vod.grabVideoIdAlgorithm();
-                var url = urlTemplate.replace(/\$idn/gi, idn); //replace: $idn
+                var url = urlTemplate.replace(/\$idn/g, idn); //replace: $idn
                 w = (w === undefined) ? window.open(): w;
                 getVideoData(url, vod.grabVideoFormats, errorAction, w);
             }
@@ -291,8 +291,9 @@
 
         VOD.grabVideoFormats = function(data, w){
             var formats = [];
-            if(data.result[0].formats.wideo.mp4 !== undefined && data.result[0].formats.wideo.mp4.length > 0){
-                $.each(data.result[0].formats.wideo.mp4, function( index, value ) {
+            var wideo = ((((data.result || new Array())[0] || {}).formats || {}).wideo || {});
+            if(wideo.mp4 && wideo.mp4.length > 0){
+                $.each(wideo.mp4, function( index, value ) {
                     formats.push({
                         quality: value.vertical_resolution,
                         bitrate: value.video_bitrate,
@@ -348,20 +349,7 @@
         };
 
         VOD_IPLA.grabVideoFormats = function(data, w){
-            var formats = [];
-            if(data.vod.copies != null){
-                $.each(data.vod.copies, function( index, value ) {
-                    formats.push({
-                        bitrate: value.bitrate,
-                        url: value.url,
-                        quality: value.quality_p
-                    });
-                });
-                Downloader.createDocument(w, data.vod.title, formats);
-            }
-            else {
-                Downloader.handleError(API_ERROR_MESSAGE, w);
-            }
+            IPLA.grabVideoFormats(data, w);
         };
 
         return VOD_IPLA;
@@ -385,8 +373,9 @@
 
         TVN.grabVideoFormats = function(data, w){
             var formats = [];
-            if(data.item !== undefined && data.item.videos.main.video_content !== undefined && data.item.videos.main.video_content.length > 0){
-                $.each(data.item.videos.main.video_content, function( index, value ) {
+            var video_content = (((data.item || {}).videos || {}).main || {}).video_content || {};
+            if(video_content && video_content.length > 0){
+                $.each(video_content, function( index, value ) {
                     var lastPartOfUrl = Downloader.deleteParametersFromUrl(value.url).split("/").pop();
                     var bitrate = lastPartOfUrl.match(/\d{2,}/g);
                     formats.push({
@@ -470,6 +459,9 @@
                         });
                     }
                 });
+            }
+
+            if(formats.length > 0){
                 Downloader.createDocument(w, data.title, formats);
             }
             else {
@@ -503,8 +495,9 @@
 
         IPLA.grabVideoFormats = function(data, w){
             var formats = [];
-            if(data.vod.copies != null){
-                $.each(data.vod.copies, function( index, value ) {
+            var vod = data.vod || {};
+            if(vod.copies && vod.copies.length > 0){
+                $.each(vod.copies, function( index, value ) {
                     formats.push({
                         bitrate: value.bitrate,
                         url: value.url,
