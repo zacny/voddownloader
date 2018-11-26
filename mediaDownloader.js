@@ -13,7 +13,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      1.3.3
+// @version      1.3.4
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod
@@ -200,6 +200,9 @@
                         openerButtonClick(body, par);
                     });
                 });
+                $('#copyTitle', body).click(function(){
+                    Tool.copyToClipboard($('#title', body).text());
+                })
             });
         };
 
@@ -207,20 +210,23 @@
             Tool.numberModeSort(data.formats);
 
             var content = prepareContentDiv();
-            $('<p>').text('Tytuł: ' + data.title).appendTo(content);
+            var titlePar = $('<p>');
+            $('<span>').text('Tytuł: ').appendTo(titlePar);
+            $('<span>').attr('id', 'title').text(data.title).appendTo(titlePar);
+            $('<input>').attr('id', 'copyTitle').attr('value', 'Kopiuj tytuł').attr('type', 'button')
+                    .attr('style', 'border: none; outline:none; margin: 2px 10px; padding: 4px 10px; background-color: #6cc; color: #000').appendTo(titlePar);
+            titlePar.appendTo(content);
             $.each(data.formats, function( index, value ) {
                 var par = $('<p>').attr('id', 'contentPar'+ index).text('Bitrate: ' + value.bitrate)
                 if(value.quality !== undefined){
                     par.append(", Jakość: " + value.quality);
                 }
-                par.append('<br/>').append('Link do materiału: ');
+                par.append('<br/>').append('Link do materiału:');
                 $('<input>').attr('value', 'Kopiuj').attr('type', 'button')
-                    .attr('style', 'border: none; outline:none; padding: 4px 10px; background-color: #ccc; color: #000').appendTo(par);
+                    .attr('style', 'border: none; outline:none; margin: 2px 10px; padding: 4px 10px; background-color: #ccc; color: #000').appendTo(par);
                 par.append('<br/>');
-                var link = $('<a>').attr('target', '_blank').attr('href', value.url).text(value.url)
-                if(index === 0){
-                    link.attr('style', 'color: #903');
-                }
+                var link = $('<a>').attr('target', '_blank').attr('href', value.url).text(value.url);
+                index === 0 ? link.attr('style', 'color: #903') : link.attr('style', 'color: #00c');
                 link.appendTo(par);
                 par.appendTo(content);
             });
