@@ -8,3 +8,4 @@ Download video files from:
 - player.pl
 - vod.tvp.pl
 - ipla.tv
+- cda.pl
