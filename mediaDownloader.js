@@ -2,7 +2,7 @@
 // @name         VOD Downloader
 // @namespace    https://bitbucket.org/fzawicki/mediadownloader/src/master/
 // @include      https://vod.tvp.pl/video/*
-// @include      https://www.ipla.tv/wideo/*
+// @include      https://www.ipla.tv/*
 // @include      https://player.pl/*
 // @include      https://www.cda.pl/*
 // @exclude      https://www.cda.pl/iframe/*
@@ -13,7 +13,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      1.3.0
+// @version      1.3.1
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod
@@ -506,7 +506,7 @@
     var IPLA = (function(IPLA) {
         var properties = Configurator.setup({
             wrapper: {
-                selector: 'div.player-wrapper:visible, div.promo-box:visible'
+                selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child'
             },
             button: {
                 style: 'position: absolute; top: 0px; left: 0px; z-index: 1; border: 0px; text-transform: uppercase; padding: 6px 10px; '+
