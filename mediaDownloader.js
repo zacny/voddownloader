@@ -13,7 +13,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      1.3.1
+// @version      1.3.2
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod
@@ -364,9 +364,15 @@
                 urlTemplates: ['https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn'],
                 idParser: function(){
                     try {
-                        var script = $('script:last-child').text();
-                        var match = script.match(/(window\.CP\.embedSetup\()(.*)\);/);
-                        var jsonObject = JSON.parse(match[2]);
+                        var jsonObject;
+                        $('script').get().some(function(item){
+                            var scriptText = item.text || '';
+                            var match = scriptText.match(/(window\.CP\.embedSetup\()(.*)\);/);
+                            if(match){
+                                jsonObject = JSON.parse(match[2]);
+                                return true;
+                            }
+                        });
                         return JSON.parse(jsonObject[0].media).result.mediaItem.id;
                     }
                     catch(e){
