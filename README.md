@@ -1,9 +1,9 @@
-This script is working with Tampermonkey plugin. 
-https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/
-https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
-https://addons.opera.com/en/extensions/details/tampermonkey-beta/
+This script is working with Tampermonkey plugin.
+- Firefox: https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/
+- Chrome: https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
+- Opera: https://addons.opera.com/en/extensions/details/tampermonkey-beta/
 
-Download video files from:
+Allows you to download files from:
 - vod.pl
 - player.pl
 - vod.tvp.pl
