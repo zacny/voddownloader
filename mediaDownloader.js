@@ -20,7 +20,7 @@
 //               https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod
 //               miniskrypt.blogspot.com,
 //               miniskrypt.hubaiitv.pl
-// @author       fab
+// @author       zacny
 // @grant        none
 // @run-at document-end
 // @require https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
