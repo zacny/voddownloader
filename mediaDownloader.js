@@ -2,6 +2,7 @@
 // @name         VOD Downloader
 // @namespace    https://bitbucket.org/fzawicki/mediadownloader/src/master/
 // @include      https://vod.tvp.pl/video/*
+// @include      https://cyfrowa.tvp.pl/video/*
 // @include      https://www.ipla.tv/*
 // @include      https://player.pl/*
 // @include      https://www.cda.pl/*
@@ -13,7 +14,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      1.3.4
+// @version      1.4.0
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod
@@ -100,7 +101,7 @@
                 }
             }
             else {
-                console.info("Nic mam nic do zrobienia");
+                console.info("Nie mam nic do zrobienia");
             }
         };
 
@@ -459,7 +460,7 @@
         return TVN;
     }(TVN || {}));
 
-    var TVP = (function(TVP) {
+    var VOD_TVP = (function(VOD_TVP) {
         var properties = Configurator.setup({
             wrapper: {
                 selector: '#JS-TVPlayer-Wrapper'
@@ -481,32 +482,71 @@
                     }
                 },
                 formatParser: function(data){
-                    var formats = [];
-                    if(data.status == 'OK' && data.formats !== undefined){
-                        $.each(data.formats, function( index, value ) {
-                            if(value.adaptive == false){
-                                formats.push({
-                                    bitrate: value.totalBitrate,
-                                    url: value.url
-                                });
-                            }
-                        });
-                    }
-
-                    return {
-                        title: data.title,
-                        formats: formats
-                    };
+                    return VOD_TVP.grabVideoFormats(data);
                 }
             }
         });
 
-        TVP.waitOnWrapper = function(){
+        VOD_TVP.grabVideoFormats = function(data){
+            var formats = [];
+            if(data.status == 'OK' && data.formats !== undefined){
+                $.each(data.formats, function( index, value ) {
+                    if(value.adaptive == false){
+                        formats.push({
+                            bitrate: value.totalBitrate,
+                            url: value.url
+                        });
+                    }
+                });
+            }
+
+            return {
+                title: data.title,
+                formats: formats
+            };
+        };
+
+        VOD_TVP.waitOnWrapper = function(){
             WrapperDetector.run(ATTEMPTS, properties);
         };
 
-        return TVP;
-    }(TVP || {}));
+        return VOD_TVP;
+    }(VOD_TVP || {}));
+
+    var CYF_TVP = (function(CYF_TVP) {
+        var properties = Configurator.setup({
+            wrapper: {
+                selector: 'div.playerContainerWrapper'
+            },
+            button: {
+                style: 'position:absolute; z-index: 1; text-transform: uppercase; width: auto; height: 30px; padding: 0px 15px; ' +
+                       'background-color: #4c92e3; color: #fff; border: 0px; font: 900 12px Lato, sans-serif; cursor: pointer; ' +
+                       'letter-spacing: 1.5px;',
+                class: 'video-block__btn'
+            },
+            grabber: {
+                urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
+                idParser: function(){
+                    try {
+                        var src = $('iframe#JS-TVPlayer').attr('src');
+                        return src.split("/").pop();
+                    }
+                    catch(e){
+                        throw NO_ID_ERROR_MESSAGE;
+                    }
+                },
+                formatParser: function(data){
+                    return VOD_TVP.grabVideoFormats(data);
+                }
+            }
+        });
+
+        CYF_TVP.waitOnWrapper = function(){
+            WrapperDetector.run(ATTEMPTS, properties);
+        };
+
+        return CYF_TVP;
+    }(CYF_TVP || {}));
 
     var IPLA = (function(IPLA) {
         var properties = Configurator.setup({
@@ -588,7 +628,8 @@
 
     var Starter = (function(Starter) {
         var matcher = [
-            {action: TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
+            {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
+            {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
             {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
             {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
             {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
