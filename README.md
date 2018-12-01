@@ -1,11 +1,10 @@
-This script is working with Tampermonkey plugin.
-- Firefox: https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/
-- Chrome: https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo
-- Opera: https://addons.opera.com/en/extensions/details/tampermonkey-beta/
+# voddownloader.user.js
+This script requires [Tampermonkey](https://tampermonkey.net/index.php ) plugin to work. Creates a button in top right corner of video, that you can use to download a content of it.
 
-Allows you to download files from:
+### Support for
 - vod.pl
 - player.pl
 - vod.tvp.pl
+- cyfrowa.tvp.pl
 - ipla.tv
 - cda.pl
