@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         VOD Downloader
+// @name         Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
 // @namespace    https://bitbucket.org/fzawicki/mediadownloader/src/master/
 // @include      https://vod.tvp.pl/video/*
 // @include      https://cyfrowa.tvp.pl/video/*
@@ -14,13 +14,12 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      1.4.0
+// @version      5.0.0
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
-//               https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod
 //               miniskrypt.blogspot.com,
 //               miniskrypt.hubaiitv.pl
-// @author       zacny
+// @author       Przmus, zacny
 // @grant        none
 // @run-at document-end
 // @require https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
