@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @namespace    https://bitbucket.org/fzawicki/mediadownloader/src/master/
+// @namespace    http://www.ipla.tv/
 // @include      https://vod.tvp.pl/video/*
 // @include      https://cyfrowa.tvp.pl/video/*
 // @include      https://www.ipla.tv/*
@@ -15,7 +15,7 @@
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
 // @version      5.0.0
-// @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa tylko z rozszerzeniem Tampermonkey.
+// @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
 //               miniskrypt.hubaiitv.pl
