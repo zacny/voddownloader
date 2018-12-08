@@ -14,7 +14,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      5.0.0
+// @version      5.0.1
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -30,11 +30,9 @@
 
     var $ = window.jQuery.noConflict(true);
 
-    var ATTEMPTS = 20;
-    var UNLIMITED_ATTEMPTS = -1;
+    var ATTEMPTS = 10;
     var ATTEMPT_TIMEOUT = 1500;
     var NO_ID_ERROR_MESSAGE = 'Nie udało się pobrać idetyfikatora.';
-    var API_ERROR_MESSAGE = 'Brak informacji o wybranym materiale.'
     var CALL_ERROR_MESSAGE = 'Błąd pobierania informacji o materiale.';
 
     var Configurator = (function(Configurator){
@@ -70,54 +68,50 @@
     }(Configurator || {}));
 
     var ChangeVideoDetector = (function(ChangeVideoDetector){
-        var onVideoChange = function(){
-            Starter.start();
-        };
-
-        var checkVideoChange = function(oldSrc) {
+        var checkVideoChange = function(oldSrc, videoChangeCallback) {
             var src = window.location.href;
             if(src !== undefined && oldSrc !== src){
-                return Promise.resolve().then(onVideoChange);
+                return Promise.resolve().then(videoChangeCallback);
             }
             else {
-                return Promise.resolve().then(setTimeout(checkVideoChange, ATTEMPT_TIMEOUT, oldSrc));
+                return Promise.resolve().then(setTimeout(checkVideoChange, ATTEMPT_TIMEOUT, oldSrc, videoChangeCallback));
             }
         };
 
-        ChangeVideoDetector.run = function(){
+        ChangeVideoDetector.run = function(videoChangeCallback){
             var src = window.location.href;
-            checkVideoChange(src);
+            checkVideoChange(src, videoChangeCallback);
         };
         return ChangeVideoDetector;
     }(ChangeVideoDetector || {}));
 
     var WrapperDetector = (function(WrapperDetector){
-        var onWrapperExist = function(properties, runChangeVideoDecetor){
+        var onWrapperExist = function(properties, videoChangeCallback){
             if(properties.wrapper.exist()) {
                 DomTamper.createButton(properties);
-                if(runChangeVideoDecetor){
-                    ChangeVideoDetector.run();
-                }
             }
             else {
                 console.info("Nie mam nic do zrobienia");
             }
         };
 
-        var checkWrapperExist = function(attempt, properties, runChangeVideoDecetor){
+        var checkWrapperExist = function(attempt, properties, videoChangeCallback){
             //console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
             if (properties.wrapper.exist() || attempt == 0) {
-                return Promise.resolve().then(onWrapperExist(properties, runChangeVideoDecetor));
+                return Promise.resolve().then(onWrapperExist(properties, videoChangeCallback));
             } else {
                 attempt = (attempt > 0) ? attempt-1 : attempt;
-                return Promise.resolve().then(setTimeout(checkWrapperExist, ATTEMPT_TIMEOUT, attempt, properties, runChangeVideoDecetor));
+                return Promise.resolve().then(setTimeout(checkWrapperExist, ATTEMPT_TIMEOUT, attempt, properties, videoChangeCallback));
             }
         };
 
-        WrapperDetector.run = function(attempt, properties, runChangeVideoDecetor = false) {
-            checkWrapperExist(attempt, properties, runChangeVideoDecetor);
+        WrapperDetector.run = function(properties, videoChangeCallback) {
+            checkWrapperExist(ATTEMPTS, properties, videoChangeCallback);
+            if(typeof videoChangeCallback === "function"){
+                ChangeVideoDetector.run(videoChangeCallback);
+            }
         };
-     return WrapperDetector;
+        return WrapperDetector;
     }(WrapperDetector || {}));
 
     var VideoGrabber = (function(VideoGrabber){
@@ -176,7 +170,7 @@
         DomTamper.createButton = function(properties){
             properties.wrapper.get().find('#'+properties.button.id).remove();
             var button = $('<input>').attr('id', properties.button.id).attr('type', 'button')
-                         .attr('style', properties.button.style).attr('value', 'Pobierz video').addClass(properties.button.class);
+                .attr('style', properties.button.style).attr('value', 'Pobierz video').addClass(properties.button.class);
             button.bind('click', properties.button.click);
             properties.wrapper.get().append(button);
         };
@@ -214,7 +208,7 @@
             $('<span>').text('Tytuł: ').appendTo(titlePar);
             $('<span>').attr('id', 'title').text(data.title).appendTo(titlePar);
             $('<input>').attr('id', 'copyTitle').attr('value', 'Kopiuj tytuł').attr('type', 'button')
-                    .attr('style', 'border: none; outline:none; margin: 2px 10px; padding: 4px 10px; background-color: #6cc; color: #000').appendTo(titlePar);
+                .attr('style', 'border: none; outline:none; margin: 2px 10px; padding: 4px 10px; background-color: #6cc; color: #000').appendTo(titlePar);
             titlePar.appendTo(content);
             $.each(data.formats, function( index, value ) {
                 var par = $('<p>').attr('id', 'contentPar'+ index).text('Bitrate: ' + value.bitrate)
@@ -248,7 +242,7 @@
 
         Tool.deleteParametersFromUrl = function(url){
             return decodeURIComponent(url.replace(/\?.*/,''));
-        }
+        };
 
         Tool.getUrlParameter = function(paramName, url){
             var results = new RegExp('[\?&]' + paramName + '=([^&#]*)').exec(url);
@@ -288,7 +282,7 @@
         });
 
         CDA.waitOnWrapper = function(){
-            WrapperDetector.run(ATTEMPTS, properties);
+            WrapperDetector.run(properties);
         };
 
         return CDA;
@@ -301,7 +295,7 @@
             },
             button: {
                 style: 'position: absolute; left: 0px; top: 0px; background-color: #2fd6ff; color: #000000; text-transform: uppercase;  cursor: pointer; ' +
-                       'white-space: nowrap; font: bold 16px Arial, sans-serif; line-height: 24px; z-index: 100; padding: 0px 10px; border: none;'
+                    'white-space: nowrap; font: bold 16px Arial, sans-serif; line-height: 24px; z-index: 100; padding: 0px 10px; border: none;'
             },
             grabber: {
                 urlTemplates: [
@@ -350,7 +344,7 @@
 
         VOD.waitOnWrapper = function(){
             if(isTopWindow() && !iplaSectionDetected()){
-                WrapperDetector.run(ATTEMPTS, properties);
+                WrapperDetector.run(properties);
             }
         };
 
@@ -364,7 +358,7 @@
             },
             button: {
                 style: 'position: absolute; left: 0px; top: 0px; background-color: #2fd6ff; color: #000000; text-transform: uppercase;  cursor: pointer; ' +
-                       'white-space: nowrap; font: bold 16px Arial, sans-serif; line-height: 24px; z-index: 100; padding: 0px 10px; border: none;'
+                    'white-space: nowrap; font: bold 16px Arial, sans-serif; line-height: 24px; z-index: 100; padding: 0px 10px; border: none;'
             },
             grabber: {
                 urlTemplates: ['https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn'],
@@ -385,7 +379,7 @@
         });
 
         VOD_IPLA.waitOnWrapper = function(){
-            WrapperDetector.run(ATTEMPTS, properties);
+            WrapperDetector.run(properties);
         };
 
         return VOD_IPLA;
@@ -453,7 +447,7 @@
         };
 
         TVN.waitOnWrapper = function(){
-            WrapperDetector.run(UNLIMITED_ATTEMPTS, properties, true);
+            WrapperDetector.run(properties, TVN.waitOnWrapper);
         };
 
         return TVN;
@@ -466,7 +460,7 @@
             },
             button: {
                 style: 'position:absolute; z-index: 1; text-transform: uppercase; margin-top: 0px !important; ' +
-                'width: auto !important; height: 30px !important; padding: 0px 15px',
+                    'width: auto !important; height: 30px !important; padding: 0px 15px',
                 class: 'video-block__btn'
             },
             grabber: {
@@ -506,7 +500,7 @@
         };
 
         VOD_TVP.waitOnWrapper = function(){
-            WrapperDetector.run(ATTEMPTS, properties);
+            WrapperDetector.run(properties);
         };
 
         return VOD_TVP;
@@ -519,8 +513,8 @@
             },
             button: {
                 style: 'position:absolute; z-index: 1; text-transform: uppercase; width: auto; height: 30px; padding: 0px 15px; ' +
-                       'background-color: #4c92e3; color: #fff; border: 0px; font: 900 12px Lato, sans-serif; cursor: pointer; ' +
-                       'letter-spacing: 1.5px;',
+                    'background-color: #4c92e3; color: #fff; border: 0px; font: 900 12px Lato, sans-serif; cursor: pointer; ' +
+                    'letter-spacing: 1.5px;',
                 class: 'video-block__btn'
             },
             grabber: {
@@ -541,7 +535,7 @@
         });
 
         CYF_TVP.waitOnWrapper = function(){
-            WrapperDetector.run(ATTEMPTS, properties);
+            WrapperDetector.run(properties);
         };
 
         return CYF_TVP;
@@ -554,7 +548,7 @@
             },
             button: {
                 style: 'position: absolute; top: 0px; left: 0px; z-index: 1; border: 0px; text-transform: uppercase; padding: 6px 10px; '+
-                       'font: bold 13px Montserrat, sans-serif; color: #000; background-color: #fff; cursor: pointer'
+                    'font: bold 13px Montserrat, sans-serif; color: #000; background-color: #fff; cursor: pointer'
             },
             grabber: {
                 urlTemplates: ['https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn'],
@@ -572,7 +566,7 @@
         });
 
         IPLA.waitOnWrapper = function(){
-            WrapperDetector.run(UNLIMITED_ATTEMPTS, properties, true);
+            WrapperDetector.run(properties, IPLA.waitOnWrapper);
         };
 
         IPLA.grabVideoFormats = function(data){
@@ -645,7 +639,7 @@
             });
         };
 
-       return Starter;
+        return Starter;
     }(Starter || {}));
 
     $(document).ready(function(){
