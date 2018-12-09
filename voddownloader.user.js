@@ -14,7 +14,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      5.0.2
+// @version      5.0.3
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -188,9 +188,25 @@
             properties.wrapper.get().append(button);
         };
 
-        var openerButtonClick = function(body, par){
-            par.find("input").toggleClass('link_copy_click');
+        var clearPreviousClick = function(body){
+            body.find('[id^=contentPar] > input').each(function(event){
+                $(this).removeClass('link_copy_click');
+            });
+            $('#copyTitle', body).removeClass('title_copy_click');
+        };
+
+        var videoLinkCopyButtonClick = function(body, par){
+            clearPreviousClick(body);
+
             Tool.copyToClipboard(par.find("a").text());
+            par.find("input").addClass('link_copy_click');
+        };
+
+        var titleCopyButtonClick = function(body){
+            clearPreviousClick(body);
+
+            Tool.copyToClipboard($('#title', body).text());
+            $('#copyTitle', body).addClass('title_copy_click');
         };
 
         var prepareContentActions = function(w, content){
@@ -201,11 +217,11 @@
                 body.find('[id^=contentPar]').each(function(event){
                     var par = $(this);
                     $(this).find("input").click(function(event){
-                        openerButtonClick(body, par);
+                        videoLinkCopyButtonClick(body, par);
                     });
                 });
                 $('#copyTitle', body).click(function(){
-                    Tool.copyToClipboard($('#title', body).text());
+                    titleCopyButtonClick(body);
                 })
             });
         };
