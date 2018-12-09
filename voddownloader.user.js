@@ -14,21 +14,25 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      5.0.1
+// @version      5.0.2
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
 //               miniskrypt.hubaiitv.pl
 // @author       Przmus, zacny
-// @grant        none
+// @grant        GM_getResourceText
+// @grant        GM_addStyle
 // @run-at document-end
 // @require https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+// @resource css https://raw.githubusercontent.com/zacny/voddownloader/master/voddownloader.css
 // ==/UserScript==
 
 (function vodDownloader() {
     'use strict';
 
     var $ = window.jQuery.noConflict(true);
+    var cssText = GM_getResourceText('css');
+    GM_addStyle(cssText);
 
     var ATTEMPTS = 10;
     var ATTEMPT_TIMEOUT = 1500;
@@ -155,16 +159,25 @@
     }(VideoGrabber || {}));
 
     var DomTamper = (function(DomTamper){
-        var prepareContentDiv = function(){
-            return $('<div>').attr('style', 'padding: 0px 15px; background-color: #ecf0f1; display:inline-block; border: 1px solid #999;');
+        var cssFileContent = cssText;
+
+        var injectStyle = function(w){
+            var style = $('<style>').text(cssFileContent);
+            $(w.document.head).append(style);
+        };
+
+        var prepareContent = function(w){
+            injectStyle(w);
+            return $('<div>').addClass('download_content');
         };
 
         DomTamper.handleError = function(message, w){
             if(w === undefined){
                 w = window.open();
             }
-            var par = $('<p>').attr('style', 'color: #903;').text(message);
-            $(w.document.body).append(prepareContentDiv().append(par));
+            injectStyle(w);
+            var par = $('<p>').addClass('download_error_message').text(message);
+            $(w.document.body).append(prepareContent(w).append(par));
         };
 
         DomTamper.createButton = function(properties){
@@ -176,10 +189,7 @@
         };
 
         var openerButtonClick = function(body, par){
-            body.find('[id^=contentPar] > input').each(function(){
-                $(this).css("background-color", "#ccc");
-            });
-            par.find("input").css("background-color", "#f90");
+            par.find("input").toggleClass('link_copy_click');
             Tool.copyToClipboard(par.find("a").text());
         };
 
@@ -189,7 +199,7 @@
 
             $(w.document).ready(function() {
                 body.find('[id^=contentPar]').each(function(event){
-                    var par = $(this)
+                    var par = $(this);
                     $(this).find("input").click(function(event){
                         openerButtonClick(body, par);
                     });
@@ -203,24 +213,24 @@
         DomTamper.createDocument = function(data, w){
             Tool.numberModeSort(data.formats);
 
-            var content = prepareContentDiv();
+            var content = prepareContent(w);
             var titlePar = $('<p>');
             $('<span>').text('Tytuł: ').appendTo(titlePar);
             $('<span>').attr('id', 'title').text(data.title).appendTo(titlePar);
             $('<input>').attr('id', 'copyTitle').attr('value', 'Kopiuj tytuł').attr('type', 'button')
-                .attr('style', 'border: none; outline:none; margin: 2px 10px; padding: 4px 10px; background-color: #6cc; color: #000').appendTo(titlePar);
+                .addClass('title_copy_button').appendTo(titlePar);
             titlePar.appendTo(content);
             $.each(data.formats, function( index, value ) {
-                var par = $('<p>').attr('id', 'contentPar'+ index).text('Bitrate: ' + value.bitrate)
+                var par = $('<p>').attr('id', 'contentPar'+ index).text('Bitrate: ' + value.bitrate);
                 if(value.quality !== undefined){
                     par.append(", Jakość: " + value.quality);
                 }
                 par.append('<br/>').append('Link do materiału:');
                 $('<input>').attr('value', 'Kopiuj').attr('type', 'button')
-                    .attr('style', 'border: none; outline:none; margin: 2px 10px; padding: 4px 10px; background-color: #ccc; color: #000').appendTo(par);
+                    .addClass('link_copy_button').appendTo(par);
                 par.append('<br/>');
                 var link = $('<a>').attr('target', '_blank').attr('href', value.url).text(value.url);
-                index === 0 ? link.attr('style', 'color: #903') : link.attr('style', 'color: #00c');
+                index === 0 ? link.addClass('best_quility_link_color') : link.addClass('link_color');
                 link.appendTo(par);
                 par.appendTo(content);
             });
@@ -267,7 +277,7 @@
                 selector: '#player'
             },
             button: {
-                style: 'position: absolute; left: 0px; top: 0px; padding: 6px 12px; z-index: 5001;',
+                class: 'cda_download_button',
                 click: function(){
                     var url = $("video.pb-video-player").attr('src');
                     if(url !== undefined){
@@ -294,8 +304,7 @@
                 selector: '#v_videoPlayer'
             },
             button: {
-                style: 'position: absolute; left: 0px; top: 0px; background-color: #2fd6ff; color: #000000; text-transform: uppercase;  cursor: pointer; ' +
-                    'white-space: nowrap; font: bold 16px Arial, sans-serif; line-height: 24px; z-index: 100; padding: 0px 10px; border: none;'
+                class: 'vod_download_button'
             },
             grabber: {
                 urlTemplates: [
@@ -357,8 +366,7 @@
                 selector: '#player-wrapper'
             },
             button: {
-                style: 'position: absolute; left: 0px; top: 0px; background-color: #2fd6ff; color: #000000; text-transform: uppercase;  cursor: pointer; ' +
-                    'white-space: nowrap; font: bold 16px Arial, sans-serif; line-height: 24px; z-index: 100; padding: 0px 10px; border: none;'
+                class: 'vod_ipla_downlaod_button'
             },
             grabber: {
                 urlTemplates: ['https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn'],
@@ -391,8 +399,7 @@
                 selector: '#player-container'
             },
             button: {
-                style: 'position:absolute; z-index: 100; font-size: 14px; padding: 12px 18px;',
-                class: 'btn btn-primary'
+                class: 'btn btn-primary tvn_download_button'
             },
             grabber: {
                 urlTemplates: ['/api/?platform=ConnectedTV&terminal=Panasonic&format=json&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=$idn'],
@@ -459,9 +466,7 @@
                 selector: '#JS-TVPlayer-Wrapper'
             },
             button: {
-                style: 'position:absolute; z-index: 1; text-transform: uppercase; margin-top: 0px !important; ' +
-                    'width: auto !important; height: 30px !important; padding: 0px 15px',
-                class: 'video-block__btn'
+                class: 'video-block__btn tvp_vod_downlaod_button'
             },
             grabber: {
                 urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
@@ -512,10 +517,7 @@
                 selector: 'div.playerContainerWrapper'
             },
             button: {
-                style: 'position:absolute; z-index: 1; text-transform: uppercase; width: auto; height: 30px; padding: 0px 15px; ' +
-                    'background-color: #4c92e3; color: #fff; border: 0px; font: 900 12px Lato, sans-serif; cursor: pointer; ' +
-                    'letter-spacing: 1.5px;',
-                class: 'video-block__btn'
+                class: 'video-block__btn tvp_cyf_downlaod_button'
             },
             grabber: {
                 urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
@@ -547,8 +549,7 @@
                 selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child'
             },
             button: {
-                style: 'position: absolute; top: 0px; left: 0px; z-index: 1; border: 0px; text-transform: uppercase; padding: 6px 10px; '+
-                    'font: bold 13px Montserrat, sans-serif; color: #000; background-color: #fff; cursor: pointer'
+                class: 'ipla_download_button'
             },
             grabber: {
                 urlTemplates: ['https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn'],
