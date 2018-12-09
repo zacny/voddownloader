@@ -604,14 +604,6 @@
             }
         };
 
-        var grabVideoIdAlgorithm = function(){
-            if(location.href.match(/[\a-z\d]{32}/) !== null){
-                return window.location.href.match(/[\a-z\d]{32}/)[0];
-            }
-
-            return grabVideoIdFromHtmlElement();
-        };
-
         var grabVideoIdFromHtmlElement = function(){
             try{
                 var frameSrc = $('app-commercial-wallpaper iframe:first-child').attr('src');
