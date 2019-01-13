@@ -14,7 +14,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      5.0.3
+// @version      5.0.4
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -37,7 +37,7 @@
     var ATTEMPTS = 10;
     var ATTEMPT_TIMEOUT = 1500;
     var NO_ID_ERROR_MESSAGE = 'Nie udało się pobrać idetyfikatora.';
-    var CALL_ERROR_MESSAGE = 'Błąd pobierania informacji o materiale.';
+    var CALL_ERROR_MESSAGE = 'Błąd pobierania informacji o materiale. Prawdopodobnie materiał jest zabezpieczony DRM. Ten skrypt służy tylko do pobierania darmowych, niezabezpieczonych materiałów. Prosimy nie zgłaszać problemów po wystąpieniu tego błędu.';
 
     var Configurator = (function(Configurator){
         Configurator.setup = function(properties){
