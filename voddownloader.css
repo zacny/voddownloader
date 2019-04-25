@@ -3,6 +3,7 @@ div.download_content {
   background-color: #ecf0f1;
   display:inline-block;
   border: 1px solid #999;
+  word-break: break-all;
 }
 
 .download_error_message {
