@@ -38,10 +38,12 @@ div.download_content {
 
 .link_color {
   color: #00c;
+  word-break: break-all;
 }
 
 .best_quility_link_color {
   color: #903;
+  word-break: break-all;
 }
 
 .cda_download_button {
