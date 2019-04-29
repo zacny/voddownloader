@@ -115,6 +115,19 @@ div.download_content {
   letter-spacing: 1.5px;
 }
 
+.tvp_downlaod_button {
+  position:absolute;
+  z-index: 1;
+  text-transform: uppercase;
+  width: auto;
+  height: 30px;
+  padding: 0px 15px;
+  background-color: #4c92e3;
+  color: #fff;
+  border: 0px;
+  cursor: pointer;
+}
+
 .ipla_download_button {
   position: absolute; 
   top: 0px;
@@ -127,4 +140,8 @@ div.download_content {
   color: #000;
   background-color: #fff;
   cursor: pointer;
+}
+
+.playerBox-x {
+  position: absolute;
 }

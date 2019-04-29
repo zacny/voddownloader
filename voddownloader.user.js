@@ -3,6 +3,8 @@
 // @namespace    http://www.ipla.tv/
 // @include      https://vod.tvp.pl/video/*
 // @include      https://cyfrowa.tvp.pl/video/*
+// @exclude      http://www.tvp.pl/sess/*
+// @include      http://www.tvp.pl/*
 // @include      https://www.ipla.tv/*
 // @include      https://player.pl/*
 // @include      https://www.cda.pl/*
@@ -14,7 +16,7 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      5.0.4
+// @version      5.0.5
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -559,6 +561,38 @@
         return CYF_TVP;
     }(CYF_TVP || {}));
 
+    var TVP = (function(TVP) {
+        var properties = Configurator.setup({
+            wrapper: {
+                selector: '#playerBoxContainer-x'
+            },
+            button: {
+                class: 'tvp_downlaod_button'
+            },
+            grabber: {
+                urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
+                idParser: function(){
+                    try {
+                        var src = $('input[name="recommended_url"]').val();
+                        return src.split("/").pop();
+                    }
+                    catch(e){
+                        throw NO_ID_ERROR_MESSAGE;
+                    }
+                },
+                formatParser: function(data){
+                    return VOD_TVP.grabVideoFormats(data);
+                }
+            }
+        });
+
+        TVP.waitOnWrapper = function(){
+            WrapperDetector.run(properties);
+        };
+
+        return TVP;
+    }(TVP || {}));
+
     var IPLA = (function(IPLA) {
         var properties = Configurator.setup({
             wrapper: {
@@ -632,6 +666,7 @@
         var matcher = [
             {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
             {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
+            {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
             {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
             {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
             {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
