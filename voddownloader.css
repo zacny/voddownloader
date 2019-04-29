@@ -137,6 +137,21 @@ div.download_content {
   left: 0px;
 }
 
+.tvp_reg_download_button {
+  position: absolute;
+  z-index: 2;
+  text-transform: uppercase;
+  margin-top: 0px !important;
+  width: auto !important;
+  height: 30px !important;
+  padding: 0px 15px;
+  color: #fff;
+  border: none;
+  background: #0053a0;
+  top: 0px;
+  left: 0px;
+}
+
 .ipla_download_button {
   position: absolute; 
   top: 0px;
@@ -151,6 +166,6 @@ div.download_content {
   cursor: pointer;
 }
 
-.playerBox-x {
+.playerBox-x, .js-video {
   position: relative;
 }
