@@ -5,6 +5,7 @@
 // @include      https://cyfrowa.tvp.pl/video/*
 // @exclude      http://www.tvp.pl/sess/*
 // @include      http://www.tvp.pl/*
+// @match        https://*.tvp.pl/*
 // @include      https://www.ipla.tv/*
 // @include      https://player.pl/*
 // @include      https://www.cda.pl/*
@@ -593,6 +594,37 @@
         return TVP;
     }(TVP || {}));
 
+    var TVP_REG = (function(TVP_REG) {
+        var properties = Configurator.setup({
+            wrapper: {
+                selector: 'div.js-video'
+            },
+            button: {
+                class: 'tvp_reg_download_button'
+            },
+            grabber: {
+                urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
+                idParser: function(){
+                    try {
+                        return $('div.js-video').attr('data-object-id');
+                    }
+                    catch(e){
+                        throw NO_ID_ERROR_MESSAGE;
+                    }
+                },
+                formatParser: function(data){
+                    return VOD_TVP.grabVideoFormats(data);
+                }
+            }
+        });
+
+        TVP_REG.waitOnWrapper = function(){
+            WrapperDetector.run(properties);
+        };
+
+        return TVP_REG;
+    }(TVP_REG || {}));
+
     var IPLA = (function(IPLA) {
         var properties = Configurator.setup({
             wrapper: {
@@ -667,6 +699,8 @@
             {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
             {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
             {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
+            {action: TVP_REG.waitOnWrapper,
+                pattern: /^https:\/\/(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw)\.tvp\.pl\//},
             {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
             {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
             {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
