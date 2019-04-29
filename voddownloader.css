@@ -116,16 +116,24 @@ div.download_content {
 }
 
 .tvp_downlaod_button {
-  position:absolute;
+  font-family: Arial,Helvetica,sans-serif;
+  -webkit-border-radius: 4px 0 0 4px;
+  -moz-border-radius: 4px 0 0 4px;
+  border-radius: 4px 0 0 4px;
   z-index: 1;
   text-transform: uppercase;
   width: auto;
-  height: 30px;
-  padding: 0px 15px;
   background-color: #4c92e3;
   color: #fff;
   border: 0px;
   cursor: pointer;
+  height: 32px;
+  padding: 0 31px;
+  line-height: 32px;
+  background: url(../v4/gfx/spr-bg.png) 0 0 repeat-x;
+  font-size: 14px;
+  text-decoration: none;
+  text-transform: uppercase;
 }
 
 .ipla_download_button {
