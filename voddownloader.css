@@ -166,6 +166,14 @@ div.download_content {
   cursor: pointer;
 }
 
+.wp_download_button {
+  position: absolute;
+  z-index: 2;
+  border: 0px;
+  padding: 5px 15px;
+  font-family: Poppins,sans-serif;
+}
+
 .playerBox-x, .js-video {
   position: relative;
 }

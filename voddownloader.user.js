@@ -17,7 +17,8 @@
 // @include      https://vod.pl/programy-tv/*
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
-// @version      5.1.0
+// @include      https://video.wp.pl/*
+// @version      5.2.0
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -694,6 +695,60 @@
         return IPLA;
     }(IPLA || {}));
 
+    var WP = (function(WP) {
+        var properties = Configurator.setup({
+            wrapper: {
+                selector: '#mainPlayer'
+            },
+            button: {
+                class: 'material__category wp_download_button'
+            },
+            grabber: {
+                urlTemplates: ['https://video.wp.pl/player/mid,$idn,embed.json'],
+                idParser: function(){
+                    try {
+                        var pageURL = window.location.href;
+                        var regexp = new RegExp('mid,(\\d+),cid');
+                        var match = regexp.exec(pageURL);
+                        return match[1];
+                    }
+                    catch(e){
+                        throw NO_ID_ERROR_MESSAGE;
+                    }
+                },
+                formatParser: function(data){
+                    return WP.grabVideoFormats(data);
+                }
+            }
+        });
+
+        WP.grabVideoFormats = function(data){
+            var formats = [];
+            var urls = (data.clip || {}).url || {};
+            if(urls && urls.length > 0){
+                $.each(urls, function( index, value ) {
+                    if(value.type === 'mp4@avc'){
+                        formats.push({
+                            bitrate: value.quality,
+                            url: 'http:' + value.url,
+                            quality: value.resolution
+                        });
+                    }
+                });
+            }
+            return {
+                title: data.clip.title,
+                formats: formats
+            }
+        };
+
+        WP.waitOnWrapper = function(){
+            WrapperDetector.run(properties, WP.waitOnWrapper);
+        };
+
+        return WP;
+    }(WP || {}));
+
     var Starter = (function(Starter) {
         var matcher = [
             {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
@@ -705,7 +760,8 @@
             {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
             {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
             {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
-            {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//}
+            {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
+            {action: WP.waitOnWrapper, patter: /^https:\/\/video\.wp\.pl\//}
         ];
 
         Starter.start = function() {
