@@ -18,7 +18,7 @@
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include      https://video.wp.pl/*
-// @version      5.2.1
+// @version      5.2.2
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -330,12 +330,10 @@
                 urlTemplates: [
                     'https://player-api.dreamlab.pl/?body[id]=$idn&body[jsonrpc]=2.0&body[method]=get_asset_detail&body[params][ID_Publikacji]=$idn' +
                     '&body[params][Service]=vod.onet.pl&content-type=application/jsonp&x-onet-app=player.front.onetapi.pl&callback=',
-                    'https://qi.ckm.onetapi.pl/?body[id]=$idn&body[jsonrpc]=2.0&body[method]=get_asset_detail&body[params][ID_Publikacji]=$idn' +
-                    '&body[params][Service]=vod.onet.pl&content-type=application/jsonp&x-onet-app=player.front.onetapi.pl&_=1487536996333'
                 ],
                 idParser: function(){
                     try {
-                        var id = $(".mvp").attr('id')
+                        var id = $(".mvp").attr('id');
                         return id.match(/mvp:(.+)/)[1];
                     }
                     catch(e){
@@ -346,8 +344,8 @@
                     var formats = [];
                     var wideo = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
                     var meta = ((data.result || new Array())[0] || {}).meta || {};
-                    if(wideo.mp4 && wideo.mp4.length > 0){
-                        $.each(wideo.mp4, function( index, value ) {
+                    if(wideo['mp4-uhd'] && wideo['mp4-uhd'].length > 0){
+                        $.each(wideo['mp4-uhd'], function( index, value ) {
                             formats.push({
                                 quality: value.vertical_resolution,
                                 bitrate: value.video_bitrate,
