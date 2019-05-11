@@ -18,7 +18,7 @@
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include      https://video.wp.pl/*
-// @version      5.2.2
+// @version      5.2.3
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -615,7 +615,8 @@
     var IPLA = (function(IPLA) {
         var properties = Configurator.setup({
             wrapper: {
-                selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child'
+                selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child,' +
+                    ' div.player-error-presentation:visible:first-child'
             },
             button: {
                 class: 'ipla_download_button'
@@ -627,7 +628,7 @@
                         return window.location.href.match(/[\a-z\d]{32}/)[0];
                     }
 
-                    return grabVideoIdFromHtmlElement();
+                    return grabVideoIdFromWatchingNowElement();
                 },
                 formatParser: function(data){
                     return IPLA.grabVideoFormats(data);
@@ -657,25 +658,25 @@
             }
         };
 
+        var grabVideoIdFromWatchingNowElement = function(){
+            try {
+                var href = $('div.vod-image-wrapper__overlay').closest('a').attr('href');
+                console.log(href);
+                return href.match(/[\a-z\d]{32}/)[0];
+            }
+            catch(e){
+                return grabVideoIdFromHtmlElement();
+            }
+        };
+
         var grabVideoIdFromHtmlElement = function(){
             try{
                 var frameSrc = $('app-commercial-wallpaper iframe:first-child').attr('src');
                 return Tool.getUrlParameter('vid', frameSrc);
             }
             catch(e){
-                return grabVideoIdFromUrl();
+                throw NO_ID_ERROR_MESSAGE;
             }
-        };
-
-        var grabVideoIdFromUrl = function(){
-            var pageURL = location.href.split("?")[0];
-            var pageURLTemp = pageURL.substring(0, pageURL.length - 3);
-            var lastSlash = pageURLTemp.lastIndexOf("/");
-            if (lastSlash > - 1) {
-                return pageURL.substring(lastSlash+1);
-            }
-
-            throw NO_ID_ERROR_MESSAGE;
         };
 
         return IPLA;
