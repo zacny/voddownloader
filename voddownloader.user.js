@@ -18,7 +18,7 @@
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include      https://video.wp.pl/*
-// @version      5.2.5
+// @version      5.2.6
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -41,6 +41,7 @@
     var ATTEMPTS = 10;
     var ATTEMPT_TIMEOUT = 1500;
     var NO_ID_ERROR_MESSAGE = 'Nie udało się pobrać idetyfikatora.';
+    var INVALID_JSON_STRUCTURE = 'Nie odnaleziono adresów do strumieni.';
     var CALL_ERROR_MESSAGE = 'Błąd pobierania informacji o materiale. Prawdopodobnie materiał jest zabezpieczony DRM. Ten skrypt służy tylko do pobierania darmowych, niezabezpieczonych materiałów. Prosimy nie zgłaszać problemów po wystąpieniu tego błędu.';
 
     var Configurator = (function(Configurator){
@@ -141,6 +142,9 @@
                 getVideoData(url, w).then(function(data){
                     try {
                         var formatData = vod.grabber.formatParser(data);
+                        if(formatData && formatData.formats.length == 0){
+                            throw INVALID_JSON_STRUCTURE;
+                        }
                         DomTamper.createDocument(formatData, w);
                     }
                     catch(e){
