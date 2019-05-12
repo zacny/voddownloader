@@ -10,7 +10,7 @@
 // @include      https://player.pl/*
 // @include      https://www.cda.pl/*
 // @exclude      https://www.cda.pl/iframe/*
-// @include      https://vod.pl/filmy/*
+// @include      https://vod.pl/filmy*
 // @include      https://vod.pl/programy-onetu/*
 // @include      https://vod.pl/da-vinci/*
 // @include      https://vod.pl/seriale/*
@@ -18,7 +18,7 @@
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include      https://video.wp.pl/*
-// @version      5.2.3
+// @version      5.2.4
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -342,10 +342,11 @@
                 },
                 formatParser: function(data){
                     var formats = [];
-                    var wideo = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
+                    var video = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
                     var meta = ((data.result || new Array())[0] || {}).meta || {};
-                    if(wideo['mp4-uhd'] && wideo['mp4-uhd'].length > 0){
-                        $.each(wideo['mp4-uhd'], function( index, value ) {
+                    var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
+                    if(videoData){
+                        $.each(videoData, function( index, value ) {
                             formats.push({
                                 quality: value.vertical_resolution,
                                 bitrate: value.video_bitrate,
