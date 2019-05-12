@@ -18,7 +18,7 @@
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include      https://video.wp.pl/*
-// @version      5.2.4
+// @version      5.2.5
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -470,7 +470,7 @@
     var VOD_TVP = (function(VOD_TVP) {
         var properties = Configurator.setup({
             wrapper: {
-                selector: '#JS-TVPlayer-Wrapper'
+                selector: 'div.playerContainer'
             },
             button: {
                 class: 'video-block__btn tvp_vod_downlaod_button'
