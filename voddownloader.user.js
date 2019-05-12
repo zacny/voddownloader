@@ -18,7 +18,7 @@
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include      https://video.wp.pl/*
-// @version      5.2.6
+// @version      5.2.7
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -483,7 +483,7 @@
                 urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
                 idParser: function(){
                     try {
-                        var src = properties.wrapper.get().attr('data-src');
+                        var src = properties.wrapper.get().attr('data-id');
                         return src.split("/").pop();
                     }
                     catch(e){
