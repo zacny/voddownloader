@@ -18,7 +18,7 @@
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include      https://video.wp.pl/*
-// @version      5.2.7
+// @version      5.2.8
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -428,6 +428,10 @@
                 urlTemplates: ['/api/?platform=ConnectedTV&terminal=Panasonic&format=json&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=$idn'],
                 idParser: function(){
                     var pageURL = $('.watching-now').closest('.embed-responsive').find('.embed-responsive-item').attr('href');
+                    if(!pageURL){
+                        pageURL = window.location.href;
+                    }
+
                     var lastComma = pageURL.lastIndexOf(",");
                     if (lastComma > - 1) {
                         return pageURL.substring(lastComma+1);
@@ -666,7 +670,6 @@
         var grabVideoIdFromWatchingNowElement = function(){
             try {
                 var href = $('div.vod-image-wrapper__overlay').closest('a').attr('href');
-                console.log(href);
                 return href.match(/[\a-z\d]{32}/)[0];
             }
             catch(e){
