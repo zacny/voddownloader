@@ -92,7 +92,7 @@ div.download_content {
 
 .tvp_vod_downlaod_button {
   position:absolute;
-  z-index: 250;
+  z-index: 350;
   text-transform: uppercase;
   margin-top: 0px !important;
   width: auto !important;
