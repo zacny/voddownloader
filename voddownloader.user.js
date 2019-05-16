@@ -18,7 +18,7 @@
 // @include      https://redir.atmcdn.pl/*
 // @include      https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include      https://video.wp.pl/*
-// @version      5.2.8
+// @version      5.2.9
 // @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //               Cześć kodu pochodzi z:
 //               miniskrypt.blogspot.com,
@@ -31,12 +31,8 @@
 // @resource css https://raw.githubusercontent.com/zacny/voddownloader/master/voddownloader.css
 // ==/UserScript==
 
-(function vodDownloader() {
+(function vodDownloader($) {
     'use strict';
-
-    var $ = window.jQuery.noConflict(true);
-    var cssText = GM_getResourceText('css');
-    GM_addStyle(cssText);
 
     var ATTEMPTS = 10;
     var ATTEMPT_TIMEOUT = 1500;
@@ -167,11 +163,9 @@
     }(VideoGrabber || {}));
 
     var DomTamper = (function(DomTamper){
-        var cssFileContent = cssText;
 
         var injectStyle = function(w){
-            var style = $('<style>').text(cssFileContent);
-            $(w.document.head).append(style);
+            $(w.document.head).append(GM_addStyle(GM_getResourceText('css')));
         };
 
         var prepareContent = function(w){
@@ -773,7 +767,8 @@
 
     $(document).ready(function(){
         console.info('jQuery: ' + $().jquery);
+        GM_addStyle(GM_getResourceText('css'));
         Starter.start();
     });
 
-})();
+}).bind(this)(jQuery);
