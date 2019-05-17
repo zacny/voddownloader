@@ -34,11 +34,15 @@
 (function vodDownloader($) {
     'use strict';
 
-    var ATTEMPTS = 10;
-    var ATTEMPT_TIMEOUT = 1500;
-    var NO_ID_ERROR_MESSAGE = 'Nie udało się pobrać idetyfikatora.';
-    var INVALID_JSON_STRUCTURE = 'Nie odnaleziono adresów do strumieni.';
-    var CALL_ERROR_MESSAGE = 'Błąd pobierania informacji o materiale. Prawdopodobnie materiał jest zabezpieczony DRM. Ten skrypt służy tylko do pobierania darmowych, niezabezpieczonych materiałów. Prosimy nie zgłaszać problemów po wystąpieniu tego błędu.';
+    var Const = {
+        ATTEMPTS: 10,
+        ATTEMPT_TIMEOUT: 1500,
+        VIDEO_ID_ERROR: 'Nie udało się odnaleźć idetyfikatora.',
+        API_STRUCTURE_ERROR: 'Nie odnaleziono adresów do strumieni.',
+        CALL_ERROR: 'Błąd pobierania informacji o materiale.',
+        DRM_ERROR: 'Materiał posiada DRM. ' +
+            'Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.'
+    };
 
     var Configurator = (function(Configurator){
         Configurator.setup = function(properties){
@@ -79,7 +83,9 @@
                 return Promise.resolve().then(videoChangeCallback);
             }
             else {
-                return Promise.resolve().then(setTimeout(checkVideoChange, ATTEMPT_TIMEOUT, oldSrc, videoChangeCallback));
+                return Promise.resolve().then(
+                    setTimeout(checkVideoChange, Const.ATTEMPT_TIMEOUT, oldSrc, videoChangeCallback)
+                );
             }
         };
 
@@ -106,12 +112,14 @@
                 return Promise.resolve().then(onWrapperExist(properties, videoChangeCallback));
             } else {
                 attempt = (attempt > 0) ? attempt-1 : attempt;
-                return Promise.resolve().then(setTimeout(checkWrapperExist, ATTEMPT_TIMEOUT, attempt, properties, videoChangeCallback));
+                return Promise.resolve().then(
+                    setTimeout(checkWrapperExist, Const.ATTEMPT_TIMEOUT, attempt, properties, videoChangeCallback)
+                );
             }
         };
 
         WrapperDetector.run = function(properties, videoChangeCallback) {
-            checkWrapperExist(ATTEMPTS, properties, videoChangeCallback);
+            checkWrapperExist(Const.ATTEMPTS, properties, videoChangeCallback);
             if(typeof videoChangeCallback === "function"){
                 ChangeVideoDetector.run(videoChangeCallback);
             }
@@ -139,7 +147,7 @@
                     try {
                         var formatData = vod.grabber.formatParser(data);
                         if(formatData && formatData.formats.length == 0){
-                            throw INVALID_JSON_STRUCTURE;
+                            throw Const.API_STRUCTURE_ERROR;
                         }
                         DomTamper.createDocument(formatData, w);
                     }
@@ -151,7 +159,7 @@
                         VideoGrabber.grabVideoData(vod, templateIndex+1, w);
                     }
                     else {
-                        DomTamper.handleError(CALL_ERROR_MESSAGE, w);
+                        DomTamper.handleError(Const.CALL_ERROR, w);
                     }
                 });
             }
@@ -303,7 +311,7 @@
                         w.location.href = url;
                     }
                     else {
-                        DomTamper.handleError(NO_ID_ERROR_MESSAGE, w);
+                        DomTamper.handleError(Const.VIDEO_ID_ERROR, w);
                     }
                 }
             }
@@ -335,7 +343,7 @@
                         return id.match(/mvp:(.+)/)[1];
                     }
                     catch(e){
-                        throw(NO_ID_ERROR_MESSAGE);
+                        throw(Const.VIDEO_ID_ERROR);
                     }
                 },
                 formatParser: function(data){
@@ -394,7 +402,7 @@
                         return JSON.parse(jsonObject[0].media).result.mediaItem.id;
                     }
                     catch(e){
-                        throw(NO_ID_ERROR_MESSAGE);
+                        throw(Const.VIDEO_ID_ERROR);
                     }
                 },
                 formatParser: function(data){
@@ -431,7 +439,7 @@
                         return pageURL.substring(lastComma+1);
                     }
 
-                    throw NO_ID_ERROR_MESSAGE;
+                    throw Const.VIDEO_ID_ERROR;
                 }
             }
         });
@@ -485,7 +493,7 @@
                         return src.split("/").pop();
                     }
                     catch(e){
-                        throw NO_ID_ERROR_MESSAGE;
+                        throw Const.VIDEO_ID_ERROR;
                     }
                 },
                 formatParser: function(data){
@@ -536,7 +544,7 @@
                         return src.split("/").pop();
                     }
                     catch(e){
-                        throw NO_ID_ERROR_MESSAGE;
+                        throw Const.VIDEO_ID_ERROR;
                     }
                 },
                 formatParser: function(data){
@@ -568,7 +576,7 @@
                         return src.split("/").pop();
                     }
                     catch(e){
-                        throw NO_ID_ERROR_MESSAGE;
+                        throw Const.VIDEO_ID_ERROR;
                     }
                 },
                 formatParser: function(data){
@@ -599,7 +607,7 @@
                         return $('div.js-video').attr('data-object-id');
                     }
                     catch(e){
-                        throw NO_ID_ERROR_MESSAGE;
+                        throw Const.VIDEO_ID_ERROR;
                     }
                 },
                 formatParser: function(data){
@@ -677,7 +685,7 @@
                 return Tool.getUrlParameter('vid', frameSrc);
             }
             catch(e){
-                throw NO_ID_ERROR_MESSAGE;
+                throw Const.VIDEO_ID_ERROR;
             }
         };
 
@@ -702,7 +710,7 @@
                         return match[1];
                     }
                     catch(e){
-                        throw NO_ID_ERROR_MESSAGE;
+                        throw Const.VIDEO_ID_ERROR;
                     }
                 },
                 formatParser: function(data){
