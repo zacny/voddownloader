@@ -6,7 +6,7 @@ var gulp = require('gulp'),
     header = require('gulp-header'),
     clean = require('gulp-clean'),
     server = require( 'gulp-develop-server'),
-    livereload = require( 'gulp-livereload' ),
+    livereload = require('gulp-livereload'),
     pkg = require('./package');
     fs = require('fs');
 
@@ -29,8 +29,16 @@ var config = {
             pkg.config.cssName,
             pkg.config.scriptName
         ]
-    }
+    },
+    developement: false
 };
+
+function detectDevelopmentFlag(cb){
+    if (process.argv.indexOf('--development') > -1) {
+        config.developement = true;
+    }
+    cb();
+}
 
 function cleanTmpFiles() {
     return gulp.src(config.tmp_dir + "/*", {read: false}).pipe(clean());
@@ -137,6 +145,7 @@ exports.clean.description = "clean temporary files";
 exports.server = startServer;
 exports.server.description = "run development server";
 exports.default = gulp.series(
+    detectDevelopmentFlag,
     cleanTmpFiles,
     gulp.parallel(utilPartAttach, sourcePartAttach, runPartAttach),
     joinScriptParts,

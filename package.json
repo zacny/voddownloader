@@ -24,6 +24,12 @@
     "type": "git",
     "url": "git+https://github.com/zacny/voddownloader.git"
   },
+  "scripts": {
+    "build": "gulp",
+    "dev": "gulp --development",
+    "server": "gulp server",
+    "clean": "gulp clean"
+  },
   "author": "zacny",
   "license": "MIT",
   "bugs": {
