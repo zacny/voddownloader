@@ -1,0 +1,33 @@
+// ==UserScript==
+// @name         Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @namespace    http://www.ipla.tv/
+// @include      https://vod.tvp.pl/video/*
+// @include      https://cyfrowa.tvp.pl/video/*
+// @exclude      http://www.tvp.pl/sess/*
+// @include      http://www.tvp.pl/*
+// @match        https://*.tvp.pl/*
+// @include      https://www.ipla.tv/*
+// @include      https://player.pl/*
+// @include      https://www.cda.pl/*
+// @exclude      https://www.cda.pl/iframe/*
+// @include      https://vod.pl/filmy*
+// @include      https://vod.pl/programy-onetu/*
+// @include      https://vod.pl/da-vinci/*
+// @include      https://vod.pl/seriale/*
+// @include      https://vod.pl/programy-tv/*
+// @include      https://redir.atmcdn.pl/*
+// @include      https://*.redcdn.pl/file/o2/redefine/partner/*
+// @include      https://video.wp.pl/*
+// @version      ${data.version}
+// @description  Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie tylko z rozszerzeniem Tampermonkey.
+//               Cześć kodu pochodzi z:
+//               miniskrypt.blogspot.com,
+//               miniskrypt.hubaiitv.pl
+// @author       Przmus, zacny
+// @grant        GM_getResourceText
+// @grant        GM_addStyle
+// @run-at       document-end
+// @require https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+// @resource css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
+// ==/UserScript==
+
