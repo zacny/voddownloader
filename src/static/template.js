@@ -1,6 +1,6 @@
 (function vodDownloader($) {
     'use strict';
 
-    //include
+    //@include@
 
 }).bind(this)(jQuery);

@@ -9,7 +9,7 @@ var WrapperDetector = (function(WrapperDetector){
     };
 
     var checkWrapperExist = function(attempt, properties){
-        //console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
+        console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
         if (properties.wrapper.exist() || attempt == 0) {
             return Promise.resolve().then(onWrapperExist(properties));
         } else {
