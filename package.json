@@ -8,13 +8,14 @@
     "gulp-cli": "^2.2.0"
   },
   "devDependencies": {
-    "del": "^4.1.1",
     "gulp-concat": "^2.6.1",
     "gulp-replace-task": "^0.11.0",
     "gulp-header": "^2.0.7",
     "gulp-clean": "^0.4.0",
     "gulp-order": "^1.2.0",
-    "gulp-rename": "^1.4.0"
+    "gulp-rename": "^1.4.0",
+    "gulp-develop-server": "^0.5.2",
+    "gulp-livereload": "^4.0.1"
   },
   "scripts": {
     "test": "test"
@@ -28,5 +29,15 @@
   "bugs": {
     "url": "https://github.com/zacny/voddownloader/issues"
   },
-  "homepage": "https://github.com/zacny/voddownloader#readme"
+  "homepage": "https://github.com/zacny/voddownloader#readme",
+  "config": {
+    "development" : {
+      "name": "voddownloader"
+    },
+    "production": {
+      "name": "Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD."
+    },
+    "scriptName": "voddownloader.user.js",
+    "cssName": "voddownloader.css"
+  }
 }
