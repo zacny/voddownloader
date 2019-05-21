@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @name         voddownloader
 // @namespace    http://www.ipla.tv/
 // @include      https://vod.tvp.pl/video/*
 // @include      https://cyfrowa.tvp.pl/video/*
