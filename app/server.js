@@ -8,7 +8,7 @@ var config = {
     cssPath: '/dist/' + pkg.config.cssName,
     scriptPath: '/dist/' + pkg.config.scriptName,
     prefix: '.',
-    port: 5011,
+    port: pkg.config.serverPort,
     cssFile: function(){
         return this.prefix + this.cssPath;
     },

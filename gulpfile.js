@@ -1,7 +1,8 @@
 var gulp = require('gulp'),
     order = require("gulp-order"),
     concat = require('gulp-concat'),
-    replace = require('gulp-replace-task'),
+    replace = require('gulp-replace'),
+    gulpif = require('gulp-if'),
     rename = require("gulp-rename"),
     header = require('gulp-header'),
     clean = require('gulp-clean'),
@@ -28,14 +29,15 @@ var config = {
             './app/server.js',
             pkg.config.cssName,
             pkg.config.scriptName
-        ]
+        ],
+        port: pkg.config.serverPort
     },
-    developement: false
+    production: true
 };
 
 function detectDevelopmentFlag(cb){
     if (process.argv.indexOf('--development') > -1) {
-        config.developement = true;
+        config.production = false;
     }
     cb();
 }
@@ -91,41 +93,37 @@ function joinCssFiles(){
         .pipe(gulp.dest(config.dist_dir));
 }
 
-function addTabulators(){
+function replaceContent(){
     return gulp.src(config.tmp_dir + '/content.js')
-        .pipe(replace({
-            patterns: [
-                {//linux
-                    match: /(?:\n)/g,
-                    replacement: '\n\t'
-                },
-                {//windows
-                    match: /(?:\r\n)/g,
-                    replacement: '\r\n\t'
-                }
-            ]
-        }))
+        .pipe(replace(/(?:\n)/g, '\n\t')) //linux eol
+        .pipe(replace(/(?:\r\n)/g, '\r\n\t')) //windows eol
+        .pipe(gulpif(config.production,
+            replace(/(?:.*debugger.*\n)/g, ''))) //remove whole lines with 'debugger'
+        .pipe(gulpif(config.production,
+            replace(/(?:.*console\.log\(.*\).*\n)/g, ''))) //remove whole lines with console.log(...)
         .pipe(gulp.dest(config.tmp_dir))
 }
 
-function fillTemplate() {
-    return gulp.src(config.static_dir + '/template.js')
-        .pipe(replace({
-            patterns: [
-                {
-                    match: '//include',
-                    replacement: fs.readFileSync(config.tmp_dir + '/content.js', 'utf8')
-                }
-            ],
-            usePrefix: false
-        }))
-        .pipe(gulp.dest(config.tmp_dir));
+function prepareHeaders(){
+    var headers = {};
+    var cssDevFile = pkg.config.development.resourcesHost + ':' + config.server.port +
+        '/' + config.dist_dir + '/' + config.css_name;
+    var cssProdFile = pkg.config.production.resourcesHost + '/' + config.dist_dir + '/' + config.css_name;
+
+    headers.name = config.production ? pkg.config.production.name : pkg.name;
+    headers.version = config.production ? pkg.version : pkg.version + '-develop';
+    headers.cssPath = config.production ? cssProdFile : cssDevFile;
+
+    return headers;
 }
 
-function addHeader(){
-    return gulp.src(config.tmp_dir + '/template.js')
+function fillTemplate() {
+    var contentFile = fs.readFileSync(config.tmp_dir + '/content.js', 'utf8');
+    var headerFile = fs.readFileSync(config.static_dir + '/header.txt', 'utf8');
+    return gulp.src(config.static_dir + '/template.js')
+        .pipe(replace(/\/\/@include@/, contentFile)) //fill match with content
         .pipe(rename(config.script_name))
-        .pipe(header(fs.readFileSync(config.static_dir + '/header.txt', 'utf8'), { data : pkg } ))
+        .pipe(header(headerFile, { data : prepareHeaders() } )) //add header
         .pipe(gulp.dest(config.dist_dir))
 }
 
@@ -150,7 +148,7 @@ exports.default = gulp.series(
     gulp.parallel(utilPartAttach, sourcePartAttach, runPartAttach),
     joinScriptParts,
     gulp.parallel(joinCssFiles,
-        gulp.series(addTabulators, fillTemplate, addHeader))
+        gulp.series(replaceContent, fillTemplate))
 );
 exports.default.description = "build project";
 exports.default.flags = {

@@ -13,7 +13,7 @@ var VideoGrabber = (function(VideoGrabber){
             var templates = vod.grabber.urlTemplates;
             var url = templates[templateIndex].replace(/\$idn/g, idn);
             w = (w === undefined) ? window.open(): w;
-            //console.log(url);
+            console.log(url);
             getVideoData(url, w).then(function(data){
                 try {
                     var formatData = vod.grabber.formatParser(data);

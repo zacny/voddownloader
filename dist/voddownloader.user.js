@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         voddownloader
+// @name         Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
 // @namespace    http://www.ipla.tv/
 // @include      https://vod.tvp.pl/video/*
 // @include      https://cyfrowa.tvp.pl/video/*
@@ -27,8 +27,8 @@
 // @grant        GM_getResourceText
 // @grant        GM_addStyle
 // @run-at       document-end
-// @require https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// @resource css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
+// @require      https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+// @resource     css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
 // ==/UserScript==
 
 (function vodDownloader($) {
@@ -186,7 +186,6 @@
 	            var templates = vod.grabber.urlTemplates;
 	            var url = templates[templateIndex].replace(/\$idn/g, idn);
 	            w = (w === undefined) ? window.open(): w;
-	            //console.log(url);
 	            getVideoData(url, w).then(function(data){
 	                try {
 	                    var formatData = vod.grabber.formatParser(data);
@@ -277,7 +276,6 @@
 	    };
 	
 	    var checkWrapperExist = function(attempt, properties){
-	        //console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
 	        if (properties.wrapper.exist() || attempt == 0) {
 	            return Promise.resolve().then(onWrapperExist(properties));
 	        } else {

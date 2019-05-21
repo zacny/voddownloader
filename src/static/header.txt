@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         ${data.config.development.name}
+// @name         ${data.name}
 // @namespace    http://www.ipla.tv/
 // @include      https://vod.tvp.pl/video/*
 // @include      https://cyfrowa.tvp.pl/video/*
@@ -27,7 +27,7 @@
 // @grant        GM_getResourceText
 // @grant        GM_addStyle
 // @run-at       document-end
-// @require https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// @resource css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
+// @require      https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+// @resource     css ${data.cssPath}
 // ==/UserScript==
 
