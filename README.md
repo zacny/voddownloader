@@ -1,16 +1,55 @@
-# voddownloader.user.js
+# voddownloader
 
-This script requires [Tampermonkey](https://tampermonkey.net/index.php ) plugin to work. Creates a button in top right corner of video, that you can use to download a content of it.
+This is a script for [Tampermonkey](https://tampermonkey.net/index.php ). 
+Creates a button in top right corner of video, that you can use to download a content of it.
 
-### Support for
-- vod.pl
-- player.pl
-- vod.tvp.pl
-- cyfrowa.tvp.pl
-- ipla.tv
-- cda.pl
+#### currently supported vod services
+- [vod.tvp.pl](https://vod.tvp.pl/)
+- [cyfrowa.tvp.pl](https://cyfrowa.tvp.pl)
+- [tvp.pl](http://www.tvp.pl)
+- [polish local tv](https://regiony.tvp.pl/)
+- [player.pl](https://player.pl/)
+- [cda.pl](https://www.cda.pl)
+- [vod.pl](https://vod.pl/)
+- [vod.pl - ipla bridge](https://vod.pl/cyfrowy-polsat-iplatv)
+- [ipla.tv](https://www.ipla.tv)
+- [video.wp.pl](https://video.wp.pl)
 
-### chat
-[![Join the chat at https://gitter.im/voddownloader/Lobby](https://badges.gitter.im/voddownloader/Lobby.svg)](https://gitter.im/voddownloader/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+## Installation
+
+If you have already [tampermonkey](https://tampermonkey.net/index.php ) installed. Just click [here](https://github.com/zacny/voddownloader/raw/master/dist/voddownloader.user.js). Tampermonkey should add this script to his library.
+
+## Development
+
+This script needs [node.js](https://nodejs.org/en/) and [gulp](https://gulpjs.com/).
+Gulp require node.js, so install [node.js](https://nodejs.org/en/download/) first.
+How to install gulp you can read on [gulp quick start page](https://gulpjs.com/docs/en/getting-started/quick-start).
+
+The next step is to install the required dependencies:
+```javascript
+npm install
+```
+Now run:
+```javascript
+npm-scripts-info
+```
+to see available commands
+```raw
+build:
+  Build project.
+dev:
+  Build project with some development features.
+start:
+  Run development server.
+clean:
+  Clean temporary files.
+```
+To build script use:
+```javascript
+npm run build
+```
+
+#### contact
 
 [slack channel](https://zacny.slack.com/messages/CEJJWS6HK)
+
