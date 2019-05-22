@@ -52,6 +52,5 @@ npm run build
 #### contact
 
 [slack channel](https://zacny.slack.com/messages/CEJJWS6HK)
-[script homepage](https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3
-%B3w-ze
--znanych-serwis%C3%B3w-vod/feedback)
+
+[script homepage](https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod/feedback)
