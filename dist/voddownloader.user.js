@@ -254,7 +254,7 @@
 	        }
 	        else {
 	            return Promise.resolve().then(
-	                setTimeout(checkVideoChange, Const.attempt_timeout, oldSrc, videoChangeCallback)
+	                setTimeout(checkVideoChange, CONST.attempt_timeout, oldSrc, videoChangeCallback)
 	            );
 	        }
 	    };
