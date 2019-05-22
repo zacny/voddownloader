@@ -8,6 +8,8 @@ var gulp = require('gulp'),
     clean = require('gulp-clean'),
     server = require( 'gulp-develop-server'),
     livereload = require('gulp-livereload'),
+    log = require('fancy-log'),
+    colors = require('colors/safe'),
     pkg = require('./package');
     fs = require('fs');
 
@@ -34,6 +36,45 @@ var config = {
     },
     production: true
 };
+
+const UNIT_SEP = String.fromCharCode(31);
+
+function padEnd(target, minLen = 15, padStr = ' ') {
+    if (typeof padEnd.cache !== 'object') padEnd.cache = {};
+
+    padStr = typeof padStr !== 'string' || padStr.length < 1 ? ' ' : padStr;
+    let padKey = target.length + UNIT_SEP + minLen + UNIT_SEP + padStr;
+
+    // read from cache
+    if (padKey in padEnd.cache) return target + padEnd.cache[padKey];
+
+    let finalPad = '';
+    let padLen = minLen - target.length;
+    for (let i = 0; i < padLen; i++)
+        finalPad += padStr;
+
+    // make cache
+    padEnd.cache[padKey] = finalPad;
+
+    return target + finalPad;
+}
+
+function extraHeaders() {
+    var headerData = pkg.config.headers;
+    let ret = [];
+    for (let field of Object.keys(headerData)) {
+        if (Array.isArray(headerData[field])) {
+            headerData[field].forEach(element => {
+                if (typeof element === 'string') {
+                    ret.push(`// @${padEnd(field)}${element}`);
+                }
+            })
+        } else if (typeof headerData[field] === 'string') {
+            ret.push(`// @${padEnd(field)}${headerData[field]}`);
+        }
+    }
+    return ret.join('\n')
+}
 
 function detectDevelopmentFlag(cb){
     if (process.argv.indexOf('--development') > -1) {
@@ -93,15 +134,37 @@ function joinCssFiles(){
         .pipe(gulp.dest(config.dist_dir));
 }
 
+//remove some expressions before release
+function replaceRegularExpressions() {
+    var regularExpressions = [
+        //remove whole lines with 'debugger'
+        {pattern: /(?:.*debugger.*\n)/g, replacement: '', counter: 0},
+        //remove whole lines with console.log(...)
+        {pattern: /(?:.*console\.log\(.*\).*\n)/g, replacement: '', counter: 0}
+    ];
+
+    var task = gulp.src(config.tmp_dir + '/content.js');
+    regularExpressions.forEach(function(element){
+        task = task.pipe(
+            gulpif(config.production, replace(element.pattern, function(match) {
+                element.counter++;
+                return element.replacement;
+            }))
+        );
+    });
+
+    return task.pipe(gulp.dest(config.tmp_dir)).on('end', function() {
+        regularExpressions.forEach(function(element){
+            log.info('Found: ' + colors.red(element.counter) + ' matches of pattern: ' + colors.blue(element.pattern));
+        });
+    });
+}
+
 function replaceContent(){
     return gulp.src(config.tmp_dir + '/content.js')
         .pipe(replace(/(?:\n)/g, '\n\t')) //linux eol
         .pipe(replace(/(?:\r\n)/g, '\r\n\t')) //windows eol
-        .pipe(gulpif(config.production,
-            replace(/(?:.*debugger.*\n)/g, ''))) //remove whole lines with 'debugger'
-        .pipe(gulpif(config.production,
-            replace(/(?:.*console\.log\(.*\).*\n)/g, ''))) //remove whole lines with console.log(...)
-        .pipe(gulp.dest(config.tmp_dir))
+        .pipe(gulp.dest(config.tmp_dir));
 }
 
 function prepareHeaders(){
@@ -121,9 +184,10 @@ function fillTemplate() {
     var contentFile = fs.readFileSync(config.tmp_dir + '/content.js', 'utf8');
     var headerFile = fs.readFileSync(config.static_dir + '/header.txt', 'utf8');
     return gulp.src(config.static_dir + '/template.js')
-        .pipe(replace(/\/\/@include@/, contentFile)) //fill match with content
+        .pipe(replace(/\/\/ @include@/, contentFile)) //fill template with script content
         .pipe(rename(config.script_name))
         .pipe(header(headerFile, { data : prepareHeaders() } )) //add header
+        .pipe(replace(/\/\/ @include@/, extraHeaders())) //fill extra headers from config file
         .pipe(gulp.dest(config.dist_dir))
 }
 
@@ -148,7 +212,7 @@ exports.default = gulp.series(
     gulp.parallel(utilPartAttach, sourcePartAttach, runPartAttach),
     joinScriptParts,
     gulp.parallel(joinCssFiles,
-        gulp.series(replaceContent, fillTemplate))
+        gulp.series(replaceContent, replaceRegularExpressions, fillTemplate))
 );
 exports.default.description = "build project";
 exports.default.flags = {

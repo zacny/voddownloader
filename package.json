@@ -10,14 +10,15 @@
   },
   "devDependencies": {
     "gulp-concat": "^2.6.1",
-    "gulp-replace": "^1.0.0",
     "gulp-if": "^2.0.2",
     "gulp-header": "^2.0.7",
     "gulp-clean": "^0.4.0",
     "gulp-order": "^1.2.0",
     "gulp-rename": "^1.4.0",
     "gulp-develop-server": "^0.5.2",
-    "gulp-livereload": "^4.0.1"
+    "gulp-livereload": "^4.0.1",
+    "fancy-log": "^1.3.3",
+    "colors": "^1.3.3"
   },
   "scripts": {
     "build": "gulp",
@@ -51,6 +52,38 @@
     },
     "scriptName": "voddownloader.user.js",
     "cssName": "voddownloader.css",
-    "serverPort": 5011
+    "serverPort": 5011,
+    "headers": {
+      "description": "Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.\n//                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.\n//                 Cześć kodu pochodzi z:\n//                 miniskrypt.blogspot.com,\n//                 miniskrypt.hubaiitv.pl",
+      "author": "Przmus, zacny",
+      "namespace": "http://www.ipla.tv/",
+      "match": "https://*.tvp.pl/*",
+      "include": [
+        "https://vod.tvp.pl/video/*",
+        "https://cyfrowa.tvp.pl/video/*",
+        "http://www.tvp.pl/*",
+        "https://www.ipla.tv/*",
+        "https://player.pl/*",
+        "https://www.cda.pl/*",
+        "https://vod.pl/filmy*",
+        "https://vod.pl/programy-onetu/*",
+        "https://vod.pl/da-vinci/*",
+        "https://vod.pl/seriale/*",
+        "https://vod.pl/programy-tv/*",
+        "https://redir.atmcdn.pl/*",
+        "https://*.redcdn.pl/file/o2/redefine/partner/*",
+        "https://video.wp.pl/*"
+      ],
+      "exclude": [
+        "http://www.tvp.pl/sess/*",
+        "https://www.cda.pl/iframe/*"
+      ],
+      "grant": [
+        "GM_getResourceText",
+        "GM_addStyle"
+      ],
+      "run-at": "document-end",
+      "require": "https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+    }
   }
 }
