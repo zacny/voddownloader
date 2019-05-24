@@ -55,7 +55,7 @@
     "cssName": "voddownloader.css",
     "serverPort": 5011,
     "headers": {
-      "description": "Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.\n//                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.\n//                 Cześć kodu pochodzi z:\n//                 miniskrypt.blogspot.com,\n//                 miniskrypt.hubaiitv.pl",
+      "description": "Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD. Działa poprawnie\n//                 tylko z rozszerzeniem Tampermonkey.\n//                 Cześć kodu pochodzi z:\n//                 miniskrypt.blogspot.com,\n//                 miniskrypt.hubaiitv.pl",
       "author": "Przmus, zacny",
       "namespace": "http://www.ipla.tv/",
       "match": "https://*.tvp.pl/*",
