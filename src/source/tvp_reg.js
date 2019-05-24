@@ -13,7 +13,7 @@ var TVP_REG = (function(TVP_REG) {
                     return $('div.js-video').attr('data-object-id');
                 }
                 catch(e){
-                    throw CONST.video_id_error;
+                    throw CONST.id_error;
                 }
             },
             formatParser: function(data){

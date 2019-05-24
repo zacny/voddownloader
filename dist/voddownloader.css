@@ -1,6 +1,6 @@
 /* download view */
 div.download_content {
-    padding: 0px 15px;
+    padding: 15px;
     background-color: #ecf0f1;
     display:inline-block;
     border: 1px solid #999;
@@ -97,7 +97,7 @@ div.download_content {
 
 .tvp_vod_downlaod_button {
     position:absolute;
-    z-index: 350;
+    z-index: 1001;
     text-transform: uppercase;
     margin-top: 0px !important;
     width: auto !important;

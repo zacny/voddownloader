@@ -9,13 +9,14 @@ var DomTamper = (function(DomTamper){
         return $('<div>').addClass('download_content');
     };
 
-    DomTamper.handleError = function(message, w){
+    DomTamper.handleError = function(exception, w, vod){
         if(w === undefined){
             w = window.open();
         }
         injectStyle(w);
-        var par = $('<p>').addClass('download_error_message').text(message);
-        $(w.document.body).append(prepareContent(w).append(par));
+        var div = $('<div>').addClass('download_error_message').text(exception.message);
+        vod.grabber.errorHandler(exception, div);
+        $(w.document.body).append(prepareContent(w).append(div));
     };
 
     DomTamper.createButton = function(properties){

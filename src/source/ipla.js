@@ -60,7 +60,7 @@ var IPLA = (function(IPLA) {
             return Tool.getUrlParameter('vid', frameSrc);
         }
         catch(e){
-            throw CONST.video_id_error;
+            throw CONST.id_error;
         }
     };
 

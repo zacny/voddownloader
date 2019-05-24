@@ -19,7 +19,7 @@ var TVN = (function(TVN) {
                     return pageURL.substring(lastComma+1);
                 }
 
-                throw CONST.video_id_error;
+                throw CONST.id_error;
             }
         }
     });

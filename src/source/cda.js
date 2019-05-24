@@ -6,17 +6,24 @@ var CDA = (function(CDA) {
         button: {
             class: 'cda_download_button',
             click: function(){
-                var url = $("video.pb-video-player").attr('src');
-                if(url !== undefined){
-                    var w = window.open();
-                    w.location.href = url;
-                }
-                else {
-                    DomTamper.handleError(CONST.video_id_error, w);
-                }
+                clickButton();
             }
         }
     });
+
+    var clickButton = function(){
+        var w = window.open();
+        try {
+            var url = $("video.pb-video-player").attr('src');
+            if (url !== undefined) {
+                w.location.href = url;
+            } else {
+                throw CONST.id_error;
+            }
+        }catch(e){
+            DomTamper.handleError(e, w, properties);
+        }
+    };
 
     CDA.waitOnWrapper = function(){
         WrapperDetector.run(properties);

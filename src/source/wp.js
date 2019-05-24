@@ -16,7 +16,7 @@ var WP = (function(WP) {
                     return match[1];
                 }
                 catch(e){
-                    throw CONST.video_id_error;
+                    throw CONST.id_error;
                 }
             },
             formatParser: function(data){

@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.3.2",
+  "version": "5.3.3",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -25,7 +25,7 @@
   "scripts": {
     "build": "gulp",
     "dev": "gulp --development",
-    "start": "http-server ./dist -c-1",
+    "start": "http-server -c-1 -p 5011",
     "clean": "gulp clean"
   },
   "scripts-info": {
@@ -46,7 +46,7 @@
   "homepage": "https://github.com/zacny/voddownloader#readme",
   "config": {
     "development": {
-      "resourcesHost": "http://localhost"
+      "resourcesHost": "http://localhost:5011"
     },
     "production": {
       "name": "Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.",
@@ -54,9 +54,8 @@
     },
     "scriptName": "voddownloader.user.js",
     "cssName": "voddownloader.css",
-    "serverPort": 5011,
     "headers": {
-      "description": "Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.\n//                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.\n//                 Cześć kodu pochodzi z:\n//                 miniskrypt.blogspot.com,\n//                 miniskrypt.hubaiitv.pl",
+      "description": "Skrypt służący do pobierania materiałów ze znanych serwisów VOD.\n//                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.\n//                 Cześć kodu pochodzi z:\n//                 miniskrypt.blogspot.com,\n//                 miniskrypt.hubaiitv.pl",
       "author": "Przmus, zacny",
       "namespace": "http://www.ipla.tv/",
       "match": "https://*.tvp.pl/*",
