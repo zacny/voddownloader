@@ -21,7 +21,8 @@ var Configurator = (function(Configurator){
             grabber: {
                 urlTemplates: [],
                 idParser: function(){return null},
-                formatParser: function(data){return {title: null, formats: new Array()}}
+                formatParser: function(data){return {title: null, formats: new Array()}},
+                errorHandler: function(exception, div){}
             }
         };
 

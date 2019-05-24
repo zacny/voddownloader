@@ -14,7 +14,7 @@ var CYF_TVP = (function(CYF_TVP) {
                     return src.split("/").pop();
                 }
                 catch(e){
-                    throw CONST.video_id_error;
+                    throw CONST.id_error;
                 }
             },
             formatParser: function(data){

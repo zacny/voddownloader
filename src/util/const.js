@@ -1,9 +1,9 @@
 var CONST = {
     attempts: 10,
     attempt_timeout: 1500,
-    video_id_error: 'Nie udało się odnaleźć idetyfikatora.',
-    api_structure_error: 'Nie odnaleziono adresów do strumieni.',
-    call_error: 'Błąd pobierania informacji o materiale.',
-    drm_error: 'Materiał posiada DRM. ' +
-        'Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.'
+    id_error: new Exception('Nie udało się odnaleźć idetyfikatora.', 'ID_ERROR'),
+    api_error: new Exception('Nie odnaleziono adresów do strumieni.', 'API_ERROR'),
+    call_error: new Exception('Błąd pobierania informacji o materiale.', 'CALL_ERROR'),
+    drm_error: new Exception('Materiał posiada DRM. ' +
+        'Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.', 'DRM_ERROR')
 };

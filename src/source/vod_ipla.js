@@ -15,7 +15,7 @@ var VOD_IPLA = (function(VOD_IPLA) {
                     return JSON.parse(jsonObject[0].media).result.mediaItem.id;
                 }
                 catch(e){
-                    throw(CONST.video_id_error);
+                    throw(CONST.id_error);
                 }
             },
             formatParser: function(data){

@@ -47,7 +47,7 @@
 
 .tvp_vod_downlaod_button {
     position:absolute;
-    z-index: 350;
+    z-index: 1001;
     text-transform: uppercase;
     margin-top: 0px !important;
     width: auto !important;

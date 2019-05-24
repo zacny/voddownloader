@@ -4,7 +4,7 @@ var VideoGrabber = (function(VideoGrabber){
         var templates = vod.grabber.urlTemplates;
         var url = templates[templateIndex].replace(/\$idn/g, idn);
 
-        console.log(url);
+        console.log("GET: " + url);
         return $.ajax({
             method: 'GET',
             dataType: 'json',
@@ -29,26 +29,26 @@ var VideoGrabber = (function(VideoGrabber){
                 try {
                     var formatData = vod.grabber.formatParser(data);
                     if(formatData && formatData.formats.length == 0){
-                        tryNextUrl(vod, templateIndex, w, CONST.api_structure_error);
+                        tryNextUrl(vod, templateIndex, w, CONST.api_error);
                     }
                     else {
                         DomTamper.createDocument(formatData, w);
                     }
                 }
                 catch(e){
-                    DomTamper.handleError(e, w);
+                    DomTamper.handleError(e, w, vod);
                 }
             }, function(data){
                 try {
                     tryNextUrl(vod, templateIndex, w, CONST.call_error);
                 }
                 catch(e){
-                    DomTamper.handleError(e, w);
+                    DomTamper.handleError(e, w, vod);
                 }
             });
         }
         catch(e){
-            DomTamper.handleError(e, w);
+            DomTamper.handleError(e, w, vod);
         }
     };
     return VideoGrabber;

@@ -90,7 +90,7 @@ function cleanTmpFiles() {
 function utilPartAttach() {
     return gulp.src(config.util_dir + '/*.js')
         .pipe(order([
-            'const.js', 'tool.js', 'domTamper.js', 'videoGrabber.js',
+            'exception.js', 'const.js', 'tool.js', 'domTamper.js', 'videoGrabber.js',
             'configurator.js', 'changeVideoDetector.js', 'wrapperDetector.js'
         ]))
         .pipe(concat('utils.js'))
@@ -140,7 +140,9 @@ function replaceRegularExpressions() {
         //remove whole lines with 'debugger'
         {pattern: /(?:.*debugger.*\n)/g, replacement: '', counter: 0},
         //remove whole lines with console.log(...)
-        {pattern: /(?:.*console\.log\(.*\).*\n)/g, replacement: '', counter: 0}
+        {pattern: /(?:.*console\.log\(.*\).*\n)/g, replacement: '', counter: 0},
+        //remove long comments /** **/
+        {pattern: /.*\/\*[\s\S]*?\*\/[\s]*\n/gm, replacement: '', counter: 0}
     ];
 
     var task = gulp.src(config.tmp_dir + '/content.js');
@@ -155,7 +157,9 @@ function replaceRegularExpressions() {
 
     return task.pipe(gulp.dest(config.tmp_dir)).on('end', function() {
         regularExpressions.forEach(function(element){
-            log.info('Found: ' + colors.red(element.counter) + ' matches of pattern: ' + colors.blue(element.pattern));
+            if(config.production) {
+                log.info('Found: ' + colors.red(element.counter) + ' matches of pattern: ' + colors.blue(element.pattern));
+            }
         });
     });
 }
@@ -169,8 +173,7 @@ function replaceContent(){
 
 function prepareHeaders(){
     var headers = {};
-    var cssDevFile = pkg.config.development.resourcesHost + ':' + config.server.port +
-        '/' + config.dist_dir + '/' + config.css_name;
+    var cssDevFile = pkg.config.development.resourcesHost + '/' + config.dist_dir + '/' + config.css_name;
     var cssProdFile = pkg.config.production.resourcesHost + '/' + config.dist_dir + '/' + config.css_name;
 
     headers.name = config.production ? pkg.config.production.name : pkg.name;
