@@ -20,12 +20,12 @@ var WP = (function(WP) {
                 }
             },
             formatParser: function(data){
-                return WP.grabVideoFormats(data);
+                return grabVideoFormats(data);
             }
         }
     });
 
-    WP.grabVideoFormats = function(data){
+    var grabVideoFormats = function(data){
         var formats = [];
         var urls = (data.clip || {}).url || {};
         if(urls && urls.length > 0){

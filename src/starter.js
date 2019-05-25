@@ -10,6 +10,7 @@ var Starter = (function(Starter) {
         {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
         {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
         {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
+        {action: APIVOD_TVP.parseJson, patter: /^https:\/\/apivod\.tvp\.pl\/tv\/video\//},
         {action: WP.waitOnWrapper, patter: /^https:\/\/video\.wp\.pl\//}
     ];
 

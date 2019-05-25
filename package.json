@@ -73,7 +73,8 @@
         "https://vod.pl/programy-tv/*",
         "https://redir.atmcdn.pl/*",
         "https://*.redcdn.pl/file/o2/redefine/partner/*",
-        "https://video.wp.pl/*"
+        "https://video.wp.pl/*",
+        "https://apivod.tvp.pl/*"
       ],
       "exclude": [
         "http://www.tvp.pl/sess/*",

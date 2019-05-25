@@ -15,7 +15,7 @@ var Configurator = (function(Configurator){
                 style: '',
                 class: '',
                 click: function(){
-                    VideoGrabber.grabVideoData(settings, 0);
+                    VideoGrabber.grabVideoDataAsync(settings, 0);
                 }
             },
             grabber: {

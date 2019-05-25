@@ -1,8 +1,6 @@
 var VideoGrabber = (function(VideoGrabber){
     var getVideoData = function(vod, templateIndex){
-        var idn = vod.grabber.idParser();
-        var templates = vod.grabber.urlTemplates;
-        var url = templates[templateIndex].replace(/\$idn/g, idn);
+        var url = getUrl(vod, templateIndex);
 
         console.log("GET: " + url);
         return $.ajax({
@@ -15,14 +13,32 @@ var VideoGrabber = (function(VideoGrabber){
     var tryNextUrl = function(vod, templateIndex, w, error){
         var templates = vod.grabber.urlTemplates;
         if(templates[templateIndex+1] !== undefined) {
-            VideoGrabber.grabVideoData(vod, templateIndex+1, w);
+            VideoGrabber.grabVideoDataAsync(vod, templateIndex+1, w);
         }
         else {
             throw error;
         }
     };
 
-    VideoGrabber.grabVideoData = function(vod, templateIndex, w){
+    var getUrl = function(vod,templateIndex) {
+        var idn = vod.grabber.idParser();
+        var templates = vod.grabber.urlTemplates;
+        return templates[templateIndex].replace(/\$idn/g, idn);
+    };
+
+    var getJson = function(vod, templateIndex){
+        var idn = vod.grabber.idParser();
+        var templates = vod.grabber.urlTemplates;
+        var url = templates[templateIndex].replace(/\$idn/g, idn);
+    };
+
+    VideoGrabber.grabVideoDataFromJson = function(vod, templateIndex, w){
+        w = (w === undefined) ? window.open(): w;
+        var url = getUrl(vod, templateIndex);
+        return DomTamper.createIframe(url, w);
+    };
+
+    VideoGrabber.grabVideoDataAsync = function(vod, templateIndex, w){
         try {
             w = (w === undefined) ? window.open(): w;
             getVideoData(vod, templateIndex).then(function(data){
@@ -36,19 +52,19 @@ var VideoGrabber = (function(VideoGrabber){
                     }
                 }
                 catch(e){
-                    DomTamper.handleError(e, w, vod);
+                    DomTamper.handleError(e, vod, w);
                 }
             }, function(data){
                 try {
                     tryNextUrl(vod, templateIndex, w, CONST.call_error);
                 }
                 catch(e){
-                    DomTamper.handleError(e, w, vod);
+                    DomTamper.handleError(e, vod, w);
                 }
             });
         }
         catch(e){
-            DomTamper.handleError(e, w, vod);
+            DomTamper.handleError(e, vod, w);
         }
     };
     return VideoGrabber;
