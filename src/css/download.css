@@ -44,3 +44,11 @@ div.download_content {
 .best_quility_link_color {
     color: #903;
 }
+
+iframe[seamless]{
+    border: 0px none transparent;
+    padding: 0px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}

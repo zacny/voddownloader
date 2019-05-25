@@ -9,7 +9,7 @@ var DomTamper = (function(DomTamper){
         return $('<div>').addClass('download_content');
     };
 
-    DomTamper.handleError = function(exception, w, vod){
+    DomTamper.handleError = function(exception, vod, w){
         if(w === undefined){
             w = window.open();
         }
@@ -63,6 +63,15 @@ var DomTamper = (function(DomTamper){
                 titleCopyButtonClick(body);
             })
         });
+    };
+
+    DomTamper.createIframe = function(url, w){
+        var body = $(w.document.body);
+        body.find('#api').remove();
+        injectStyle(w);
+        var iframe = $('<iframe/>').attr('id', 'api').attr('scrolling', 'no')
+            .attr('seamless', 'seamless').attr('src', url);
+        body.append(iframe);
     };
 
     DomTamper.createDocument = function(data, w){
