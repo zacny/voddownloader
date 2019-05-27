@@ -1,35 +1,20 @@
 var TVP_VIDEOINFO = (function(TVP_VIDEOINFO) {
     var properties = Configurator.setup({
         wrapper: 'body',
-        grabber: {
-            urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
-            idParser: function(){
-                try {
-                    var videoId = jsonContent.copy_of_object_id !== undefined ?
-                        jsonContent.copy_of_object_id :
-                        jsonContent.video_id;
-                    return videoId;
-                }
-                catch(e){
-                    DomTamper.handleError(e, properties, window);
-                }
-            },
-            formatParser: function(data){
-                return VOD_TVP.grabVideoFormats(data);
-            }
-        }
+        storageKey: 'voddownloader.tvp.videoid'
     });
-    var jsonContent = '';
 
     var getJsonContent = function(){
         var content = $(properties.wrapper).html();
-        jsonContent = JSON.parse(content);
+        return JSON.parse(content);
     };
 
     TVP_VIDEOINFO.parseJson = function() {
         try {
-            getJsonContent();
-            VideoGrabber.grabVideoDataAsync(properties, 0, window);
+            var json = getJsonContent();
+            var videoId = json.copy_of_object_id !== undefined ? json.copy_of_object_id : json.video_id;
+            console.log('videoId: ' + videoId);
+            StorageUtil.put(properties.storageKey, videoId, window);
         }
         catch(e){
             DomTamper.handleError(e, properties, window);

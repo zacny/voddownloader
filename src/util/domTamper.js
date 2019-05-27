@@ -71,18 +71,18 @@ var DomTamper = (function(DomTamper){
         });
     };
 
-    DomTamper.createIframe = function(url, w){
-        DomTamper.injectStyle(w, 'frame');
+    DomTamper.createIframe = function(vod, url, w){
+        DomTamper.injectStyle(w, 'css');
         var body = $(w.document.body);
         var iframe = $('<iframe/>').attr('id', 'api').attr('scrolling', 'no')
             .attr('seamless', 'seamless').attr('src', url);
         body.append(iframe);
-        iframe.hide();
-        setTimeout(function(){
-            var item = w.sessionStorage.getItem('voddownloader.tvp.videoid');
-            console.log('LocalStorage vidoeId: ' + item);
-            iframe.show();
-        }, 1000);
+        vod.grabber.storeCallback(w);
+        // setTimeout(function(){
+        //     var item = w.sessionStorage.getItem('voddownloader.tvp.videoid');
+        //     console.log('LocalStorage vidoeId: ' + item);
+        //     iframe.show();
+        // }, 1000);
     };
 
     DomTamper.createDocument = function(data, w){

@@ -22,7 +22,9 @@ var Configurator = (function(Configurator){
                 urlTemplates: [],
                 idParser: function(){return null},
                 formatParser: function(data){return {title: null, formats: new Array()}},
-                errorHandler: function(exception, div){}
+                errorHandler: function(exception, div){},
+                store: function(value, w){},
+                storeCallback: function(w){}
             }
         };
 

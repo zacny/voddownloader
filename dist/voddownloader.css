@@ -6,6 +6,7 @@ div.download_content {
     border: 1px solid #999;
     word-break: break-all;
     color: black;
+    margin: 10px;
 }
 
 .download_error_message {
@@ -44,6 +45,14 @@ div.download_content {
 
 .best_quility_link_color {
     color: #903;
+}
+iframe[seamless]{
+    border: 0px none transparent;
+    padding: 0px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    display: none;
 }
 /* common style for buttons */
 .playerBox-x, .js-video {
@@ -180,11 +189,4 @@ div.download_content {
     border: 0px;
     padding: 5px 15px;
     font-family: Poppins,sans-serif;
-}
-iframe[seamless]{
-    border: 0px none transparent;
-    padding: 0px;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
 }
