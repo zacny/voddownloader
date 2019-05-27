@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.3.3
+// @name           voddownloader
+// @version        5.3.3-develop
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -9,6 +9,7 @@
 // @author         Przmus, zacny
 // @namespace      http://www.ipla.tv/
 // @match          https://*.tvp.pl/*
+// @include        https://tvp.pl/pub/stat/
 // @include        https://vod.tvp.pl/video/*
 // @include        https://cyfrowa.tvp.pl/video/*
 // @include        http://www.tvp.pl/*
@@ -23,14 +24,14 @@
 // @include        https://redir.atmcdn.pl/*
 // @include        https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include        https://video.wp.pl/*
-// @include        https://apivod.tvp.pl/*
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
 // @grant          GM_addStyle
 // @run-at         document-end
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// @resource       css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
+// @resource       css http://localhost:5011/dist/voddownloader.css
+// @resource       frame http://localhost:5011/dist/voddownloaderframe.css
 // ==/UserScript==
 
 (function vodDownloader($) {
@@ -82,12 +83,17 @@
 	
 	var DomTamper = (function(DomTamper){
 	
-	    var injectStyle = function(w){
-	        $(w.document.head).append(GM_addStyle(GM_getResourceText('css')));
+	    DomTamper.injectStyle = function(w, name){
+	        var head = $(w.document.head);
+	        if(!head.find('style[name="' + name + '"]').length){
+	            var styleElement = $('<style>').attr('type', 'text/css')
+	                .attr('name', name).text((GM_getResourceText(name)));
+	            head.append(styleElement);
+	        }
 	    };
 	
 	    var prepareContent = function(w){
-	        injectStyle(w);
+	        DomTamper.injectStyle(w, 'css');
 	        return $('<div>').addClass('download_content');
 	    };
 	
@@ -95,10 +101,11 @@
 	        if(w === undefined){
 	            w = window.open();
 	        }
-	        injectStyle(w);
+	        DomTamper.injectStyle(w, 'css');
 	        var div = $('<div>').addClass('download_error_message').text(exception.message);
 	        vod.grabber.errorHandler(exception, div);
-	        $(w.document.body).append(prepareContent(w).append(div));
+	        var par = $('<p>').append(div);
+	        $(w.document.body).replaceWith(prepareContent(w).append(par));
 	    };
 	
 	    DomTamper.createButton = function(properties){
@@ -132,7 +139,7 @@
 	
 	    var prepareContentActions = function(w, content){
 	        var body = $(w.document.body);
-	        body.append(content);
+	        body.replaceWith(content);
 	
 	        $(w.document).ready(function() {
 	            body.find('[id^=contentPar]').each(function(event){
@@ -148,12 +155,19 @@
 	    };
 	
 	    DomTamper.createIframe = function(url, w){
+	        DomTamper.injectStyle(w, 'frame');
 	        var body = $(w.document.body);
-	        body.find('#api').remove();
-	        injectStyle(w);
 	        var iframe = $('<iframe/>').attr('id', 'api').attr('scrolling', 'no')
 	            .attr('seamless', 'seamless').attr('src', url);
 	        body.append(iframe);
+	        iframe.hide();
+	        setTimeout(function(){
+	            var item = w.sessionStorage.getItem('voddownloader.tvp.videoid');
+	            console.log(window);
+	            console.log(w);
+	            console.log('LocalStorage vidoeId: ' + item);
+	            iframe.show();
+	        }, 1000);
 	    };
 	
 	    DomTamper.createDocument = function(data, w){
@@ -188,9 +202,10 @@
 	}(DomTamper || {}));
 	
 	var VideoGrabber = (function(VideoGrabber){
-	    var getVideoData = function(vod, templateIndex){
-	        var url = getUrl(vod, templateIndex);
+	    var getVideoData = function(vod, templateIndex, w){
+	        var url = getUrl(vod, templateIndex, w);
 	
+	        console.log("GET: " + url);
 	        return $.ajax({
 	            method: 'GET',
 	            dataType: 'json',
@@ -208,28 +223,23 @@
 	        }
 	    };
 	
-	    var getUrl = function(vod,templateIndex) {
+	    var getUrl = function(vod,templateIndex, w) {
 	        var idn = vod.grabber.idParser();
+	        w.sessionStorage.setItem('voddownloader.tvp.videoid', idn);
 	        var templates = vod.grabber.urlTemplates;
 	        return templates[templateIndex].replace(/\$idn/g, idn);
 	    };
 	
-	    var getJson = function(vod, templateIndex){
-	        var idn = vod.grabber.idParser();
-	        var templates = vod.grabber.urlTemplates;
-	        var url = templates[templateIndex].replace(/\$idn/g, idn);
-	    };
-	
 	    VideoGrabber.grabVideoDataFromJson = function(vod, templateIndex, w){
 	        w = (w === undefined) ? window.open(): w;
-	        var url = getUrl(vod, templateIndex);
+	        var url = getUrl(vod, templateIndex, w);
 	        return DomTamper.createIframe(url, w);
 	    };
 	
 	    VideoGrabber.grabVideoDataAsync = function(vod, templateIndex, w){
 	        try {
 	            w = (w === undefined) ? window.open(): w;
-	            getVideoData(vod, templateIndex).then(function(data){
+	            getVideoData(vod, templateIndex, w).then(function(data){
 	                try {
 	                    var formatData = vod.grabber.formatParser(data);
 	                    if(formatData && formatData.formats.length == 0){
@@ -295,6 +305,7 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
+	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -305,6 +316,7 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
+	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };
@@ -322,6 +334,7 @@
 	    };
 	
 	    var checkWrapperExist = function(attempt, properties){
+	        console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
 	        if (properties.wrapper.exist() || attempt == 0) {
 	            return Promise.resolve().then(onWrapperExist(properties));
 	        } else {
@@ -353,7 +366,7 @@
 	            }
 	        },
 	        grabber: {
-	            urlTemplates: ['https://apivod.tvp.pl/tv/video/$idn'],
+	            urlTemplates: ['https://tvp.pl/pub/stat/videofileinfo?video_id=$idn'],
 	            idParser: function(){
 	                var src = properties.wrapper.get().attr('data-id');
 	                return src.split("/").pop();
@@ -795,59 +808,51 @@
 	    return CDA;
 	}(CDA || {}));
 	
-	var APIVOD_TVP = (function(APIVOD_TVP) {
+	var TVP_VIDEOINFO = (function(TVP_VIDEOINFO) {
 	    var properties = Configurator.setup({
-	        wrapper: 'pre.data, pre',
+	        wrapper: 'body',
 	        grabber: {
+	            urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
+	            idParser: function(){
+	                try {
+	                    var videoId = jsonContent.copy_of_object_id !== undefined ?
+	                        jsonContent.copy_of_object_id :
+	                        jsonContent.video_id;
+	                    return videoId;
+	                }
+	                catch(e){
+	                    DomTamper.handleError(e, properties, window);
+	                }
+	            },
 	            formatParser: function(data){
-	                return grabVideoFormats(data);
+	                return VOD_TVP.grabVideoFormats(data);
 	            }
 	        }
 	    });
+	    var jsonContent = '';
 	
-	    var grabVideoFormats = function(json){
-	        var formats = [];
-	        var data = ((json.data || new Array())[0] || {});
-	        if(json.success === 1 && data.formats !== undefined){
-	            $.each(data.formats, function( index, value ) {
-	                if(value.adaptive == false){
-	                    formats.push({
-	                        bitrate: value.totalBitrate,
-	                        url: value.url
-	                    });
-	                }
-	            });
-	        }
-	
-	        return {
-	            title: data.title,
-	            formats: formats
-	        };
+	    var getJsonContent = function(){
+	        var content = $(properties.wrapper).html();
+	        jsonContent = JSON.parse(content);
+	        console.log(jsonContent);
 	    };
 	
-	    APIVOD_TVP.parseJson = function() {
+	    TVP_VIDEOINFO.parseJson = function() {
 	        try {
-	            var content = $(properties.wrapper).html();
-	            var contentJson = JSON.parse(content);
-	            var formats = properties.grabber.formatParser(contentJson);
-	            if(formats && formats.formats.length > 0){
-	                $(window.document.body).html('');
-	                DomTamper.createDocument(formats, window);
-	            }
-	            else {
-	                throw CONST.api_error;
-	            }
+	            getJsonContent();
+	            VideoGrabber.grabVideoDataAsync(properties, 0, window);
 	        }
 	        catch(e){
 	            DomTamper.handleError(e, properties, window);
 	        }
 	    };
 	
-	    return APIVOD_TVP;
-	}(APIVOD_TVP || {}));
+	    return TVP_VIDEOINFO;
+	}(TVP_VIDEOINFO || {}));
 	
 	var Starter = (function(Starter) {
 	    var matcher = [
+	        {action: TVP_VIDEOINFO.parseJson, pattern: /^https:\/\/tvp\.pl\/pub\/stat\//},
 	        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
 	        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
 	        {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
@@ -858,7 +863,6 @@
 	        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
 	        {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
 	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
-	        {action: APIVOD_TVP.parseJson, patter: /^https:\/\/apivod\.tvp\.pl\/tv\/video\//},
 	        {action: WP.waitOnWrapper, patter: /^https:\/\/video\.wp\.pl\//}
 	    ];
 	
@@ -876,7 +880,7 @@
 	
 	$(document).ready(function(){
 	    console.info('jQuery: ' + $().jquery);
-	    GM_addStyle(GM_getResourceText('css'));
+	    DomTamper.injectStyle(window, 'css');
 	    Starter.start();
 	});
 

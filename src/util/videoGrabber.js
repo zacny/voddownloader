@@ -1,6 +1,6 @@
 var VideoGrabber = (function(VideoGrabber){
-    var getVideoData = function(vod, templateIndex){
-        var url = getUrl(vod, templateIndex);
+    var getVideoData = function(vod, templateIndex, w){
+        var url = getUrl(vod, templateIndex, w);
 
         console.log("GET: " + url);
         return $.ajax({
@@ -20,28 +20,23 @@ var VideoGrabber = (function(VideoGrabber){
         }
     };
 
-    var getUrl = function(vod,templateIndex) {
+    var getUrl = function(vod,templateIndex, w) {
         var idn = vod.grabber.idParser();
+        w.sessionStorage.setItem('voddownloader.tvp.videoid', idn);
         var templates = vod.grabber.urlTemplates;
         return templates[templateIndex].replace(/\$idn/g, idn);
     };
 
-    var getJson = function(vod, templateIndex){
-        var idn = vod.grabber.idParser();
-        var templates = vod.grabber.urlTemplates;
-        var url = templates[templateIndex].replace(/\$idn/g, idn);
-    };
-
     VideoGrabber.grabVideoDataFromJson = function(vod, templateIndex, w){
         w = (w === undefined) ? window.open(): w;
-        var url = getUrl(vod, templateIndex);
+        var url = getUrl(vod, templateIndex, w);
         return DomTamper.createIframe(url, w);
     };
 
     VideoGrabber.grabVideoDataAsync = function(vod, templateIndex, w){
         try {
             w = (w === undefined) ? window.open(): w;
-            getVideoData(vod, templateIndex).then(function(data){
+            getVideoData(vod, templateIndex, w).then(function(data){
                 try {
                     var formatData = vod.grabber.formatParser(data);
                     if(formatData && formatData.formats.length == 0){

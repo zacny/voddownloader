@@ -10,7 +10,7 @@ var VOD_TVP = (function(VOD_TVP) {
             }
         },
         grabber: {
-            urlTemplates: ['https://apivod.tvp.pl/tv/video/$idn'],
+            urlTemplates: ['https://tvp.pl/pub/stat/videofileinfo?video_id=$idn'],
             idParser: function(){
                 var src = properties.wrapper.get().attr('data-id');
                 return src.split("/").pop();

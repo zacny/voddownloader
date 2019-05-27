@@ -1,10 +1,11 @@
 /* download view */
 div.download_content {
-    padding: 15px;
+    padding: 0 15px;
     background-color: #ecf0f1;
     display:inline-block;
     border: 1px solid #999;
     word-break: break-all;
+    color: black;
 }
 
 .download_error_message {
@@ -43,14 +44,6 @@ div.download_content {
 
 .best_quility_link_color {
     color: #903;
-}
-
-iframe[seamless]{
-    border: 0px none transparent;
-    padding: 0px;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
 }
 /* common style for buttons */
 .playerBox-x, .js-video {
@@ -187,4 +180,11 @@ iframe[seamless]{
     border: 0px;
     padding: 5px 15px;
     font-family: Poppins,sans-serif;
+}
+iframe[seamless]{
+    border: 0px none transparent;
+    padding: 0px;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
 }

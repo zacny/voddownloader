@@ -1,5 +1,6 @@
 var Starter = (function(Starter) {
     var matcher = [
+        {action: TVP_VIDEOINFO.parseJson, pattern: /^https:\/\/tvp\.pl\/pub\/stat\//},
         {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
         {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
         {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
@@ -10,7 +11,6 @@ var Starter = (function(Starter) {
         {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
         {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
         {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
-        {action: APIVOD_TVP.parseJson, patter: /^https:\/\/apivod\.tvp\.pl\/tv\/video\//},
         {action: WP.waitOnWrapper, patter: /^https:\/\/video\.wp\.pl\//}
     ];
 
