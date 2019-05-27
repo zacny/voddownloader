@@ -22,7 +22,7 @@ var VideoGrabber = (function(VideoGrabber){
 
     var getUrl = function(vod,templateIndex, w) {
         var idn = vod.grabber.idParser();
-        w.sessionStorage.setItem('voddownloader.tvp.videoid', idn);
+        vod.grabber.store(idn, w);
         var templates = vod.grabber.urlTemplates;
         return templates[templateIndex].replace(/\$idn/g, idn);
     };
@@ -30,7 +30,10 @@ var VideoGrabber = (function(VideoGrabber){
     VideoGrabber.grabVideoDataFromJson = function(vod, templateIndex, w){
         w = (w === undefined) ? window.open(): w;
         var url = getUrl(vod, templateIndex, w);
-        return DomTamper.createIframe(url, w);
+        StorageUtil.waitUntil(vod.grabber.storageKey, w, function(){
+            VideoGrabber.grabVideoDataAsync(vod, 1, w);
+        });
+        return DomTamper.createIframe(vod, url, w);
     };
 
     VideoGrabber.grabVideoDataAsync = function(vod, templateIndex, w){

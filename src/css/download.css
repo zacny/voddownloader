@@ -6,6 +6,7 @@ div.download_content {
     border: 1px solid #999;
     word-break: break-all;
     color: black;
+    margin: 10px;
 }
 
 .download_error_message {

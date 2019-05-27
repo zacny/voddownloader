@@ -31,7 +31,6 @@
 // @run-at         document-end
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
 // @resource       css http://localhost:5011/dist/voddownloader.css
-// @resource       frame http://localhost:5011/dist/voddownloaderframe.css
 // ==/UserScript==
 
 (function vodDownloader($) {
@@ -154,20 +153,18 @@
 	        });
 	    };
 	
-	    DomTamper.createIframe = function(url, w){
-	        DomTamper.injectStyle(w, 'frame');
+	    DomTamper.createIframe = function(vod, url, w){
+	        DomTamper.injectStyle(w, 'css');
 	        var body = $(w.document.body);
 	        var iframe = $('<iframe/>').attr('id', 'api').attr('scrolling', 'no')
 	            .attr('seamless', 'seamless').attr('src', url);
 	        body.append(iframe);
-	        iframe.hide();
-	        setTimeout(function(){
-	            var item = w.sessionStorage.getItem('voddownloader.tvp.videoid');
-	            console.log(window);
-	            console.log(w);
-	            console.log('LocalStorage vidoeId: ' + item);
-	            iframe.show();
-	        }, 1000);
+	        vod.grabber.storeCallback(w);
+	        // setTimeout(function(){
+	        //     var item = w.sessionStorage.getItem('voddownloader.tvp.videoid');
+	        //     console.log('LocalStorage vidoeId: ' + item);
+	        //     iframe.show();
+	        // }, 1000);
 	    };
 	
 	    DomTamper.createDocument = function(data, w){
@@ -225,7 +222,7 @@
 	
 	    var getUrl = function(vod,templateIndex, w) {
 	        var idn = vod.grabber.idParser();
-	        w.sessionStorage.setItem('voddownloader.tvp.videoid', idn);
+	        vod.grabber.store(idn, w);
 	        var templates = vod.grabber.urlTemplates;
 	        return templates[templateIndex].replace(/\$idn/g, idn);
 	    };
@@ -233,7 +230,10 @@
 	    VideoGrabber.grabVideoDataFromJson = function(vod, templateIndex, w){
 	        w = (w === undefined) ? window.open(): w;
 	        var url = getUrl(vod, templateIndex, w);
-	        return DomTamper.createIframe(url, w);
+	        StorageUtil.waitUntil(vod.grabber.storageKey, w, function(){
+	            VideoGrabber.grabVideoDataAsync(vod, 1, w);
+	        });
+	        return DomTamper.createIframe(vod, url, w);
 	    };
 	
 	    VideoGrabber.grabVideoDataAsync = function(vod, templateIndex, w){
@@ -292,7 +292,9 @@
 	                urlTemplates: [],
 	                idParser: function(){return null},
 	                formatParser: function(data){return {title: null, formats: new Array()}},
-	                errorHandler: function(exception, div){}
+	                errorHandler: function(exception, div){},
+	                store: function(value, w){},
+	                storeCallback: function(w){}
 	            }
 	        };
 	
@@ -354,6 +356,32 @@
 	    return WrapperDetector;
 	}(WrapperDetector || {}));
 	
+	var StorageUtil = (function(StorageUtil) {
+	    var checkStorage = function(key, w, callback) {
+	        var value = w.localStorage.getItem(key);
+	        if(value !== undefined && value !== null){
+	            console.log('SessionStorage hit: [' + key + '=' + value + ']');
+	            w.localStorage.removeItem(key);
+	            return Promise.resolve().then(callback);
+	        }
+	        else {
+	            return Promise.resolve().then(
+	                setTimeout(checkStorage, 250, key, w, callback)
+	            );
+	        }
+	    };
+	
+	    StorageUtil.put = function(key, value, w) {
+	        w.localStorage.setItem(key, value);
+	    };
+	
+	    StorageUtil.waitUntil = function(key, w, callback){
+	        console.log('SesstionStorage init: [' + key + ']');
+	        checkStorage(key, w, callback);
+	    };
+	
+	    return StorageUtil;
+	}(StorageUtil || {}));
 	var VOD_TVP = (function(VOD_TVP) {
 	    var properties = Configurator.setup({
 	        wrapper: {
@@ -366,7 +394,11 @@
 	            }
 	        },
 	        grabber: {
-	            urlTemplates: ['https://tvp.pl/pub/stat/videofileinfo?video_id=$idn'],
+	            storageKey: 'voddownloader.tvp.videoid',
+	            urlTemplates: [
+	                'https://tvp.pl/pub/stat/videofileinfo?video_id=$idn',
+	                'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'
+	            ],
 	            idParser: function(){
 	                var src = properties.wrapper.get().attr('data-id');
 	                return src.split("/").pop();
@@ -811,36 +843,20 @@
 	var TVP_VIDEOINFO = (function(TVP_VIDEOINFO) {
 	    var properties = Configurator.setup({
 	        wrapper: 'body',
-	        grabber: {
-	            urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
-	            idParser: function(){
-	                try {
-	                    var videoId = jsonContent.copy_of_object_id !== undefined ?
-	                        jsonContent.copy_of_object_id :
-	                        jsonContent.video_id;
-	                    return videoId;
-	                }
-	                catch(e){
-	                    DomTamper.handleError(e, properties, window);
-	                }
-	            },
-	            formatParser: function(data){
-	                return VOD_TVP.grabVideoFormats(data);
-	            }
-	        }
+	        storageKey: 'voddownloader.tvp.videoid'
 	    });
-	    var jsonContent = '';
 	
 	    var getJsonContent = function(){
 	        var content = $(properties.wrapper).html();
-	        jsonContent = JSON.parse(content);
-	        console.log(jsonContent);
+	        return JSON.parse(content);
 	    };
 	
 	    TVP_VIDEOINFO.parseJson = function() {
 	        try {
-	            getJsonContent();
-	            VideoGrabber.grabVideoDataAsync(properties, 0, window);
+	            var json = getJsonContent();
+	            var videoId = json.copy_of_object_id !== undefined ? json.copy_of_object_id : json.video_id;
+	            console.log('videoId: ' + videoId);
+	            StorageUtil.put(properties.storageKey, videoId, window);
 	        }
 	        catch(e){
 	            DomTamper.handleError(e, properties, window);

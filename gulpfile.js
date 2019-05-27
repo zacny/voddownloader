@@ -4,7 +4,6 @@ var gulp = require('gulp'),
     replace = require('gulp-replace'),
     gulpif = require('gulp-if'),
     rename = require("gulp-rename"),
-    copy = require('gulp-copy'),
     header = require('gulp-header'),
     clean = require('gulp-clean'),
     server = require( 'gulp-develop-server'),
@@ -24,7 +23,6 @@ var config = {
     util_dir: 'src/util',
     script_name: pkg.config.scriptName,
     css_name: pkg.config.cssName,
-    css_frame_name: pkg.config.cssFrameName,
     production: true
 };
 
@@ -82,7 +80,7 @@ function utilPartAttach() {
     return gulp.src(config.util_dir + '/*.js')
         .pipe(order([
             'exception.js', 'const.js', 'tool.js', 'domTamper.js', 'videoGrabber.js',
-            'configurator.js', 'changeVideoDetector.js', 'wrapperDetector.js'
+            'configurator.js', 'changeVideoDetector.js', 'wrapperDetector.js', 'storage.js'
         ]))
         .pipe(concat('utils.js'))
         .pipe(gulp.dest(config.tmp_dir));
@@ -119,14 +117,9 @@ function joinScriptParts() {
 function joinCssFiles(){
     return gulp.src(config.css_dir + '/*.css')
         .pipe(order([
-            'download.css', "buttons.css", "sources.css"
+            'download.css', 'frame.css', 'buttons.css', 'sources.css'
         ]))
         .pipe(concat(config.css_name))
-        .pipe(gulp.dest(config.dist_dir));
-}
-
-function copyCssFile(){
-    return gulp.src(config.css_dir + '/voddownloaderframe.css')
         .pipe(gulp.dest(config.dist_dir));
 }
 
@@ -178,7 +171,6 @@ function prepareHeaders(){
     headers.name = config.production ? pkg.config.production.name : pkg.name;
     headers.version = config.production ? pkg.version : pkg.version + '-develop';
     headers.cssPath = getCssPath(config.css_name);
-    headers.cssFramePath = getCssPath(config.css_frame_name);
 
     return headers;
 }
@@ -214,8 +206,7 @@ exports.default = gulp.series(
     cleanTmpFiles,
     gulp.parallel(utilPartAttach, sourcePartAttach, runPartAttach),
     joinScriptParts,
-    gulp.parallel(
-        gulp.series(joinCssFiles, copyCssFile),
+    gulp.parallel(joinCssFiles,
         gulp.series(replaceContent, replaceRegularExpressions, fillTemplate)
     )
 );

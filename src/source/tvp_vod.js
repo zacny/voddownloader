@@ -10,7 +10,11 @@ var VOD_TVP = (function(VOD_TVP) {
             }
         },
         grabber: {
-            urlTemplates: ['https://tvp.pl/pub/stat/videofileinfo?video_id=$idn'],
+            storageKey: 'voddownloader.tvp.videoid',
+            urlTemplates: [
+                'https://tvp.pl/pub/stat/videofileinfo?video_id=$idn',
+                'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'
+            ],
             idParser: function(){
                 var src = properties.wrapper.get().attr('data-id');
                 return src.split("/").pop();
