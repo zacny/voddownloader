@@ -1,11 +1,16 @@
 var DomTamper = (function(DomTamper){
 
-    var injectStyle = function(w){
-        $(w.document.head).append(GM_addStyle(GM_getResourceText('css')));
+    DomTamper.injectStyle = function(w, name){
+        var head = $(w.document.head);
+        if(!head.find('style[name="' + name + '"]').length){
+            var styleElement = $('<style>').attr('type', 'text/css')
+                .attr('name', name).text((GM_getResourceText(name)));
+            head.append(styleElement);
+        }
     };
 
     var prepareContent = function(w){
-        injectStyle(w);
+        DomTamper.injectStyle(w, 'css');
         return $('<div>').addClass('download_content');
     };
 
@@ -13,10 +18,11 @@ var DomTamper = (function(DomTamper){
         if(w === undefined){
             w = window.open();
         }
-        injectStyle(w);
+        DomTamper.injectStyle(w, 'css');
         var div = $('<div>').addClass('download_error_message').text(exception.message);
         vod.grabber.errorHandler(exception, div);
-        $(w.document.body).append(prepareContent(w).append(div));
+        var par = $('<p>').append(div);
+        $(w.document.body).replaceWith(prepareContent(w).append(par));
     };
 
     DomTamper.createButton = function(properties){
@@ -50,7 +56,7 @@ var DomTamper = (function(DomTamper){
 
     var prepareContentActions = function(w, content){
         var body = $(w.document.body);
-        body.append(content);
+        body.replaceWith(content);
 
         $(w.document).ready(function() {
             body.find('[id^=contentPar]').each(function(event){
@@ -66,12 +72,17 @@ var DomTamper = (function(DomTamper){
     };
 
     DomTamper.createIframe = function(url, w){
+        DomTamper.injectStyle(w, 'frame');
         var body = $(w.document.body);
-        body.find('#api').remove();
-        injectStyle(w);
         var iframe = $('<iframe/>').attr('id', 'api').attr('scrolling', 'no')
             .attr('seamless', 'seamless').attr('src', url);
         body.append(iframe);
+        iframe.hide();
+        setTimeout(function(){
+            var item = w.sessionStorage.getItem('voddownloader.tvp.videoid');
+            console.log('LocalStorage vidoeId: ' + item);
+            iframe.show();
+        }, 1000);
     };
 
     DomTamper.createDocument = function(data, w){

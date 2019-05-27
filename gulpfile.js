@@ -4,6 +4,7 @@ var gulp = require('gulp'),
     replace = require('gulp-replace'),
     gulpif = require('gulp-if'),
     rename = require("gulp-rename"),
+    copy = require('gulp-copy'),
     header = require('gulp-header'),
     clean = require('gulp-clean'),
     server = require( 'gulp-develop-server'),
@@ -23,17 +24,7 @@ var config = {
     util_dir: 'src/util',
     script_name: pkg.config.scriptName,
     css_name: pkg.config.cssName,
-    server: {
-        options: {
-            path: './app/server.js'
-        },
-        files: [
-            './app/server.js',
-            pkg.config.cssName,
-            pkg.config.scriptName
-        ],
-        port: pkg.config.serverPort
-    },
+    css_frame_name: pkg.config.cssFrameName,
     production: true
 };
 
@@ -134,6 +125,11 @@ function joinCssFiles(){
         .pipe(gulp.dest(config.dist_dir));
 }
 
+function copyCssFile(){
+    return gulp.src(config.css_dir + '/voddownloaderframe.css')
+        .pipe(gulp.dest(config.dist_dir));
+}
+
 //remove some expressions before release
 function replaceRegularExpressions() {
     var regularExpressions = [
@@ -171,14 +167,18 @@ function replaceContent(){
         .pipe(gulp.dest(config.tmp_dir));
 }
 
+function getCssPath(fileName){
+    return (config.production ? pkg.config.production.resourcesHost : pkg.config.development.resourcesHost)
+        + '/' + config.dist_dir + '/' + fileName;
+}
+
 function prepareHeaders(){
     var headers = {};
-    var cssDevFile = pkg.config.development.resourcesHost + '/' + config.dist_dir + '/' + config.css_name;
-    var cssProdFile = pkg.config.production.resourcesHost + '/' + config.dist_dir + '/' + config.css_name;
 
     headers.name = config.production ? pkg.config.production.name : pkg.name;
     headers.version = config.production ? pkg.version : pkg.version + '-develop';
-    headers.cssPath = config.production ? cssProdFile : cssDevFile;
+    headers.cssPath = getCssPath(config.css_name);
+    headers.cssFramePath = getCssPath(config.css_frame_name);
 
     return headers;
 }
@@ -214,8 +214,10 @@ exports.default = gulp.series(
     cleanTmpFiles,
     gulp.parallel(utilPartAttach, sourcePartAttach, runPartAttach),
     joinScriptParts,
-    gulp.parallel(joinCssFiles,
-        gulp.series(replaceContent, replaceRegularExpressions, fillTemplate))
+    gulp.parallel(
+        gulp.series(joinCssFiles, copyCssFile),
+        gulp.series(replaceContent, replaceRegularExpressions, fillTemplate)
+    )
 );
 exports.default.description = "build project";
 exports.default.flags = {

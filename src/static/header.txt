@@ -3,5 +3,6 @@
 // @version        ${data.version}
 // @include@
 // @resource       css ${data.cssPath}
+// @resource       frame ${data.cssFramePath}
 // ==/UserScript==
 
