@@ -9,7 +9,7 @@ var WrapperDetector = (function(WrapperDetector){
     };
 
     var checkWrapperExist = function(attempt, properties){
-        console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
+        logWrapperMessage(properties.wrapper, attempt);
         if (properties.wrapper.exist() || attempt == 0) {
             return Promise.resolve().then(onWrapperExist(properties));
         } else {
@@ -18,6 +18,15 @@ var WrapperDetector = (function(WrapperDetector){
                 setTimeout(checkWrapperExist, CONFIG.get('attempt_timeout'), attempt, properties)
             );
         }
+    };
+
+    var logWrapperMessage = function(wrapper, attempt){
+        var existColor = wrapper.exist() ? 'color:green' : 'color:red';
+        var params = [
+                existColor, wrapper.selector, 'color:gray',
+                'color:black;font-weight: bold', attempt, 'color:gray'
+            ];
+        Tool.formatConsoleMessage('check for: "%c%s%c" [%c%s%c]', params);
     };
 
     WrapperDetector.run = function(properties, videoChangeCallback) {
