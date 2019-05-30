@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.4.2
+// @version        5.4.3
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -8,17 +8,14 @@
 //                 miniskrypt.hubaiitv.pl
 // @author         Przmus, zacny
 // @namespace      http://www.ipla.tv/
-// @match          https://*.tvp.pl/*
 // @include        https://vod.tvp.pl/video/*
+// @include        /^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\d{6,}/
 // @include        https://cyfrowa.tvp.pl/video/*
 // @include        http://www.tvp.pl/*
-// @include        https://www.ipla.tv/*
+// @include        https://www.ipla.tv/wideo/*
 // @include        https://player.pl/*
 // @include        https://www.cda.pl/*
-// @include        https://vod.pl/filmy*
-// @include        https://vod.pl/programy-onetu/*
-// @include        https://vod.pl/da-vinci/*
-// @include        https://vod.pl/seriale/*
+// @include        /^https://vod.pl/(filmy|programy-onetu|da-vinci|seriale|programy-tv)/.*
 // @include        https://vod.pl/programy-tv/*
 // @include        https://redir.atmcdn.pl/*
 // @include        https://*.redcdn.pl/file/o2/redefine/partner/*
@@ -121,7 +118,7 @@
 	    Tool.formatConsoleMessage = function(message, params){
 	        console.log.apply(this, $.merge([message], params));
 	    };
-
+	
 	    return Tool;
 	}(Tool || {}));
 	
@@ -385,7 +382,7 @@
 	            ];
 	        Tool.formatConsoleMessage('check for: "%c%s%c" [%c%s%c]', params);
 	    };
-
+	
 	    WrapperDetector.run = function(properties, videoChangeCallback) {
 	        checkWrapperExist(CONFIG.get('attempts'), properties);
 	        if(typeof videoChangeCallback === "function"){
@@ -941,15 +938,15 @@
 	    ];
 	
 	    var matcher = [
-	        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
-	        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
+	        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\/video\//},
+	        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
 	        {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
-	        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/' + tvZones.join('|') + '\.tvp\.pl\/')},
+	        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/' + tvZones.join('|') + '\.tvp\.pl\/\d{6,}\/')},
 	        {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
 	        {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
-	        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
+	        {action: VOD.waitOnWrapper, pattern: new RegExp('^https:\/\/vod.pl\/(filmy|programy-onetu|da-vinci|seriale|programy-tv)\/.*')},
 	        {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
-	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
+	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\/wideo\//},
 	        {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//}
 	    ];
 	
