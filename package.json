@@ -68,7 +68,6 @@
         "https://player.pl/*",
         "https://www.cda.pl/*",
         "/^https://vod.pl/(filmy|programy-onetu|da-vinci|seriale|programy-tv)/.*",
-        "https://vod.pl/programy-tv/*",
         "https://redir.atmcdn.pl/*",
         "https://*.redcdn.pl/file/o2/redefine/partner/*",
         "https://video.wp.pl/*"
