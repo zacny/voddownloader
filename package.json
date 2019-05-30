@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.4.3",
+  "version": "5.4.4",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -63,7 +63,6 @@
         "https://vod.tvp.pl/video/*",
         "/^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\\d{6,}/",
         "https://cyfrowa.tvp.pl/video/*",
-        "http://www.tvp.pl/*",
         "https://www.ipla.tv/wideo/*",
         "https://player.pl/*",
         "https://www.cda.pl/*",
