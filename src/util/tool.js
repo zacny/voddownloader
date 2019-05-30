@@ -25,5 +25,9 @@ var Tool = (function(Tool) {
         });
     };
 
+    Tool.formatConsoleMessage = function(message, params){
+        console.log.apply(this, $.merge([message], params));
+    };
+
     return Tool;
 }(Tool || {}));

@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name           voddownloader
-// @version        5.4.1-develop
+// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @version        5.4.2
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -33,8 +33,8 @@
 // @connect        player-api.dreamlab.pl
 // @run-at         document-end
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// @resource       css http://localhost:5011/dist/voddownloader.css
-// @resource       loader http://localhost:5011/img/loader.gif
+// @resource       css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
+// @resource       loader https://raw.githubusercontent.com/zacny/voddownloader/master/img/loader.gif
 // ==/UserScript==
 
 (function vodDownloader($) {
@@ -68,9 +68,7 @@
 	    AsyncStep.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
-	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
 	            beforeStep: function(input){return input},
-	            /** Will be done after async call **/
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
 	                var url = this.urlTemplate;
@@ -118,6 +116,10 @@
 	        formats.sort(function (a, b) {
 	            return b.bitrate - a.bitrate;
 	        });
+	    };
+	
+	    Tool.formatConsoleMessage = function(message, params){
+	        console.log.apply(this, $.merge([message], params));
 	    };
 	
 	    return Tool;
@@ -246,7 +248,6 @@
 	    var executeAsync = function(service, stepIndex, w, input){
 	        var asyncStep = service.asyncSteps[stepIndex];
 	        var url = asyncStep.resolveUrl(asyncStep.beforeStep(input));
-	        console.log('async step [' + stepIndex + ']: ' + url);
 	        var requestParams = {
 	            method: 'GET',
 	            url: url,
@@ -338,7 +339,6 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
-	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -349,7 +349,6 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
-	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };
@@ -367,7 +366,7 @@
 	    };
 	
 	    var checkWrapperExist = function(attempt, properties){
-	        console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
+	        logWrapperMessage(properties.wrapper, attempt);
 	        if (properties.wrapper.exist() || attempt == 0) {
 	            return Promise.resolve().then(onWrapperExist(properties));
 	        } else {
@@ -376,6 +375,15 @@
 	                setTimeout(checkWrapperExist, CONFIG.get('attempt_timeout'), attempt, properties)
 	            );
 	        }
+	    };
+	
+	    var logWrapperMessage = function(wrapper, attempt){
+	        var existColor = wrapper.exist() ? 'color:green' : 'color:red';
+	        var params = [
+	                existColor, wrapper.selector, 'color:gray',
+	                'color:black;font-weight: bold', attempt, 'color:gray'
+	            ];
+	        Tool.formatConsoleMessage('check for: "%c%s%c" [%c%s%c]', params);
 	    };
 	
 	    WrapperDetector.run = function(properties, videoChangeCallback) {
@@ -936,13 +944,13 @@
 	        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
 	        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
 	        {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
-	        {action: TVP_REG.waitOnWrapper, pattern: '/^https:\/\/' + tvZones.join('|') +'\.tvp\.pl\//'},
+	        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/' + tvZones.join('|') + '\.tvp\.pl\/')},
 	        {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
 	        {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
 	        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
 	        {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
 	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
-	        {action: WP.waitOnWrapper, patter: /^https:\/\/video\.wp\.pl\//}
+	        {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//}
 	    ];
 	
 	    Starter.start = function() {
