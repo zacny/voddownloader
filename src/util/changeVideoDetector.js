@@ -7,7 +7,7 @@ var ChangeVideoDetector = (function(ChangeVideoDetector){
         }
         else {
             return Promise.resolve().then(
-                setTimeout(checkVideoChange, CONST.attempt_timeout, oldSrc, videoChangeCallback)
+                setTimeout(checkVideoChange, CONFIG.get('attempt_timeout'), oldSrc, videoChangeCallback)
             );
         }
     };

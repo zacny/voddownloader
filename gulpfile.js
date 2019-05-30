@@ -79,8 +79,8 @@ function cleanTmpFiles() {
 function utilPartAttach() {
     return gulp.src(config.util_dir + '/*.js')
         .pipe(order([
-            'exception.js', 'const.js', 'tool.js', 'domTamper.js', 'videoGrabber.js',
-            'configurator.js', 'changeVideoDetector.js', 'wrapperDetector.js', 'storage.js'
+            'exception.js', 'config.js', 'asyncStep.js', 'tool.js', 'domTamper.js', 'executor.js',
+            'configurator.js', 'changeVideoDetector.js', 'wrapperDetector.js'
         ]))
         .pipe(concat('utils.js'))
         .pipe(gulp.dest(config.tmp_dir));
@@ -117,7 +117,7 @@ function joinScriptParts() {
 function joinCssFiles(){
     return gulp.src(config.css_dir + '/*.css')
         .pipe(order([
-            'download.css', 'frame.css', 'buttons.css', 'sources.css'
+            'download.css', 'buttons.css', 'sources.css'
         ]))
         .pipe(concat(config.css_name))
         .pipe(gulp.dest(config.dist_dir));

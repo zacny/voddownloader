@@ -9,8 +9,12 @@ div.download_content {
     margin: 10px;
 }
 
-.download_error_message {
+.error_message {
     color: #903;
+}
+
+.error_development_info {
+
 }
 
 .title_copy_button {

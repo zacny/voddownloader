@@ -14,14 +14,16 @@ var DomTamper = (function(DomTamper){
         return $('<div>').addClass('download_content');
     };
 
-    DomTamper.handleError = function(exception, vod, w){
+    DomTamper.handleError = function(exception, w){
         if(w === undefined){
             w = window.open();
         }
         DomTamper.injectStyle(w, 'css');
-        var div = $('<div>').addClass('download_error_message').text(exception.message);
-        vod.grabber.errorHandler(exception, div);
-        var par = $('<p>').append(div);
+        var messageDiv = $('<div>').addClass('error_message').text(exception.message);
+        var stackDiv = $('<div>').addClass('error_info')
+            .append($('<div>').text('Informacje o błędzie:'))
+            .append($('<div>').text(new Error().stack));
+        var par = $('<p>').append(messageDiv).append(stackDiv);
         $(w.document.body).replaceWith(prepareContent(w).append(par));
     };
 

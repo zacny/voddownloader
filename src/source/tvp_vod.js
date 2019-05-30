@@ -5,25 +5,45 @@ var VOD_TVP = (function(VOD_TVP) {
         },
         button: {
             class: 'video-block__btn tvp_vod_downlaod_button',
-            click: function(){
-                VideoGrabber.grabVideoDataFromJson(properties, 0);
-            }
         },
-        grabber: {
-            storageKey: 'voddownloader.tvp.videoid',
-            urlTemplates: [
-                'https://tvp.pl/pub/stat/videofileinfo?video_id=$idn',
-                'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'
-            ],
-            idParser: function(){
-                var src = properties.wrapper.get().attr('data-id');
-                return src.split("/").pop();
-            },
-            formatParser: function(data){
-                return VOD_TVP.grabVideoFormats(data);
-            }
-        }
+        asyncSteps: [
+            AsyncStep.setup({
+                urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=$videoId',
+                beforeStep: function(input){
+                   return idParser();
+                }
+            }),
+            AsyncStep.setup({
+                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$videoId',
+                beforeStep: function(json){
+                    return getRealVideoId(json);
+                },
+                afterStep: function(output) {
+                    return VOD_TVP.grabVideoFormats(output);
+                }
+            })
+        ],
     });
+
+    var idParser = function(){
+        var src = properties.wrapper.get().attr('data-id');
+        var videoId = src.split("/").pop();
+
+        if(videoId === null)
+            throw CONFIG.get('id_error');
+
+        return {
+            videoId: videoId
+        };
+    };
+
+    var getRealVideoId = function(json){
+        var videoId = json.copy_of_object_id !== undefined ?
+            json.copy_of_object_id : json.video_id;
+        return {
+            videoId: videoId
+        };
+    };
 
     VOD_TVP.grabVideoFormats = function(data){
         var formats = [];

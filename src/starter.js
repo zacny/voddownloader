@@ -1,11 +1,14 @@
 var Starter = (function(Starter) {
+    var tvZones = [
+        'bialystok', 'katowice', 'lodz', 'rzeszow', 'bydgoszcz', 'kielce', 'olsztyn', 'szczecin',
+        'gdansk', 'krakow', 'opole', 'warszawa', 'gorzow', 'lublin', 'poznan', 'wroclaw'
+    ];
+
     var matcher = [
-        {action: TVP_VIDEOINFO.parseJson, pattern: /^https:\/\/tvp\.pl\/pub\/stat\//},
         {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
         {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
         {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
-        {action: TVP_REG.waitOnWrapper,
-            pattern: /^https:\/\/(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw)\.tvp\.pl\//},
+        {action: TVP_REG.waitOnWrapper, pattern: '/^https:\/\/' + tvZones.join('|') +'\.tvp\.pl\//'},
         {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
         {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
         {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},

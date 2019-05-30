@@ -1,13 +1,13 @@
 var Configurator = (function(Configurator){
     Configurator.setup = function(properties){
-        var settings = {
+        var service = {
             wrapper: {
                 selector: '',
                 get: function(){
-                    return $(settings.wrapper.selector);
+                    return $(service.wrapper.selector);
                 },
                 exist: function(){
-                    return $(settings.wrapper.selector).length > 0;
+                    return $(service.wrapper.selector).length > 0;
                 }
             },
             button: {
@@ -15,20 +15,16 @@ var Configurator = (function(Configurator){
                 style: '',
                 class: '',
                 click: function(){
-                    VideoGrabber.grabVideoDataAsync(settings, 0);
+                    Executor.asyncChain(service, 0);
                 }
             },
-            grabber: {
-                urlTemplates: [],
-                idParser: function(){return null},
-                formatParser: function(data){return {title: null, formats: new Array()}},
-                errorHandler: function(exception, div){},
-                store: function(value, w){},
-                storeCallback: function(w){}
+            asyncSteps: [],
+            onDone: function(data, w) {
+                DomTamper.createDocument(data, w);
             }
         };
 
-        return $.extend(true, settings, properties);
+        return $.extend(true, service, properties);
     };
     return Configurator;
 }(Configurator || {}));

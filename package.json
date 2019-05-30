@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.3.3",
+  "version": "5.4.0",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -60,7 +60,6 @@
       "namespace": "http://www.ipla.tv/",
       "match": "https://*.tvp.pl/*",
       "include": [
-        "https://tvp.pl/pub/stat/",
         "https://vod.tvp.pl/video/*",
         "https://cyfrowa.tvp.pl/video/*",
         "http://www.tvp.pl/*",
@@ -82,7 +81,10 @@
       ],
       "grant": [
         "GM_getResourceText",
-        "GM_addStyle"
+        "GM_xmlhttpRequest"
+      ],
+      "connect": [
+        "tvp.pl"
       ],
       "run-at": "document-end",
       "require": "https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"

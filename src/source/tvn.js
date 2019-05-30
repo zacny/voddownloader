@@ -6,25 +6,35 @@ var TVN = (function(TVN) {
         button: {
             class: 'btn btn-primary tvn_download_button'
         },
-        grabber: {
-            urlTemplates: ['/api/?platform=ConnectedTV&terminal=Panasonic&format=json&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=$idn'],
-            idParser: function(){
-                var pageURL = $('.watching-now').closest('.embed-responsive').find('.embed-responsive-item').attr('href');
-                if(!pageURL){
-                    pageURL = window.location.href;
+        asyncSteps: [
+            AsyncStep.setup({
+                urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
+                    '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=$videoId',
+                beforeStep: function(input){
+                    return idParser();
+                },
+                afterStep: function(output) {
+                    return formatParser(output);
                 }
-
-                var lastComma = pageURL.lastIndexOf(",");
-                if (lastComma > - 1) {
-                    return pageURL.substring(lastComma+1);
-                }
-
-                throw CONST.id_error;
-            }
-        }
+            })
+        ]
     });
 
-    properties.grabber.formatParser = function(data, w){
+    var idParser = function(){
+        var pageURL = $('.watching-now').closest('.embed-responsive').find('.embed-responsive-item').attr('href');
+        if(!pageURL){
+            pageURL = window.location.href;
+        }
+
+        var lastComma = pageURL.lastIndexOf(",");
+        if (lastComma > - 1) {
+            return pageURL.substring(lastComma+1);
+        }
+
+        throw CONST.id_error;
+    };
+
+    var formatParser = function(data){
         var formats = [];
         var title;
         var video_content = (((data.item || {}).videos || {}).main || {}).video_content || {};

@@ -9,7 +9,6 @@
 // @author         Przmus, zacny
 // @namespace      http://www.ipla.tv/
 // @match          https://*.tvp.pl/*
-// @include        https://tvp.pl/pub/stat/
 // @include        https://vod.tvp.pl/video/*
 // @include        https://cyfrowa.tvp.pl/video/*
 // @include        http://www.tvp.pl/*
@@ -28,6 +27,8 @@
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
 // @grant          GM_addStyle
+// @grant          GM_xmlhttpRequest
+// @connect        tvp.pl
 // @run-at         document-end
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
 // @resource       css http://localhost:5011/dist/voddownloader.css
@@ -390,7 +391,18 @@
 	        button: {
 	            class: 'video-block__btn tvp_vod_downlaod_button',
 	            click: function(){
-	                VideoGrabber.grabVideoDataFromJson(properties, 0);
+	                // VideoGrabber.grabVideoDataFromJson(properties, 0);
+	                var properties = {
+	                    method: 'GET',
+	                    username: 'api',
+	                    password: 'vod',
+	                    url: 'https://apivod.tvp.pl/tv/video/42549669',
+	                    responseType: 'json',
+	                    onload: function(data) {
+	                        console.log(data.response);
+	                    }
+	                };
+	                GM_xmlhttpRequest(properties);
 	            }
 	        },
 	        grabber: {
