@@ -8,13 +8,13 @@ var VOD_TVP = (function(VOD_TVP) {
         },
         asyncSteps: [
             AsyncStep.setup({
-                urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=$videoId',
+                urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
                 beforeStep: function(input){
                    return idParser();
                 }
             }),
             AsyncStep.setup({
-                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$videoId',
+                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
                 beforeStep: function(json){
                     return getRealVideoId(json);
                 },

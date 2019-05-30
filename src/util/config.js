@@ -10,9 +10,10 @@ var CONFIG = (function(CONFIG) {
         timeout_error: new Exception('Zbyt długi czas odpowiedzi. Przypuszczalnie problem sieciowy.', 'TIMEOUT_ERROR')
     };
 
-    CONFIG.get = function() {
+    CONFIG.get = function(name) {
         return settings[name];
     };
 
-    return WrapperDetector;
-}(WrapperDetector || {}));
+    return CONFIG;
+}(CONFIG || {}));
+

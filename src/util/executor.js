@@ -1,13 +1,14 @@
 var Executor = (function(Executor){
-    var executeAsync = function(vod, stepIndex, w, input){
-        var asyncStep = vod.asyncSteps[stepIndex];
+    var executeAsync = function(service, stepIndex, w, input){
+        var asyncStep = service.asyncSteps[stepIndex];
         var url = asyncStep.resolveUrl(asyncStep.beforeStep(input));
+        console.log('async step [' + stepIndex + ']: ' + url);
         var requestParams = {
             method: 'GET',
             url: url,
             responseType: 'json',
             onload: function(data) {
-                asyncCallback(vod, stepIndex, w, data.response);
+                asyncCallback(service, stepIndex, w, data.response);
             },
             onerror: function(){
                 DomTamper.handleError(CONFIG.get('call_error'), w);
@@ -19,19 +20,19 @@ var Executor = (function(Executor){
         GM_xmlhttpRequest(requestParams);
     };
 
-    var asyncCallback = function(vod, stepIndex, w, response){
+    var asyncCallback = function(service, stepIndex, w, response){
         try {
-            var currentStep = vod.asyncSteps[stepIndex];
-            var nextStep = vod.asyncSteps[stepIndex+1];
+            var currentStep = service.asyncSteps[stepIndex];
+            var nextStep = service.asyncSteps[stepIndex+1];
             var output = currentStep.afterStep(response);
             if(nextStep !== undefined) {
                 return Promise.resolve().then(
-                    Executor.asyncChain(vod, stepIndex, output, w)
+                    Executor.asyncChain(service, stepIndex+1, output, w)
                 );
             }
             else {
                 return Promise.resolve().then(
-                    vod.onDone(output, w)
+                    service.onDone(output, w)
                 );
             }
         }
@@ -40,14 +41,15 @@ var Executor = (function(Executor){
         }
     };
 
-    Executor.asyncChain = function(vod, stepIndex, input, w){
+    Executor.asyncChain = function(service, stepIndex, input, w){
         try {
             w = (w === undefined) ? window.open(): w;
-            executeAsync(vod, stepIndex, w, input);
+            executeAsync(service, stepIndex, w, input);
         }
         catch(e){
             DomTamper.handleError(e, w);
         }
     };
+
     return Executor;
 }(Executor || {}));

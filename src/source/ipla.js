@@ -10,7 +10,7 @@ var IPLA = (function(IPLA) {
         asyncSteps: [
             AsyncStep.setup({
                 urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
-                    '&ua=www_iplatv_html5/12345&media_id=$videoId',
+                    '&ua=www_iplatv_html5/12345&media_id=#videoId',
                 beforeStep: function(input){
                     return idParser();
                 },

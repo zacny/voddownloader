@@ -9,7 +9,7 @@ var TVN = (function(TVN) {
         asyncSteps: [
             AsyncStep.setup({
                 urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
-                    '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=$videoId',
+                    '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
                 beforeStep: function(input){
                     return idParser();
                 },

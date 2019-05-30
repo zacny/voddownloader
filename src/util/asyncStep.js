@@ -13,7 +13,7 @@ var AsyncStep = (function(AsyncStep){
                 else if(typeof input === 'object') {
                     var url = this.urlTemplate;
                     $.each(input, function (key, value) {
-                        url = url.replace('/\$' + key + '/g', value);
+                        url = url.replace(new RegExp('\#'+key,'g'), value);
                     });
                     return url;
                 }
