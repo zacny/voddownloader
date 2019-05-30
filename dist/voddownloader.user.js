@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name           voddownloader
-// @version        5.4.1-develop
+// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @version        5.4.1
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -33,8 +33,8 @@
 // @connect        player-api.dreamlab.pl
 // @run-at         document-end
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// @resource       css http://localhost:5011/dist/voddownloader.css
-// @resource       loader http://localhost:5011/img/loader.gif
+// @resource       css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
+// @resource       loader https://raw.githubusercontent.com/zacny/voddownloader/master/img/loader.gif
 // ==/UserScript==
 
 (function vodDownloader($) {
@@ -68,9 +68,7 @@
 	    AsyncStep.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
-	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
 	            beforeStep: function(input){return input},
-	            /** Will be done after async call **/
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
 	                var url = this.urlTemplate;
@@ -246,7 +244,6 @@
 	    var executeAsync = function(service, stepIndex, w, input){
 	        var asyncStep = service.asyncSteps[stepIndex];
 	        var url = asyncStep.resolveUrl(asyncStep.beforeStep(input));
-	        console.log('async step [' + stepIndex + ']: ' + url);
 	        var requestParams = {
 	            method: 'GET',
 	            url: url,
@@ -338,7 +335,6 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
-	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -349,7 +345,6 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
-	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };
@@ -367,7 +362,6 @@
 	    };
 	
 	    var checkWrapperExist = function(attempt, properties){
-	        console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
 	        if (properties.wrapper.exist() || attempt == 0) {
 	            return Promise.resolve().then(onWrapperExist(properties));
 	        } else {
