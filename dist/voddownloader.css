@@ -2,7 +2,6 @@
 div.download_content {
     padding: 0 15px;
     background-color: #ecf0f1;
-    display:inline-block;
     border: 1px solid #999;
     word-break: break-all;
     color: black;
@@ -50,10 +49,28 @@ div.download_content {
 .best_quility_link_color {
     color: #903;
 }
+
+div.loader_content {
+    text-align: center;
+}
+
+div.loader {
+    display: inline-block;
+}
+
+.loader_message {
+    float: left;
+    margin-top: 90px;
+}
+
+.loader_image {
+    float: right;
+}
 /* common style for buttons */
 .playerBox-x, .js-video {
     position: relative;
 }
+
 /* styles of buttons for supported pages */
 .cda_download_button {
     position: absolute;

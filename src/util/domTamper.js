@@ -73,6 +73,16 @@ var DomTamper = (function(DomTamper){
         });
     };
 
+    DomTamper.createLoader = function(w){
+        var body = $(w.document.body);
+        var content = prepareContent(w);
+        var message = $('<div>').addClass('loader_message').text('Trwa przetwarzanie');
+        var img = $('<img>').addClass('loader_image').attr('src', GM_getResourceURL('loader'));
+        var div = $('<div>').addClass('loader').append(message).append(img);
+        content.addClass('loader_content').append(div);
+        body.replaceWith(content);
+    };
+
     DomTamper.createDocument = function(data, w){
         Tool.numberModeSort(data.formats);
 
