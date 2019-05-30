@@ -5,15 +5,15 @@ var Starter = (function(Starter) {
     ];
 
     var matcher = [
-        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
-        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
+        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\/video\//},
+        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
         {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
-        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/' + tvZones.join('|') + '\.tvp\.pl\/')},
+        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/' + tvZones.join('|') + '\.tvp\.pl\/\d{6,}\/')},
         {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
         {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
-        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},
+        {action: VOD.waitOnWrapper, pattern: new RegExp('^https:\/\/vod.pl\/(filmy|programy-onetu|da-vinci|seriale|programy-tv)\/.*')},
         {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
-        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
+        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\/wideo\//},
         {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//}
     ];
 
