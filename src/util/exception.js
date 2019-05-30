@@ -1,4 +1,4 @@
-function Exception(message, name) {
+function Exception(message, description) {
     this.message = message;
-    this.name = name;
+    this.description = description;
 }

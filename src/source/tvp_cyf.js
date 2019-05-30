@@ -25,7 +25,7 @@ var CYF_TVP = (function(CYF_TVP) {
             return src.split("/").pop();
         }
         catch(e){
-            throw CONST.id_error;
+            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + src));
         }
     };
 

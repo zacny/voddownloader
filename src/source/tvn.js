@@ -31,7 +31,7 @@ var TVN = (function(TVN) {
             return pageURL.substring(lastComma+1);
         }
 
-        throw CONST.id_error;
+        throw new Exception(CONFIG.get('id_error', 'Źródło: ' + pageURL));
     };
 
     var formatParser = function(data){
