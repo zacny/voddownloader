@@ -43,7 +43,11 @@ var Executor = (function(Executor){
 
     Executor.asyncChain = function(service, stepIndex, input, w){
         try {
-            w = (w === undefined) ? window.open(): w;
+            if(w === undefined){
+                w = window.open();
+                DomTamper.createLoader(w);
+            }
+
             executeAsync(service, stepIndex, w, input);
         }
         catch(e){

@@ -1,0 +1,16 @@
+div.loader_content {
+    text-align: center;
+}
+
+div.loader {
+    display: inline-block;
+}
+
+.loader_message {
+    float: left;
+    margin-top: 90px;
+}
+
+.loader_image {
+    float: right;
+}

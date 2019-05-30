@@ -13,9 +13,10 @@ var gulp = require('gulp'),
     pkg = require('./package');
     fs = require('fs');
 
-var config = {
+const config = {
     tmp_dir: 'tmp',
     dist_dir: 'dist',
+    img_dir: 'img',
     css_dir: 'src/css',
     src_dir: 'src',
     source_dir: 'src/source',
@@ -23,6 +24,7 @@ var config = {
     util_dir: 'src/util',
     script_name: pkg.config.scriptName,
     css_name: pkg.config.cssName,
+    loader_name: pkg.config.loaderName,
     production: true
 };
 
@@ -117,7 +119,7 @@ function joinScriptParts() {
 function joinCssFiles(){
     return gulp.src(config.css_dir + '/*.css')
         .pipe(order([
-            'download.css', 'buttons.css', 'sources.css'
+            'download.css', 'loader.css', 'buttons.css', 'sources.css'
         ]))
         .pipe(concat(config.css_name))
         .pipe(gulp.dest(config.dist_dir));
@@ -127,11 +129,11 @@ function joinCssFiles(){
 function replaceRegularExpressions() {
     var regularExpressions = [
         //remove whole lines with 'debugger'
-        {pattern: /(?:.*debugger.*\n)/g, replacement: '', counter: 0},
+        {label: 'debugger', pattern: /(?:.*debugger.*\n)/g, replacement: '', counter: 0},
         //remove whole lines with console.log(...)
-        {pattern: /(?:.*console\.log\(.*\).*\n)/g, replacement: '', counter: 0},
+        {label: 'console.log(...)', pattern: /(?:.*console\.log\(.*\).*\n)/g, replacement: '', counter: 0},
         //remove long comments /** **/
-        {pattern: /.*\/\*[\s\S]*?\*\/[\s]*\n/gm, replacement: '', counter: 0}
+        {label: '/** comment **/', pattern: /.*\/\*[\s\S]*?\*\/[\s]*\n/gm, replacement: '', counter: 0}
     ];
 
     var task = gulp.src(config.tmp_dir + '/content.js');
@@ -147,7 +149,8 @@ function replaceRegularExpressions() {
     return task.pipe(gulp.dest(config.tmp_dir)).on('end', function() {
         regularExpressions.forEach(function(element){
             if(config.production) {
-                log.info('Found: ' + colors.red(element.counter) + ' matches of pattern: ' + colors.blue(element.pattern));
+                log.info('Found: ' + colors.red(element.counter) + ' matches of: ' + colors.bold(element.label) +
+                    ' using pattern: ' + colors.blue(element.pattern));
             }
         });
     });
@@ -160,9 +163,9 @@ function replaceContent(){
         .pipe(gulp.dest(config.tmp_dir));
 }
 
-function getCssPath(fileName){
+function getPath(fileName, dir){
     return (config.production ? pkg.config.production.resourcesHost : pkg.config.development.resourcesHost)
-        + '/' + config.dist_dir + '/' + fileName;
+        + '/' + dir + '/' + fileName;
 }
 
 function prepareHeaders(){
@@ -170,7 +173,8 @@ function prepareHeaders(){
 
     headers.name = config.production ? pkg.config.production.name : pkg.name;
     headers.version = config.production ? pkg.version : pkg.version + '-develop';
-    headers.cssPath = getCssPath(config.css_name);
+    headers.cssPath = getPath(config.css_name, config.dist_dir);
+    headers.loaderPath = getPath(config.loader_name, config.img_dir);
 
     return headers;
 }

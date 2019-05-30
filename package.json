@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.4.0",
+  "version": "5.4.1",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -54,6 +54,7 @@
     },
     "scriptName": "voddownloader.user.js",
     "cssName": "voddownloader.css",
+    "loaderName": "loader.gif",
     "headers": {
       "description": "Skrypt służący do pobierania materiałów ze znanych serwisów VOD.\n//                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.\n//                 Cześć kodu pochodzi z:\n//                 miniskrypt.blogspot.com,\n//                 miniskrypt.hubaiitv.pl",
       "author": "Przmus, zacny",
@@ -81,6 +82,7 @@
       ],
       "grant": [
         "GM_getResourceText",
+        "GM_getResourceURL",
         "GM_xmlhttpRequest"
       ],
       "connect": [

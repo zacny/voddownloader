@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name           voddownloader
-// @version        5.4.0-develop
+// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @version        5.4.1
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -26,11 +26,13 @@
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
+// @grant          GM_getResourceURL
 // @grant          GM_xmlhttpRequest
 // @connect        tvp.pl
 // @run-at         document-end
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// @resource       css http://localhost:5011/dist/voddownloader.css
+// @resource       css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
+// @resource       loader https://raw.githubusercontent.com/zacny/voddownloader/master/img/loader.gif
 // ==/UserScript==
 
 (function vodDownloader($) {
@@ -65,9 +67,7 @@
 	    AsyncStep.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
-	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
 	            beforeStep: function(input){return input},
-	            /** Will be done after async call **/
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
 	                if(typeof input === 'string'){
@@ -195,6 +195,16 @@
 	        });
 	    };
 	
+	    DomTamper.createLoader = function(w){
+	        var body = $(w.document.body);
+	        var content = prepareContent(w);
+	        var message = $('<div>').addClass('loader_message').text('Trwa przetwarzanie');
+	        var img = $('<img>').addClass('loader_image').attr('src', GM_getResourceURL('loader'));
+	        var div = $('<div>').addClass('loader').append(message).append(img);
+	        content.addClass('loader_content').append(div);
+	        body.replaceWith(content);
+	    };
+	
 	    DomTamper.createDocument = function(data, w){
 	        Tool.numberModeSort(data.formats);
 	
@@ -230,7 +240,6 @@
 	    var executeAsync = function(service, stepIndex, w, input){
 	        var asyncStep = service.asyncSteps[stepIndex];
 	        var url = asyncStep.resolveUrl(asyncStep.beforeStep(input));
-	        console.log('async step [' + stepIndex + ']: ' + url);
 	        var requestParams = {
 	            method: 'GET',
 	            url: url,
@@ -271,7 +280,11 @@
 	
 	    Executor.asyncChain = function(service, stepIndex, input, w){
 	        try {
-	            w = (w === undefined) ? window.open(): w;
+	            if(w === undefined){
+	                w = window.open();
+	                DomTamper.createLoader(w);
+	            }
+	
 	            executeAsync(service, stepIndex, w, input);
 	        }
 	        catch(e){
@@ -317,7 +330,6 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
-	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -328,7 +340,6 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
-	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };
@@ -346,7 +357,6 @@
 	    };
 	
 	    var checkWrapperExist = function(attempt, properties){
-	        console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
 	        if (properties.wrapper.exist() || attempt == 0) {
 	            return Promise.resolve().then(onWrapperExist(properties));
 	        } else {
