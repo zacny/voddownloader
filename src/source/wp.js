@@ -6,24 +6,30 @@ var WP = (function(WP) {
         button: {
             class: 'material__category wp_download_button'
         },
-        grabber: {
-            urlTemplates: ['https://video.wp.pl/player/mid,$idn,embed.json'],
-            idParser: function(){
-                try {
-                    var pageURL = window.location.href;
-                    var regexp = new RegExp('mid,(\\d+),cid');
-                    var match = regexp.exec(pageURL);
-                    return match[1];
+        asyncSteps: [
+            AsyncStep.setup({
+                urlTemplates: 'https://video.wp.pl/player/mid,$videoId,embed.json',
+                beforeStep: function(input){
+                    return idParser();
+                },
+                afterStep: function(output) {
+                    return grabVideoFormats(output);
                 }
-                catch(e){
-                    throw CONST.id_error;
-                }
-            },
-            formatParser: function(data){
-                return grabVideoFormats(data);
-            }
-        }
+            })
+        ]
     });
+
+    var idParser = function () {
+        try {
+            var pageURL = window.location.href;
+            var regexp = new RegExp('mid,(\\d+),cid');
+            var match = regexp.exec(pageURL);
+            return match[1];
+        }
+        catch(e){
+            throw CONST.id_error;
+        }
+    };
 
     var grabVideoFormats = function(data){
         var formats = [];

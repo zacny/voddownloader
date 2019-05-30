@@ -21,7 +21,7 @@ var CDA = (function(CDA) {
                 throw CONST.id_error;
             }
         }catch(e){
-            DomTamper.handleError(e, properties, w);
+            DomTamper.handleError(e, w);
         }
     };
 

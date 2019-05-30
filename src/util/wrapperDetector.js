@@ -15,13 +15,13 @@ var WrapperDetector = (function(WrapperDetector){
         } else {
             attempt = (attempt > 0) ? attempt-1 : attempt;
             return Promise.resolve().then(
-                setTimeout(checkWrapperExist, CONST.attempt_timeout, attempt, properties)
+                setTimeout(checkWrapperExist, CONFIG.get('attempt_timeout'), attempt, properties)
             );
         }
     };
 
     WrapperDetector.run = function(properties, videoChangeCallback) {
-        checkWrapperExist(CONST.attempts, properties);
+        checkWrapperExist(CONFIG.get('attempts'), properties);
         if(typeof videoChangeCallback === "function"){
             ChangeVideoDetector.run(videoChangeCallback);
         }

@@ -7,20 +7,27 @@ var IPLA = (function(IPLA) {
         button: {
             class: 'ipla_download_button'
         },
-        grabber: {
-            urlTemplates: ['https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn'],
-            idParser: function(){
-                if(location.href.match(/[\a-z\d]{32}/) !== null){
-                    return window.location.href.match(/[\a-z\d]{32}/)[0];
+        asyncSteps: [
+            AsyncStep.setup({
+                urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
+                    '&ua=www_iplatv_html5/12345&media_id=$videoId',
+                beforeStep: function(input){
+                    return idParser();
+                },
+                afterStep: function(output) {
+                    return IPLA.grabVideoFormats(output);
                 }
-
-                return grabVideoIdFromWatchingNowElement();
-            },
-            formatParser: function(data){
-                return IPLA.grabVideoFormats(data);
-            }
-        }
+            })
+        ]
     });
+
+    var idParser = function(){
+        if(location.href.match(/[\a-z\d]{32}/) !== null) {
+            return window.location.href.match(/[\a-z\d]{32}/)[0];
+        }
+
+        return grabVideoIdFromWatchingNowElement();
+    };
 
     IPLA.waitOnWrapper = function(){
         WrapperDetector.run(properties, IPLA.waitOnWrapper);

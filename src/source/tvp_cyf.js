@@ -6,22 +6,28 @@ var CYF_TVP = (function(CYF_TVP) {
         button: {
             class: 'video-block__btn tvp_cyf_downlaod_button'
         },
-        grabber: {
-            urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
-            idParser: function(){
-                try {
-                    var src = $('iframe#JS-TVPlayer').attr('src');
-                    return src.split("/").pop();
+        asyncSteps: [
+            AsyncStep.setup({
+                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$videoId',
+                beforeStep: function(input){
+                    return idParser();
+                },
+                afterStep: function(output) {
+                    return VOD_TVP.grabVideoFormats(output);
                 }
-                catch(e){
-                    throw CONST.id_error;
-                }
-            },
-            formatParser: function(data){
-                return VOD_TVP.grabVideoFormats(data);
-            }
-        }
+            })
+        ]
     });
+
+    var idParser = function(){
+        try {
+            var src = $('iframe#JS-TVPlayer').attr('src');
+            return src.split("/").pop();
+        }
+        catch(e){
+            throw CONST.id_error;
+        }
+    };
 
     CYF_TVP.waitOnWrapper = function(){
         WrapperDetector.run(properties);
