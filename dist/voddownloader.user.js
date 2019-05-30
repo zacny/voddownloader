@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           voddownloader
-// @version        5.3.3-develop
+// @version        5.4.0-develop
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -26,7 +26,6 @@
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
-// @grant          GM_addStyle
 // @grant          GM_xmlhttpRequest
 // @connect        tvp.pl
 // @run-at         document-end
@@ -41,15 +40,55 @@
 	    this.message = message;
 	    this.name = name;
 	}
-	var CONST = {
-	    attempts: 10,
-	    attempt_timeout: 1500,
-	    id_error: new Exception('Nie udało się odnaleźć idetyfikatora.', 'ID_ERROR'),
-	    api_error: new Exception('Nie odnaleziono adresów do strumieni.', 'API_ERROR'),
-	    call_error: new Exception('Błąd pobierania informacji o materiale.', 'CALL_ERROR'),
-	    drm_error: new Exception('Materiał posiada DRM. ' +
-	        'Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.', 'DRM_ERROR')
-	};
+	
+	var CONFIG = (function(CONFIG) {
+	    var settings = {
+	        attempts: 10,
+	        attempt_timeout: 1500,
+	        id_error: new Exception('Nie udało się odnaleźć idetyfikatora.', 'ID_ERROR'),
+	        api_error: new Exception('Nie odnaleziono adresów do strumieni.', 'API_ERROR'),
+	        call_error: new Exception('Błąd pobierania informacji o materiale.', 'CALL_ERROR'),
+	        drm_error: new Exception('Materiał posiada DRM. ' +
+	            'Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.', 'DRM_ERROR'),
+	        timeout_error: new Exception('Zbyt długi czas odpowiedzi. Przypuszczalnie problem sieciowy.', 'TIMEOUT_ERROR')
+	    };
+	
+	    CONFIG.get = function(name) {
+	        return settings[name];
+	    };
+	
+	    return CONFIG;
+	}(CONFIG || {}));
+	
+	
+	var AsyncStep = (function(AsyncStep){
+	    AsyncStep.setup = function(properties){
+	        var step = {
+	            urlTemplate: '',
+	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
+	            beforeStep: function(input){return input},
+	            /** Will be done after async call **/
+	            afterStep: function (output) {return output},
+	            resolveUrl: function (input) {
+	                if(typeof input === 'string'){
+	                    return url.replace('/\$videoId/g', input);
+	                }
+	                else if(typeof input === 'object') {
+	                    var url = this.urlTemplate;
+	                    $.each(input, function (key, value) {
+	                        url = url.replace(new RegExp('\#'+key,'g'), value);
+	                    });
+	                    return url;
+	                }
+	
+	                return '';
+	            }
+	        };
+	
+	        return $.extend(true, step, properties);
+	    };
+	    return AsyncStep;
+	}(AsyncStep || {}));
 	
 	var Tool = (function(Tool) {
 	    Tool.copyToClipboard = function(text) {
@@ -97,14 +136,16 @@
 	        return $('<div>').addClass('download_content');
 	    };
 	
-	    DomTamper.handleError = function(exception, vod, w){
+	    DomTamper.handleError = function(exception, w){
 	        if(w === undefined){
 	            w = window.open();
 	        }
 	        DomTamper.injectStyle(w, 'css');
-	        var div = $('<div>').addClass('download_error_message').text(exception.message);
-	        vod.grabber.errorHandler(exception, div);
-	        var par = $('<p>').append(div);
+	        var messageDiv = $('<div>').addClass('error_message').text(exception.message);
+	        var stackDiv = $('<div>').addClass('error_info')
+	            .append($('<div>').text('Informacje o błędzie:'))
+	            .append($('<div>').text(new Error().stack));
+	        var par = $('<p>').append(messageDiv).append(stackDiv);
 	        $(w.document.body).replaceWith(prepareContent(w).append(par));
 	    };
 	
@@ -154,20 +195,6 @@
 	        });
 	    };
 	
-	    DomTamper.createIframe = function(vod, url, w){
-	        DomTamper.injectStyle(w, 'css');
-	        var body = $(w.document.body);
-	        var iframe = $('<iframe/>').attr('id', 'api').attr('scrolling', 'no')
-	            .attr('seamless', 'seamless').attr('src', url);
-	        body.append(iframe);
-	        vod.grabber.storeCallback(w);
-	        // setTimeout(function(){
-	        //     var item = w.sessionStorage.getItem('voddownloader.tvp.videoid');
-	        //     console.log('LocalStorage vidoeId: ' + item);
-	        //     iframe.show();
-	        // }, 1000);
-	    };
-	
 	    DomTamper.createDocument = function(data, w){
 	        Tool.numberModeSort(data.formats);
 	
@@ -199,86 +226,72 @@
 	    return DomTamper;
 	}(DomTamper || {}));
 	
-	var VideoGrabber = (function(VideoGrabber){
-	    var getVideoData = function(vod, templateIndex, w){
-	        var url = getUrl(vod, templateIndex, w);
-	
-	        console.log("GET: " + url);
-	        return $.ajax({
+	var Executor = (function(Executor){
+	    var executeAsync = function(service, stepIndex, w, input){
+	        var asyncStep = service.asyncSteps[stepIndex];
+	        var url = asyncStep.resolveUrl(asyncStep.beforeStep(input));
+	        console.log('async step [' + stepIndex + ']: ' + url);
+	        var requestParams = {
 	            method: 'GET',
-	            dataType: 'json',
-	            url: url
-	        });
+	            url: url,
+	            responseType: 'json',
+	            onload: function(data) {
+	                asyncCallback(service, stepIndex, w, data.response);
+	            },
+	            onerror: function(){
+	                DomTamper.handleError(CONFIG.get('call_error'), w);
+	            },
+	            ontimeout: function(){
+	                DomTamper.handleError(CONFIG.get('timeout_error'), w);
+	            }
+	        };
+	        GM_xmlhttpRequest(requestParams);
 	    };
 	
-	    var tryNextUrl = function(vod, templateIndex, w, error){
-	        var templates = vod.grabber.urlTemplates;
-	        if(templates[templateIndex+1] !== undefined) {
-	            VideoGrabber.grabVideoDataAsync(vod, templateIndex+1, w);
-	        }
-	        else {
-	            throw error;
-	        }
-	    };
-	
-	    var getUrl = function(vod,templateIndex, w) {
-	        var idn = vod.grabber.idParser();
-	        vod.grabber.store(idn, w);
-	        var templates = vod.grabber.urlTemplates;
-	        return templates[templateIndex].replace(/\$idn/g, idn);
-	    };
-	
-	    VideoGrabber.grabVideoDataFromJson = function(vod, templateIndex, w){
-	        w = (w === undefined) ? window.open(): w;
-	        var url = getUrl(vod, templateIndex, w);
-	        StorageUtil.waitUntil(vod.grabber.storageKey, w, function(){
-	            VideoGrabber.grabVideoDataAsync(vod, 1, w);
-	        });
-	        return DomTamper.createIframe(vod, url, w);
-	    };
-	
-	    VideoGrabber.grabVideoDataAsync = function(vod, templateIndex, w){
+	    var asyncCallback = function(service, stepIndex, w, response){
 	        try {
-	            w = (w === undefined) ? window.open(): w;
-	            getVideoData(vod, templateIndex, w).then(function(data){
-	                try {
-	                    var formatData = vod.grabber.formatParser(data);
-	                    if(formatData && formatData.formats.length == 0){
-	                        tryNextUrl(vod, templateIndex, w, CONST.api_error);
-	                    }
-	                    else {
-	                        DomTamper.createDocument(formatData, w);
-	                    }
-	                }
-	                catch(e){
-	                    DomTamper.handleError(e, vod, w);
-	                }
-	            }, function(data){
-	                try {
-	                    tryNextUrl(vod, templateIndex, w, CONST.call_error);
-	                }
-	                catch(e){
-	                    DomTamper.handleError(e, vod, w);
-	                }
-	            });
+	            var currentStep = service.asyncSteps[stepIndex];
+	            var nextStep = service.asyncSteps[stepIndex+1];
+	            var output = currentStep.afterStep(response);
+	            if(nextStep !== undefined) {
+	                return Promise.resolve().then(
+	                    Executor.asyncChain(service, stepIndex+1, output, w)
+	                );
+	            }
+	            else {
+	                return Promise.resolve().then(
+	                    service.onDone(output, w)
+	                );
+	            }
 	        }
 	        catch(e){
-	            DomTamper.handleError(e, vod, w);
+	            DomTamper.handleError(CONFIG.get('api_error'), w)
 	        }
 	    };
-	    return VideoGrabber;
-	}(VideoGrabber || {}));
+	
+	    Executor.asyncChain = function(service, stepIndex, input, w){
+	        try {
+	            w = (w === undefined) ? window.open(): w;
+	            executeAsync(service, stepIndex, w, input);
+	        }
+	        catch(e){
+	            DomTamper.handleError(e, w);
+	        }
+	    };
+	
+	    return Executor;
+	}(Executor || {}));
 	
 	var Configurator = (function(Configurator){
 	    Configurator.setup = function(properties){
-	        var settings = {
+	        var service = {
 	            wrapper: {
 	                selector: '',
 	                get: function(){
-	                    return $(settings.wrapper.selector);
+	                    return $(service.wrapper.selector);
 	                },
 	                exist: function(){
-	                    return $(settings.wrapper.selector).length > 0;
+	                    return $(service.wrapper.selector).length > 0;
 	                }
 	            },
 	            button: {
@@ -286,20 +299,16 @@
 	                style: '',
 	                class: '',
 	                click: function(){
-	                    VideoGrabber.grabVideoDataAsync(settings, 0);
+	                    Executor.asyncChain(service, 0);
 	                }
 	            },
-	            grabber: {
-	                urlTemplates: [],
-	                idParser: function(){return null},
-	                formatParser: function(data){return {title: null, formats: new Array()}},
-	                errorHandler: function(exception, div){},
-	                store: function(value, w){},
-	                storeCallback: function(w){}
+	            asyncSteps: [],
+	            onDone: function(data, w) {
+	                DomTamper.createDocument(data, w);
 	            }
 	        };
 	
-	        return $.extend(true, settings, properties);
+	        return $.extend(true, service, properties);
 	    };
 	    return Configurator;
 	}(Configurator || {}));
@@ -313,7 +322,7 @@
 	        }
 	        else {
 	            return Promise.resolve().then(
-	                setTimeout(checkVideoChange, CONST.attempt_timeout, oldSrc, videoChangeCallback)
+	                setTimeout(checkVideoChange, CONFIG.get('attempt_timeout'), oldSrc, videoChangeCallback)
 	            );
 	        }
 	    };
@@ -343,13 +352,13 @@
 	        } else {
 	            attempt = (attempt > 0) ? attempt-1 : attempt;
 	            return Promise.resolve().then(
-	                setTimeout(checkWrapperExist, CONST.attempt_timeout, attempt, properties)
+	                setTimeout(checkWrapperExist, CONFIG.get('attempt_timeout'), attempt, properties)
 	            );
 	        }
 	    };
 	
 	    WrapperDetector.run = function(properties, videoChangeCallback) {
-	        checkWrapperExist(CONST.attempts, properties);
+	        checkWrapperExist(CONFIG.get('attempts'), properties);
 	        if(typeof videoChangeCallback === "function"){
 	            ChangeVideoDetector.run(videoChangeCallback);
 	        }
@@ -357,32 +366,6 @@
 	    return WrapperDetector;
 	}(WrapperDetector || {}));
 	
-	var StorageUtil = (function(StorageUtil) {
-	    var checkStorage = function(key, w, callback) {
-	        var value = w.localStorage.getItem(key);
-	        if(value !== undefined && value !== null){
-	            console.log('SessionStorage hit: [' + key + '=' + value + ']');
-	            w.localStorage.removeItem(key);
-	            return Promise.resolve().then(callback);
-	        }
-	        else {
-	            return Promise.resolve().then(
-	                setTimeout(checkStorage, 250, key, w, callback)
-	            );
-	        }
-	    };
-	
-	    StorageUtil.put = function(key, value, w) {
-	        w.localStorage.setItem(key, value);
-	    };
-	
-	    StorageUtil.waitUntil = function(key, w, callback){
-	        console.log('SesstionStorage init: [' + key + ']');
-	        checkStorage(key, w, callback);
-	    };
-	
-	    return StorageUtil;
-	}(StorageUtil || {}));
 	var VOD_TVP = (function(VOD_TVP) {
 	    var properties = Configurator.setup({
 	        wrapper: {
@@ -390,36 +373,45 @@
 	        },
 	        button: {
 	            class: 'video-block__btn tvp_vod_downlaod_button',
-	            click: function(){
-	                // VideoGrabber.grabVideoDataFromJson(properties, 0);
-	                var properties = {
-	                    method: 'GET',
-	                    username: 'api',
-	                    password: 'vod',
-	                    url: 'https://apivod.tvp.pl/tv/video/42549669',
-	                    responseType: 'json',
-	                    onload: function(data) {
-	                        console.log(data.response);
-	                    }
-	                };
-	                GM_xmlhttpRequest(properties);
-	            }
 	        },
-	        grabber: {
-	            storageKey: 'voddownloader.tvp.videoid',
-	            urlTemplates: [
-	                'https://tvp.pl/pub/stat/videofileinfo?video_id=$idn',
-	                'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'
-	            ],
-	            idParser: function(){
-	                var src = properties.wrapper.get().attr('data-id');
-	                return src.split("/").pop();
-	            },
-	            formatParser: function(data){
-	                return VOD_TVP.grabVideoFormats(data);
-	            }
-	        }
+	        asyncSteps: [
+	            AsyncStep.setup({
+	                urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
+	                beforeStep: function(input){
+	                   return idParser();
+	                }
+	            }),
+	            AsyncStep.setup({
+	                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+	                beforeStep: function(json){
+	                    return getRealVideoId(json);
+	                },
+	                afterStep: function(output) {
+	                    return VOD_TVP.grabVideoFormats(output);
+	                }
+	            })
+	        ],
 	    });
+	
+	    var idParser = function(){
+	        var src = properties.wrapper.get().attr('data-id');
+	        var videoId = src.split("/").pop();
+	
+	        if(videoId === null)
+	            throw CONFIG.get('id_error');
+	
+	        return {
+	            videoId: videoId
+	        };
+	    };
+	
+	    var getRealVideoId = function(json){
+	        var videoId = json.copy_of_object_id !== undefined ?
+	            json.copy_of_object_id : json.video_id;
+	        return {
+	            videoId: videoId
+	        };
+	    };
 	
 	    VOD_TVP.grabVideoFormats = function(data){
 	        var formats = [];
@@ -455,22 +447,28 @@
 	        button: {
 	            class: 'video-block__btn tvp_cyf_downlaod_button'
 	        },
-	        grabber: {
-	            urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
-	            idParser: function(){
-	                try {
-	                    var src = $('iframe#JS-TVPlayer').attr('src');
-	                    return src.split("/").pop();
+	        asyncSteps: [
+	            AsyncStep.setup({
+	                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+	                beforeStep: function(input){
+	                    return idParser();
+	                },
+	                afterStep: function(output) {
+	                    return VOD_TVP.grabVideoFormats(output);
 	                }
-	                catch(e){
-	                    throw CONST.id_error;
-	                }
-	            },
-	            formatParser: function(data){
-	                return VOD_TVP.grabVideoFormats(data);
-	            }
-	        }
+	            })
+	        ]
 	    });
+	
+	    var idParser = function(){
+	        try {
+	            var src = $('iframe#JS-TVPlayer').attr('src');
+	            return src.split("/").pop();
+	        }
+	        catch(e){
+	            throw CONST.id_error;
+	        }
+	    };
 	
 	    CYF_TVP.waitOnWrapper = function(){
 	        WrapperDetector.run(properties);
@@ -487,21 +485,27 @@
 	        button: {
 	            class: 'tvp_reg_download_button'
 	        },
-	        grabber: {
-	            urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
-	            idParser: function(){
-	                try {
-	                    return $('div.js-video').attr('data-object-id');
+	        asyncSteps: [
+	            AsyncStep.setup({
+	                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+	                beforeStep: function(input){
+	                    return idParser();
+	                },
+	                afterStep: function(output) {
+	                    return VOD_TVP.grabVideoFormats(output);
 	                }
-	                catch(e){
-	                    throw CONST.id_error;
-	                }
-	            },
-	            formatParser: function(data){
-	                return VOD_TVP.grabVideoFormats(data);
-	            }
-	        }
+	            })
+	        ]
 	    });
+	
+	    var idParser = function(){
+	        try {
+	            return $('div.js-video').attr('data-object-id');
+	        }
+	        catch(e){
+	            throw CONST.id_error;
+	        }
+	    };
 	
 	    TVP_REG.waitOnWrapper = function(){
 	        WrapperDetector.run(properties);
@@ -518,22 +522,28 @@
 	        button: {
 	            class: 'tvp_downlaod_button'
 	        },
-	        grabber: {
-	            urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$idn'],
-	            idParser: function(){
-	                try {
-	                    var src = $('input[name="recommended_url"]').val();
-	                    return src.split("/").pop();
+	        asyncSteps: [
+	            AsyncStep.setup({
+	                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+	                beforeStep: function(input){
+	                    return idParser();
+	                },
+	                afterStep: function(output) {
+	                    return VOD_TVP.grabVideoFormats(output);
 	                }
-	                catch(e){
-	                    throw CONST.id_error;
-	                }
-	            },
-	            formatParser: function(data){
-	                return VOD_TVP.grabVideoFormats(data);
-	            }
-	        }
+	            })
+	        ]
 	    });
+	
+	    var idParser = function(){
+	        try {
+	            var src = $('input[name="recommended_url"]').val();
+	            return src.split("/").pop();
+	        }
+	        catch(e){
+	            throw CONST.id_error;
+	        }
+	    };
 	
 	    TVP.waitOnWrapper = function(){
 	        WrapperDetector.run(properties);
@@ -550,25 +560,35 @@
 	        button: {
 	            class: 'btn btn-primary tvn_download_button'
 	        },
-	        grabber: {
-	            urlTemplates: ['/api/?platform=ConnectedTV&terminal=Panasonic&format=json&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=$idn'],
-	            idParser: function(){
-	                var pageURL = $('.watching-now').closest('.embed-responsive').find('.embed-responsive-item').attr('href');
-	                if(!pageURL){
-	                    pageURL = window.location.href;
+	        asyncSteps: [
+	            AsyncStep.setup({
+	                urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
+	                    '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
+	                beforeStep: function(input){
+	                    return idParser();
+	                },
+	                afterStep: function(output) {
+	                    return formatParser(output);
 	                }
-	
-	                var lastComma = pageURL.lastIndexOf(",");
-	                if (lastComma > - 1) {
-	                    return pageURL.substring(lastComma+1);
-	                }
-	
-	                throw CONST.id_error;
-	            }
-	        }
+	            })
+	        ]
 	    });
 	
-	    properties.grabber.formatParser = function(data, w){
+	    var idParser = function(){
+	        var pageURL = $('.watching-now').closest('.embed-responsive').find('.embed-responsive-item').attr('href');
+	        if(!pageURL){
+	            pageURL = window.location.href;
+	        }
+	
+	        var lastComma = pageURL.lastIndexOf(",");
+	        if (lastComma > - 1) {
+	            return pageURL.substring(lastComma+1);
+	        }
+	
+	        throw CONST.id_error;
+	    };
+	
+	    var formatParser = function(data){
 	        var formats = [];
 	        var title;
 	        var video_content = (((data.item || {}).videos || {}).main || {}).video_content || {};
@@ -610,20 +630,27 @@
 	        button: {
 	            class: 'ipla_download_button'
 	        },
-	        grabber: {
-	            urlTemplates: ['https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn'],
-	            idParser: function(){
-	                if(location.href.match(/[\a-z\d]{32}/) !== null){
-	                    return window.location.href.match(/[\a-z\d]{32}/)[0];
+	        asyncSteps: [
+	            AsyncStep.setup({
+	                urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
+	                    '&ua=www_iplatv_html5/12345&media_id=#videoId',
+	                beforeStep: function(input){
+	                    return idParser();
+	                },
+	                afterStep: function(output) {
+	                    return IPLA.grabVideoFormats(output);
 	                }
-	
-	                return grabVideoIdFromWatchingNowElement();
-	            },
-	            formatParser: function(data){
-	                return IPLA.grabVideoFormats(data);
-	            }
-	        }
+	            })
+	        ]
 	    });
+	
+	    var idParser = function(){
+	        if(location.href.match(/[\a-z\d]{32}/) !== null) {
+	            return window.location.href.match(/[\a-z\d]{32}/)[0];
+	        }
+	
+	        return grabVideoIdFromWatchingNowElement();
+	    };
 	
 	    IPLA.waitOnWrapper = function(){
 	        WrapperDetector.run(properties, IPLA.waitOnWrapper);
@@ -678,41 +705,51 @@
 	        button: {
 	            class: 'vod_download_button'
 	        },
-	        grabber: {
-	            urlTemplates: [
-	                'https://player-api.dreamlab.pl/?body[id]=$idn&body[jsonrpc]=2.0&body[method]=get_asset_detail&body[params][ID_Publikacji]=$idn' +
-	                '&body[params][Service]=vod.onet.pl&content-type=application/jsonp&x-onet-app=player.front.onetapi.pl&callback=',
-	            ],
-	            idParser: function(){
-	                try {
-	                    var id = $(".mvp").attr('id');
-	                    return id.match(/mvp:(.+)/)[1];
+	        asyncSteps: [
+	            AsyncStep.setup({
+	                urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
+	                    '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
+	                    '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +
+	                    '&x-onet-app=player.front.onetapi.pl&callback=',
+	                beforeStep: function(input){
+	                    return idParser();
+	                },
+	                afterStep: function(output) {
+	                    return formatParser(output);
 	                }
-	                catch(e){
-	                    throw(CONST.id_error);
-	                }
-	            },
-	            formatParser: function(data){
-	                var formats = [];
-	                var video = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
-	                var meta = ((data.result || new Array())[0] || {}).meta || {};
-	                var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
-	                if(videoData){
-	                    $.each(videoData, function( index, value ) {
-	                        formats.push({
-	                            quality: value.vertical_resolution,
-	                            bitrate: value.video_bitrate,
-	                            url: value.url
-	                        });
-	                    });
-	                }
-	                return {
-	                    title: meta.title,
-	                    formats: formats
-	                }
-	            }
-	        }
+	            })
+	        ]
 	    });
+	
+	    var idParser = function () {
+	        try {
+	            var id = $(".mvp").attr('id');
+	            return id.match(/mvp:(.+)/)[1];
+	        }
+	        catch(e){
+	            throw(CONST.id_error);
+	        }
+	    };
+	
+	    var formatParser = function (data) {
+	        var formats = [];
+	        var video = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
+	        var meta = ((data.result || new Array())[0] || {}).meta || {};
+	        var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
+	        if(videoData){
+	            $.each(videoData, function( index, value ) {
+	                formats.push({
+	                    quality: value.vertical_resolution,
+	                    bitrate: value.video_bitrate,
+	                    url: value.url
+	                });
+	            });
+	        }
+	        return {
+	            title: meta.title,
+	            formats: formats
+	        }
+	    };
 	
 	    var isTopWindow = function(){
 	        return window.top === window.self;
@@ -739,23 +776,30 @@
 	        button: {
 	            class: 'vod_ipla_downlaod_button'
 	        },
-	        grabber: {
-	            urlTemplates: ['https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345&media_id=$idn'],
-	            idParser: function(){
-	                try {
-	                    var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
-	                    var jsonObject = JSON.parse(match[2]);
-	                    return JSON.parse(jsonObject[0].media).result.mediaItem.id;
+	        asyncSteps: [
+	            AsyncStep.setup({
+	                urlTemplates: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345' +
+	                    '&media_id=#videoId',
+	                beforeStep: function(input){
+	                    return idParser();
+	                },
+	                afterStep: function(output) {
+	                    return IPLA.grabVideoFormats(output);
 	                }
-	                catch(e){
-	                    throw(CONST.id_error);
-	                }
-	            },
-	            formatParser: function(data){
-	                return IPLA.grabVideoFormats(data);
-	            }
-	        }
+	            })
+	        ]
 	    });
+	
+	    var idParser = function(){
+	        try {
+	            var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
+	            var jsonObject = JSON.parse(match[2]);
+	            return JSON.parse(jsonObject[0].media).result.mediaItem.id;
+	        }
+	        catch(e){
+	            throw(CONST.id_error);
+	        }
+	    };
 	
 	    VOD_IPLA.waitOnWrapper = function(){
 	        WrapperDetector.run(properties);
@@ -772,24 +816,30 @@
 	        button: {
 	            class: 'material__category wp_download_button'
 	        },
-	        grabber: {
-	            urlTemplates: ['https://video.wp.pl/player/mid,$idn,embed.json'],
-	            idParser: function(){
-	                try {
-	                    var pageURL = window.location.href;
-	                    var regexp = new RegExp('mid,(\\d+),cid');
-	                    var match = regexp.exec(pageURL);
-	                    return match[1];
+	        asyncSteps: [
+	            AsyncStep.setup({
+	                urlTemplates: 'https://video.wp.pl/player/mid,#videoId,embed.json',
+	                beforeStep: function(input){
+	                    return idParser();
+	                },
+	                afterStep: function(output) {
+	                    return grabVideoFormats(output);
 	                }
-	                catch(e){
-	                    throw CONST.id_error;
-	                }
-	            },
-	            formatParser: function(data){
-	                return grabVideoFormats(data);
-	            }
-	        }
+	            })
+	        ]
 	    });
+	
+	    var idParser = function () {
+	        try {
+	            var pageURL = window.location.href;
+	            var regexp = new RegExp('mid,(\\d+),cid');
+	            var match = regexp.exec(pageURL);
+	            return match[1];
+	        }
+	        catch(e){
+	            throw CONST.id_error;
+	        }
+	    };
 	
 	    var grabVideoFormats = function(data){
 	        var formats = [];
@@ -841,7 +891,7 @@
 	                throw CONST.id_error;
 	            }
 	        }catch(e){
-	            DomTamper.handleError(e, properties, w);
+	            DomTamper.handleError(e, w);
 	        }
 	    };
 	
@@ -852,40 +902,17 @@
 	    return CDA;
 	}(CDA || {}));
 	
-	var TVP_VIDEOINFO = (function(TVP_VIDEOINFO) {
-	    var properties = Configurator.setup({
-	        wrapper: 'body',
-	        storageKey: 'voddownloader.tvp.videoid'
-	    });
-	
-	    var getJsonContent = function(){
-	        var content = $(properties.wrapper).html();
-	        return JSON.parse(content);
-	    };
-	
-	    TVP_VIDEOINFO.parseJson = function() {
-	        try {
-	            var json = getJsonContent();
-	            var videoId = json.copy_of_object_id !== undefined ? json.copy_of_object_id : json.video_id;
-	            console.log('videoId: ' + videoId);
-	            StorageUtil.put(properties.storageKey, videoId, window);
-	        }
-	        catch(e){
-	            DomTamper.handleError(e, properties, window);
-	        }
-	    };
-	
-	    return TVP_VIDEOINFO;
-	}(TVP_VIDEOINFO || {}));
-	
 	var Starter = (function(Starter) {
+	    var tvZones = [
+	        'bialystok', 'katowice', 'lodz', 'rzeszow', 'bydgoszcz', 'kielce', 'olsztyn', 'szczecin',
+	        'gdansk', 'krakow', 'opole', 'warszawa', 'gorzow', 'lublin', 'poznan', 'wroclaw'
+	    ];
+	
 	    var matcher = [
-	        {action: TVP_VIDEOINFO.parseJson, pattern: /^https:\/\/tvp\.pl\/pub\/stat\//},
 	        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\//},
 	        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\//},
 	        {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
-	        {action: TVP_REG.waitOnWrapper,
-	            pattern: /^https:\/\/(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw)\.tvp\.pl\//},
+	        {action: TVP_REG.waitOnWrapper, pattern: '/^https:\/\/' + tvZones.join('|') +'\.tvp\.pl\//'},
 	        {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
 	        {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
 	        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod\.pl\//},

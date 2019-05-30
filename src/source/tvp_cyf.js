@@ -8,7 +8,7 @@ var CYF_TVP = (function(CYF_TVP) {
         },
         asyncSteps: [
             AsyncStep.setup({
-                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$videoId',
+                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
                 beforeStep: function(input){
                     return idParser();
                 },

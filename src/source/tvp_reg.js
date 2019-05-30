@@ -8,7 +8,7 @@ var TVP_REG = (function(TVP_REG) {
         },
         asyncSteps: [
             AsyncStep.setup({
-                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=$videoId',
+                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
                 beforeStep: function(input){
                     return idParser();
                 },
