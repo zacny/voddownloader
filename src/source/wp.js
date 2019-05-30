@@ -8,7 +8,7 @@ var WP = (function(WP) {
         },
         asyncSteps: [
             AsyncStep.setup({
-                urlTemplates: 'https://video.wp.pl/player/mid,#videoId,embed.json',
+                urlTemplate: 'https://video.wp.pl/player/mid,#videoId,embed.json',
                 beforeStep: function(input){
                     return idParser();
                 },
@@ -27,7 +27,7 @@ var WP = (function(WP) {
             return match[1];
         }
         catch(e){
-            throw CONST.id_error;
+            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + pageURL));
         }
     };
 

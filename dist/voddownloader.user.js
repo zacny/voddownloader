@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.4.1
+// @name           voddownloader
+// @version        5.4.1-develop
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -29,30 +29,31 @@
 // @grant          GM_getResourceURL
 // @grant          GM_xmlhttpRequest
 // @connect        tvp.pl
+// @connect        getmedia.redefine.pl
+// @connect        player-api.dreamlab.pl
 // @run-at         document-end
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// @resource       css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
-// @resource       loader https://raw.githubusercontent.com/zacny/voddownloader/master/img/loader.gif
+// @resource       css http://localhost:5011/dist/voddownloader.css
+// @resource       loader http://localhost:5011/img/loader.gif
 // ==/UserScript==
 
 (function vodDownloader($) {
     'use strict';
 
-    function Exception(message, name) {
+    function Exception(message, description) {
 	    this.message = message;
-	    this.name = name;
+	    this.description = description;
 	}
 	
 	var CONFIG = (function(CONFIG) {
 	    var settings = {
 	        attempts: 10,
 	        attempt_timeout: 1500,
-	        id_error: new Exception('Nie udało się odnaleźć idetyfikatora.', 'ID_ERROR'),
-	        api_error: new Exception('Nie odnaleziono adresów do strumieni.', 'API_ERROR'),
-	        call_error: new Exception('Błąd pobierania informacji o materiale.', 'CALL_ERROR'),
-	        drm_error: new Exception('Materiał posiada DRM. ' +
-	            'Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.', 'DRM_ERROR'),
-	        timeout_error: new Exception('Zbyt długi czas odpowiedzi. Przypuszczalnie problem sieciowy.', 'TIMEOUT_ERROR')
+	        id_error: 'Nie udało się odnaleźć idetyfikatora.',
+	        api_error: 'Nie odnaleziono adresów do strumieni.',
+	        call_error: 'Błąd pobierania informacji o materiale.',
+	        drm_error: 'Materiał posiada DRM. Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.',
+	        timeout_error: 'Zbyt długi czas odpowiedzi. Przypuszczalnie problem sieciowy.'
 	    };
 	
 	    CONFIG.get = function(name) {
@@ -67,16 +68,18 @@
 	    AsyncStep.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
+	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
 	            beforeStep: function(input){return input},
+	            /** Will be done after async call **/
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
+	                var url = this.urlTemplate;
 	                if(typeof input === 'string'){
-	                    return url.replace('/\$videoId/g', input);
+	                    return url.replace(new RegExp('#videoId', 'g'), input);
 	                }
 	                else if(typeof input === 'object') {
-	                    var url = this.urlTemplate;
 	                    $.each(input, function (key, value) {
-	                        url = url.replace(new RegExp('\#'+key,'g'), value);
+	                        url = url.replace(new RegExp('#'+key,'g'), value);
 	                    });
 	                    return url;
 	                }
@@ -142,10 +145,13 @@
 	        }
 	        DomTamper.injectStyle(w, 'css');
 	        var messageDiv = $('<div>').addClass('error_message').text(exception.message);
-	        var stackDiv = $('<div>').addClass('error_info')
-	            .append($('<div>').text('Informacje o błędzie:'))
-	            .append($('<div>').text(new Error().stack));
-	        var par = $('<p>').append(messageDiv).append(stackDiv);
+	        var stack = new Error().stack;
+	        stack.replace(/\n/g, '<br/>');
+	        var par = $('<p>').append(messageDiv);
+	        if(exception.description !== undefined){
+	            var detailsDiv = $('<div>').text(exception.description);
+	            par.append(detailsDiv);
+	        }
 	        $(w.document.body).replaceWith(prepareContent(w).append(par));
 	    };
 	
@@ -202,7 +208,7 @@
 	        var img = $('<img>').addClass('loader_image').attr('src', GM_getResourceURL('loader'));
 	        var div = $('<div>').addClass('loader').append(message).append(img);
 	        content.addClass('loader_content').append(div);
-	        body.replaceWith(content);
+	        body.append(content);
 	    };
 	
 	    DomTamper.createDocument = function(data, w){
@@ -240,6 +246,7 @@
 	    var executeAsync = function(service, stepIndex, w, input){
 	        var asyncStep = service.asyncSteps[stepIndex];
 	        var url = asyncStep.resolveUrl(asyncStep.beforeStep(input));
+	        console.log('async step [' + stepIndex + ']: ' + url);
 	        var requestParams = {
 	            method: 'GET',
 	            url: url,
@@ -248,10 +255,10 @@
 	                asyncCallback(service, stepIndex, w, data.response);
 	            },
 	            onerror: function(){
-	                DomTamper.handleError(CONFIG.get('call_error'), w);
+	                DomTamper.handleError(new Exception(CONFIG.get('call_error')), w);
 	            },
 	            ontimeout: function(){
-	                DomTamper.handleError(CONFIG.get('timeout_error'), w);
+	                DomTamper.handleError(new Exception(CONFIG.get('timeout_error')), w);
 	            }
 	        };
 	        GM_xmlhttpRequest(requestParams);
@@ -274,7 +281,8 @@
 	            }
 	        }
 	        catch(e){
-	            DomTamper.handleError(CONFIG.get('api_error'), w)
+	            DomTamper.handleError(new Exception(CONFIG.get('api_error'),
+	                'Błąd przetwarzania odpowiedzi asynchronicznej.'), w);
 	        }
 	    };
 	
@@ -330,6 +338,7 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
+	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -340,6 +349,7 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
+	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };
@@ -357,6 +367,7 @@
 	    };
 	
 	    var checkWrapperExist = function(attempt, properties){
+	        console.log('check: ' + properties.wrapper.exist() + ', [' + attempt + ']');
 	        if (properties.wrapper.exist() || attempt == 0) {
 	            return Promise.resolve().then(onWrapperExist(properties));
 	        } else {
@@ -408,7 +419,7 @@
 	        var videoId = src.split("/").pop();
 	
 	        if(videoId === null)
-	            throw CONFIG.get('id_error');
+	            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + src));
 	
 	        return {
 	            videoId: videoId
@@ -476,7 +487,7 @@
 	            return src.split("/").pop();
 	        }
 	        catch(e){
-	            throw CONST.id_error;
+	            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + src));
 	        }
 	    };
 	
@@ -513,7 +524,7 @@
 	            return $('div.js-video').attr('data-object-id');
 	        }
 	        catch(e){
-	            throw CONST.id_error;
+	            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + $('div.js-video').get(0)));
 	        }
 	    };
 	
@@ -551,7 +562,7 @@
 	            return src.split("/").pop();
 	        }
 	        catch(e){
-	            throw CONST.id_error;
+	            new Exception(CONFIG.get('id_error', 'Źródło: ' + src))
 	        }
 	    };
 	
@@ -595,7 +606,7 @@
 	            return pageURL.substring(lastComma+1);
 	        }
 	
-	        throw CONST.id_error;
+	        throw new Exception(CONFIG.get('id_error', 'Źródło: ' + pageURL));
 	    };
 	
 	    var formatParser = function(data){
@@ -700,7 +711,7 @@
 	            return Tool.getUrlParameter('vid', frameSrc);
 	        }
 	        catch(e){
-	            throw CONST.id_error;
+	            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + frameSrc));
 	        }
 	    };
 	
@@ -737,7 +748,7 @@
 	            return id.match(/mvp:(.+)/)[1];
 	        }
 	        catch(e){
-	            throw(CONST.id_error);
+	            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + id));
 	        }
 	    };
 	
@@ -788,7 +799,7 @@
 	        },
 	        asyncSteps: [
 	            AsyncStep.setup({
-	                urlTemplates: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345' +
+	                urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345' +
 	                    '&media_id=#videoId',
 	                beforeStep: function(input){
 	                    return idParser();
@@ -807,7 +818,7 @@
 	            return JSON.parse(jsonObject[0].media).result.mediaItem.id;
 	        }
 	        catch(e){
-	            throw(CONST.id_error);
+	            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + match));
 	        }
 	    };
 	
@@ -828,7 +839,7 @@
 	        },
 	        asyncSteps: [
 	            AsyncStep.setup({
-	                urlTemplates: 'https://video.wp.pl/player/mid,#videoId,embed.json',
+	                urlTemplate: 'https://video.wp.pl/player/mid,#videoId,embed.json',
 	                beforeStep: function(input){
 	                    return idParser();
 	                },
@@ -847,7 +858,7 @@
 	            return match[1];
 	        }
 	        catch(e){
-	            throw CONST.id_error;
+	            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + pageURL));
 	        }
 	    };
 	
@@ -895,10 +906,13 @@
 	        var w = window.open();
 	        try {
 	            var url = $("video.pb-video-player").attr('src');
-	            if (url !== undefined) {
-	                w.location.href = url;
-	            } else {
-	                throw CONST.id_error;
+	            if(url !== undefined){
+	                if (!url.match(/blank\.mp4/)) {
+	                    w.location.href = url;
+	                }
+	                else {
+	                    throw new Exception(CONFIG.get('call_error'), 'Upewnij się, że html5 player jest włączony.');
+	                }
 	            }
 	        }catch(e){
 	            DomTamper.handleError(e, w);

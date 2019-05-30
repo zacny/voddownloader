@@ -86,7 +86,9 @@
         "GM_xmlhttpRequest"
       ],
       "connect": [
-        "tvp.pl"
+        "tvp.pl",
+        "getmedia.redefine.pl",
+        "player-api.dreamlab.pl"
       ],
       "run-at": "document-end",
       "require": "https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"

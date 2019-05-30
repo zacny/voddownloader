@@ -30,7 +30,7 @@ var VOD_TVP = (function(VOD_TVP) {
         var videoId = src.split("/").pop();
 
         if(videoId === null)
-            throw CONFIG.get('id_error');
+            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + src));
 
         return {
             videoId: videoId

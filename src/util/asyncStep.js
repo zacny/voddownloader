@@ -7,13 +7,13 @@ var AsyncStep = (function(AsyncStep){
             /** Will be done after async call **/
             afterStep: function (output) {return output},
             resolveUrl: function (input) {
+                var url = this.urlTemplate;
                 if(typeof input === 'string'){
-                    return url.replace('/\$videoId/g', input);
+                    return url.replace(new RegExp('#videoId', 'g'), input);
                 }
                 else if(typeof input === 'object') {
-                    var url = this.urlTemplate;
                     $.each(input, function (key, value) {
-                        url = url.replace(new RegExp('\#'+key,'g'), value);
+                        url = url.replace(new RegExp('#'+key,'g'), value);
                     });
                     return url;
                 }

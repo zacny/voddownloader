@@ -15,10 +15,13 @@ var CDA = (function(CDA) {
         var w = window.open();
         try {
             var url = $("video.pb-video-player").attr('src');
-            if (url !== undefined) {
-                w.location.href = url;
-            } else {
-                throw CONST.id_error;
+            if(url !== undefined){
+                if (!url.match(/blank\.mp4/)) {
+                    w.location.href = url;
+                }
+                else {
+                    throw new Exception(CONFIG.get('call_error'), 'Upewnij się, że html5 player jest włączony.');
+                }
             }
         }catch(e){
             DomTamper.handleError(e, w);

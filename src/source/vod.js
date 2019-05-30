@@ -28,7 +28,7 @@ var VOD = (function(VOD) {
             return id.match(/mvp:(.+)/)[1];
         }
         catch(e){
-            throw(CONST.id_error);
+            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + id));
         }
     };
 

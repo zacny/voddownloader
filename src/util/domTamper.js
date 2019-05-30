@@ -20,10 +20,13 @@ var DomTamper = (function(DomTamper){
         }
         DomTamper.injectStyle(w, 'css');
         var messageDiv = $('<div>').addClass('error_message').text(exception.message);
-        var stackDiv = $('<div>').addClass('error_info')
-            .append($('<div>').text('Informacje o błędzie:'))
-            .append($('<div>').text(new Error().stack));
-        var par = $('<p>').append(messageDiv).append(stackDiv);
+        var stack = new Error().stack;
+        stack.replace(/\n/g, '<br/>');
+        var par = $('<p>').append(messageDiv);
+        if(exception.description !== undefined){
+            var detailsDiv = $('<div>').text(exception.description);
+            par.append(detailsDiv);
+        }
         $(w.document.body).replaceWith(prepareContent(w).append(par));
     };
 
@@ -80,7 +83,7 @@ var DomTamper = (function(DomTamper){
         var img = $('<img>').addClass('loader_image').attr('src', GM_getResourceURL('loader'));
         var div = $('<div>').addClass('loader').append(message).append(img);
         content.addClass('loader_content').append(div);
-        body.replaceWith(content);
+        body.append(content);
     };
 
     DomTamper.createDocument = function(data, w){
