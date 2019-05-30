@@ -7,10 +7,6 @@ https://www.ipla.tv/wideo/dzieci/Dinopociag/5010809
 #TVN
 https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114/odcinek-1,S01E01,1979
 
-#TVP
-#will be remove - available on vod.tvp.pl
-http://www.tvp.pl/informacje-rolnicze/agrobiznes/wideo/27052019-1215/42507162
-
 #TVP_CYF
 https://cyfrowa.tvp.pl/video/podroz-za-jeden-usmiech,odc-1-pechowy-dzien,40674581
 

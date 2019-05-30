@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.4.3
+// @version        5.4.4
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -11,12 +11,10 @@
 // @include        https://vod.tvp.pl/video/*
 // @include        /^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\d{6,}/
 // @include        https://cyfrowa.tvp.pl/video/*
-// @include        http://www.tvp.pl/*
 // @include        https://www.ipla.tv/wideo/*
 // @include        https://player.pl/*
 // @include        https://www.cda.pl/*
 // @include        /^https://vod.pl/(filmy|programy-onetu|da-vinci|seriale|programy-tv)/.*
-// @include        https://vod.pl/programy-tv/*
 // @include        https://redir.atmcdn.pl/*
 // @include        https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include        https://video.wp.pl/*
@@ -540,44 +538,6 @@
 	    return TVP_REG;
 	}(TVP_REG || {}));
 	
-	var TVP = (function(TVP) {
-	    var properties = Configurator.setup({
-	        wrapper: {
-	            selector: '#playerBoxContainer-x'
-	        },
-	        button: {
-	            class: 'tvp_downlaod_button'
-	        },
-	        asyncSteps: [
-	            AsyncStep.setup({
-	                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
-	                beforeStep: function(input){
-	                    return idParser();
-	                },
-	                afterStep: function(output) {
-	                    return VOD_TVP.grabVideoFormats(output);
-	                }
-	            })
-	        ]
-	    });
-	
-	    var idParser = function(){
-	        try {
-	            var src = $('input[name="recommended_url"]').val();
-	            return src.split("/").pop();
-	        }
-	        catch(e){
-	            new Exception(CONFIG.get('id_error', 'Źródło: ' + src))
-	        }
-	    };
-	
-	    TVP.waitOnWrapper = function(){
-	        WrapperDetector.run(properties);
-	    };
-	
-	    return TVP;
-	}(TVP || {}));
-	
 	var TVN = (function(TVN) {
 	    var properties = Configurator.setup({
 	        wrapper: {
@@ -940,7 +900,6 @@
 	    var matcher = [
 	        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\/video\//},
 	        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
-	        {action: TVP.waitOnWrapper, pattern: /^http:\/\/www\.tvp\.pl\//},
 	        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/' + tvZones.join('|') + '\.tvp\.pl\/\d{6,}\/')},
 	        {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
 	        {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
