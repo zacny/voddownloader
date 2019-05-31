@@ -1,12 +1,4 @@
 var Tool = (function(Tool) {
-    Tool.copyToClipboard = function(text) {
-        var $temp = $("<input>");
-        $("body").append($temp);
-        $temp.val(text).select();
-        document.execCommand("copy");
-        $temp.remove();
-    };
-
     Tool.deleteParametersFromUrl = function(url){
         return decodeURIComponent(url.replace(/\?.*/,''));
     };
@@ -27,6 +19,25 @@ var Tool = (function(Tool) {
 
     Tool.formatConsoleMessage = function(message, params){
         console.log.apply(this, $.merge([message], params));
+    };
+
+    Tool.downloadFile = function(fileUrl, title){
+        var extension = fileUrl.split('.').pop();
+        var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
+        var details = {
+            url: fileUrl,
+            name: title + '.' + extension,
+            saveAs: true,
+            onerror: function(response){
+                downloadErrorCallback(response);
+            }
+        };
+
+        GM_download(details);
+    };
+
+    var downloadErrorCallback = function (response) {
+        console.log(response.error + ' ' + response.details);
     };
 
     return Tool;
