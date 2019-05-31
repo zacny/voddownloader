@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.4.4
+// @name           voddownloader
+// @version        5.5.0-develop
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -23,13 +23,14 @@
 // @grant          GM_getResourceText
 // @grant          GM_getResourceURL
 // @grant          GM_xmlhttpRequest
+// @grant          GM_download
 // @connect        tvp.pl
 // @connect        getmedia.redefine.pl
 // @connect        player-api.dreamlab.pl
 // @run-at         document-end
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// @resource       css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.css
-// @resource       loader https://raw.githubusercontent.com/zacny/voddownloader/master/img/loader.gif
+// @resource       css http://localhost:5011/dist/voddownloader.css
+// @resource       loader http://localhost:5011/img/loader.gif
 // ==/UserScript==
 
 (function vodDownloader($) {
@@ -63,7 +64,9 @@
 	    AsyncStep.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
+	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
 	            beforeStep: function(input){return input},
+	            /** Will be done after async call **/
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
 	                var url = this.urlTemplate;
@@ -87,14 +90,6 @@
 	}(AsyncStep || {}));
 	
 	var Tool = (function(Tool) {
-	    Tool.copyToClipboard = function(text) {
-	        var $temp = $("<input>");
-	        $("body").append($temp);
-	        $temp.val(text).select();
-	        document.execCommand("copy");
-	        $temp.remove();
-	    };
-	
 	    Tool.deleteParametersFromUrl = function(url){
 	        return decodeURIComponent(url.replace(/\?.*/,''));
 	    };
@@ -115,6 +110,25 @@
 	
 	    Tool.formatConsoleMessage = function(message, params){
 	        console.log.apply(this, $.merge([message], params));
+	    };
+	
+	    Tool.downloadFile = function(fileUrl, title){
+	        var extension = fileUrl.split('.').pop();
+	        var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
+	        var details = {
+	            url: fileUrl,
+	            name: title + '.' + extension,
+	            saveAs: true,
+	            onerror: function(response){
+	                downloadErrorCallback(response);
+	            }
+	        };
+	
+	        GM_download(details);
+	    };
+	
+	    var downloadErrorCallback = function (response) {
+	        console.log(response.error + ' ' + response.details);
 	    };
 	
 	    return Tool;
@@ -160,40 +174,27 @@
 	        properties.wrapper.get().append(button);
 	    };
 	
-	    var clearPreviousClick = function(body){
-	        body.find('[id^=contentPar] > input').each(function(event){
+	    var clearPreviousClick = function(content){
+	        content.find('[id^=contentPar] > input').each(function(event){
 	            $(this).removeClass('link_copy_click');
 	        });
-	        $('#copyTitle', body).removeClass('title_copy_click');
 	    };
 	
-	    var videoLinkCopyButtonClick = function(body, par){
-	        clearPreviousClick(body);
+	    var videoLinkCopyButtonClick = function(content, input){
+	        clearPreviousClick(content);
 	
-	        Tool.copyToClipboard(par.find("a").text());
-	        par.find("input").addClass('link_copy_click');
-	    };
-	
-	    var titleCopyButtonClick = function(body){
-	        clearPreviousClick(body);
-	
-	        Tool.copyToClipboard($('#title', body).text());
-	        $('#copyTitle', body).addClass('title_copy_click');
+	        input.addClass('link_copy_click');
+	        Tool.downloadFile(input.data('url'), input.data('title'));
 	    };
 	
 	    var prepareContentActions = function(w, content){
 	        var body = $(w.document.body);
 	        body.replaceWith(content);
 	
-	        $(w.document).ready(function() {
-	            body.find('[id^=contentPar]').each(function(event){
-	                var par = $(this);
-	                $(this).find("input").click(function(event){
-	                    videoLinkCopyButtonClick(body, par);
-	                });
-	            });
-	            $('#copyTitle', body).click(function(){
-	                titleCopyButtonClick(body);
+	        content.find('[id^=contentPar] > input').each(function(event){
+	            var link = $(this);
+	            link.click(function() {
+	                videoLinkCopyButtonClick(content, link);
 	            })
 	        });
 	    };
@@ -215,16 +216,15 @@
 	        var titlePar = $('<p>');
 	        $('<span>').text('Tytuł: ').appendTo(titlePar);
 	        $('<span>').attr('id', 'title').text(data.title).appendTo(titlePar);
-	        $('<input>').attr('id', 'copyTitle').attr('value', 'Kopiuj tytuł').attr('type', 'button')
-	            .addClass('title_copy_button').appendTo(titlePar);
 	        titlePar.appendTo(content);
 	        $.each(data.formats, function( index, value ) {
-	            var par = $('<p>').attr('id', 'contentPar'+ index).text('Bitrate: ' + value.bitrate);
+	            var par = $('<p>').attr('id', 'contentPar'+ index).append($('<span>').text('Bitrate: ' + value.bitrate));
 	            if(value.quality !== undefined){
-	                par.append(", Jakość: " + value.quality);
+	                par.append($('<span>').text(', Jakość: '+ value.quality));
 	            }
-	            par.append('<br/>').append('Link do materiału:');
-	            $('<input>').attr('value', 'Kopiuj').attr('type', 'button')
+	            par.append('<br/>').append($('<span>').text('Link do materiału:'));
+	            $('<input>').attr('value', 'Pobierz').attr('type', 'button')
+	                .attr('data-url', value.url).attr('data-title', data.title)
 	                .addClass('link_copy_button').appendTo(par);
 	            par.append('<br/>');
 	            var link = $('<a>').attr('target', '_blank').attr('href', value.url).text(value.url);
@@ -243,6 +243,7 @@
 	    var executeAsync = function(service, stepIndex, w, input){
 	        var asyncStep = service.asyncSteps[stepIndex];
 	        var url = asyncStep.resolveUrl(asyncStep.beforeStep(input));
+	        console.log('async step [' + stepIndex + ']: ' + url);
 	        var requestParams = {
 	            method: 'GET',
 	            url: url,
@@ -334,6 +335,7 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
+	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -344,6 +346,7 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
+	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };

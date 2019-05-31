@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.4.4",
+  "version": "5.5.0",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -78,7 +78,8 @@
       "grant": [
         "GM_getResourceText",
         "GM_getResourceURL",
-        "GM_xmlhttpRequest"
+        "GM_xmlhttpRequest",
+        "GM_download"
       ],
       "connect": [
         "tvp.pl",

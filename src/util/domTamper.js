@@ -38,40 +38,27 @@ var DomTamper = (function(DomTamper){
         properties.wrapper.get().append(button);
     };
 
-    var clearPreviousClick = function(body){
-        body.find('[id^=contentPar] > input').each(function(event){
+    var clearPreviousClick = function(content){
+        content.find('[id^=contentPar] > input').each(function(event){
             $(this).removeClass('link_copy_click');
         });
-        $('#copyTitle', body).removeClass('title_copy_click');
     };
 
-    var videoLinkCopyButtonClick = function(body, par){
-        clearPreviousClick(body);
+    var videoLinkCopyButtonClick = function(content, input){
+        clearPreviousClick(content);
 
-        Tool.copyToClipboard(par.find("a").text());
-        par.find("input").addClass('link_copy_click');
-    };
-
-    var titleCopyButtonClick = function(body){
-        clearPreviousClick(body);
-
-        Tool.copyToClipboard($('#title', body).text());
-        $('#copyTitle', body).addClass('title_copy_click');
+        input.addClass('link_copy_click');
+        Tool.downloadFile(input.data('url'), input.data('title'));
     };
 
     var prepareContentActions = function(w, content){
         var body = $(w.document.body);
         body.replaceWith(content);
 
-        $(w.document).ready(function() {
-            body.find('[id^=contentPar]').each(function(event){
-                var par = $(this);
-                $(this).find("input").click(function(event){
-                    videoLinkCopyButtonClick(body, par);
-                });
-            });
-            $('#copyTitle', body).click(function(){
-                titleCopyButtonClick(body);
+        content.find('[id^=contentPar] > input').each(function(event){
+            var link = $(this);
+            link.click(function() {
+                videoLinkCopyButtonClick(content, link);
             })
         });
     };
@@ -93,16 +80,15 @@ var DomTamper = (function(DomTamper){
         var titlePar = $('<p>');
         $('<span>').text('Tytuł: ').appendTo(titlePar);
         $('<span>').attr('id', 'title').text(data.title).appendTo(titlePar);
-        $('<input>').attr('id', 'copyTitle').attr('value', 'Kopiuj tytuł').attr('type', 'button')
-            .addClass('title_copy_button').appendTo(titlePar);
         titlePar.appendTo(content);
         $.each(data.formats, function( index, value ) {
-            var par = $('<p>').attr('id', 'contentPar'+ index).text('Bitrate: ' + value.bitrate);
+            var par = $('<p>').attr('id', 'contentPar'+ index).append($('<span>').text('Bitrate: ' + value.bitrate));
             if(value.quality !== undefined){
-                par.append(", Jakość: " + value.quality);
+                par.append($('<span>').text(', Jakość: '+ value.quality));
             }
-            par.append('<br/>').append('Link do materiału:');
-            $('<input>').attr('value', 'Kopiuj').attr('type', 'button')
+            par.append('<br/>').append($('<span>').text('Link do materiału:'));
+            $('<input>').attr('value', 'Pobierz').attr('type', 'button')
+                .attr('data-url', value.url).attr('data-title', data.title)
                 .addClass('link_copy_button').appendTo(par);
             par.append('<br/>');
             var link = $('<a>').attr('target', '_blank').attr('href', value.url).text(value.url);
