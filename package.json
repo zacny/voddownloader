@@ -15,6 +15,7 @@
     "gulp-header": "^2.0.7",
     "gulp-clean": "^0.4.0",
     "gulp-order": "^1.2.0",
+    "gulp-copy": "^4.0.1",
     "gulp-rename": "^1.4.0",
     "gulp-replace": "^1.0.0",
     "gulp-develop-server": "^0.5.2",
@@ -38,7 +39,7 @@
     "type": "git",
     "url": "git+https://github.com/zacny/voddownloader.git"
   },
-  "author": "zacny",
+  "author": "przymus, zacny",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/zacny/voddownloader/issues"
@@ -53,8 +54,9 @@
       "resourcesHost": "https://raw.githubusercontent.com/zacny/voddownloader/master"
     },
     "scriptName": "voddownloader.user.js",
-    "cssName": "voddownloader.css",
-    "loaderName": "loader.gif",
+    "buttonCssName": "voddownloader-buttons.css",
+    "loaderCssName": "voddownloader-loader.css",
+    "contentCssName": "voddownloader-content.css",
     "headers": {
       "description": "Skrypt służący do pobierania materiałów ze znanych serwisów VOD.\n//                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.\n//                 Cześć kodu pochodzi z:\n//                 miniskrypt.blogspot.com,\n//                 miniskrypt.hubaiitv.pl",
       "author": "Przmus, zacny",
@@ -79,7 +81,8 @@
         "GM_getResourceText",
         "GM_getResourceURL",
         "GM_xmlhttpRequest",
-        "GM_download"
+        "GM_download",
+        "GM_notification"
       ],
       "connect": [
         "tvp.pl",

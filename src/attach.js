@@ -1,5 +1,5 @@
 $(document).ready(function(){
     console.info('jQuery: ' + $().jquery);
-    DomTamper.injectStyle(window, 'css');
+    DomTamper.injectStyle(window, 'buttons_css');
     Starter.start();
 });

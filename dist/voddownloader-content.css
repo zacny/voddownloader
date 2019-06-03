@@ -1,0 +1,181 @@
+/** error view **/
+.cause {
+    font-weight: bold;
+    color: #990033;
+}
+
+/** table view **/
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+    border: 1px solid #ddd;
+}
+
+th {
+    text-align: left;
+    padding: 16px;
+}
+
+td {
+    text-align: left;
+    padding: 12px 12px;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+    border: 1px solid #ddd;
+}
+
+td.actions {
+    width: 125px;
+}
+
+.margin {
+    margin-right: 10px;
+}
+
+a {
+    outline: 0;
+    text-decoration: none;
+}
+
+a, a:visited {
+    color: black;
+}
+
+.best-quality {
+    color: #990033;
+}
+
+.best-quality a, .best-quality a:visited {
+    color: inherit;
+}
+
+/** issues button **/
+#bug-report {
+    padding: 7px;
+    margin-left: -50px; /* Divide value of min-width by 2 */
+    text-align: center; /* Centered text */
+    position: fixed; /* Sit on top of the screen */
+    z-index: 1; /* Add a z-index if needed */
+    right: 15px; /* Center the snackbar */
+    bottom: 15px; /* 30px from the bottom */
+    background-color: #f2f2f2;
+    border: 1px solid #ddd;
+    color: black;
+    text-decoration: none;
+    outline: 0;
+}
+
+#bug-report:hover {
+    background-color: #ccc;
+}
+
+/** Snackbar **/
+#snackbar {
+    visibility: hidden; /* Hidden by default. Visible on click */
+    width: 300px;
+    margin-left: -150px; /* Divide value of min-width by 2 */
+    background-color: #555; /* Black background color */
+    color: #fff; /* White text color */
+    text-align: center; /* Centered text */
+    padding: 10px; /* Padding */
+    position: fixed; /* Sit on top of the screen */
+    z-index: 1; /* Add a z-index if needed */
+    left: 50%; /* Center the snackbar */
+    bottom: 30px; /* 30px from the bottom */
+    font-weight: bold;
+}
+
+/* Show the snackbar when clicking on a button (class added with JavaScript) */
+#snackbar.animate {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s forwards;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s forwards;
+}
+
+/* Animations to fade the snackbar in and out */
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+
+/** tooltips **/
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    position: absolute;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    z-index: 1;
+    opacity: 0;
+    border-radius: 4px;
+    transition: opacity 0.3s;
+    font-size: 12px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: bold;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip-up {
+    width: 80px;
+    padding: 5px 0;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -40px;
+}
+
+.tooltip-up::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.tooltip-left {
+    width: 100px;
+    padding: 5px 10px;
+    top: 1px;
+    bottom:auto;
+    right: 125%;
+    margin-right: 5px;
+}
+.tooltip-left::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent #555;
+}
