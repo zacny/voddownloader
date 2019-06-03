@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name           voddownloader
-// @version        5.5.0-develop
+// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @version        5.5.0
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -30,9 +30,9 @@
 // @connect        player-api.dreamlab.pl
 // @run-at         document-end
 // @require        https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// @resource       buttons_css http://localhost:5011/dist/voddownloader-buttons.css
-// @resource       loader_css http://localhost:5011/dist/voddownloader-loader.css
-// @resource       content_css http://localhost:5011/dist/voddownloader-content.css
+// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader-buttons.css
+// @resource       loader_css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader-loader.css
+// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($) {
@@ -66,9 +66,7 @@
 	    AsyncStep.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
-	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
 	            beforeStep: function(input){return input},
-	            /** Will be done after async call **/
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
 	                var url = this.urlTemplate;
@@ -139,13 +137,11 @@
 	    };
 	
 	    var downloadErrorCallback = function (response) {
-	        console.log(response.error + ' ' + response.details);
 	    };
 	
 	    return Tool;
 	}(Tool || {}));
 	
-	/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
 	var DomTamper = (function(DomTamper){
 	
 	    DomTamper.injectStyle = function(w, name){
@@ -167,7 +163,8 @@
 	        }
 	    };
 	
-	    var prepareContent = function(w, name){
+	    var prepareHead = function(w, name){
+	        DomTamper.injectStyle(w, 'loader_css');
 	        DomTamper.injectStyle(w, 'content_css');
 	        injectFont(w);
 	    };
@@ -179,12 +176,22 @@
 	            .append(createTooltipText('tooltip-left', 'Zgłoś błąd'));
 	    };
 	
+	    var prepareBody = function(w, pageContent) {
+	        var body = $(w.document.body);
+	        if(body.children().length > 0){
+	            body.children(":first").replaceWith(pageContent);
+	        }
+	        else {
+	            body.append(pageContent);
+	        }
+	    };
+	
 	    DomTamper.handleError = function(exception, w){
 	        if(w === undefined){
 	            w = window.open();
 	        }
-	        var body = $(w.document.body);
-	        prepareContent(w, 'content_css');
+	
+	        prepareHead(w, 'content_css');
 	        var pageContent = $('<div>').addClass('page-content');
 	        var container = $('<div>').addClass('container');
 	        var cause = $('<div>').addClass('cause').text(exception.message);
@@ -194,8 +201,7 @@
 	        }
 	
 	        pageContent.append(container).append(createBugReportLink());
-	
-	        body.children(":first").replaceWith(pageContent);
+	        prepareBody(w, pageContent);
 	    };
 	
 	    DomTamper.createButton = function(properties){
@@ -219,7 +225,7 @@
 	        container.append(loaderContent.append(loaderText).append(loaderRing));
 	        pageContent.append(container);
 	
-	        body.append(pageContent);
+	        prepareBody(w, pageContent);
 	    };
 	
 	    var createTooltipText = function(tooltipClass, tooltipMessage){
@@ -306,7 +312,7 @@
 	    DomTamper.createDocument = function(data, w){
 	        Tool.numberModeSort(data.formats);
 	
-	        prepareContent(w, 'content_css');
+	        prepareHead(w, 'content_css');
 	        setWindowTitle(data, w);
 	        var body = $(w.document.body);
 	
@@ -315,7 +321,7 @@
 	        pageContent.append($('<div>').attr('id', 'snackbar'));
 	        pageContent.append(createBugReportLink());
 	
-	        body.children(":first").replaceWith(pageContent);
+	        prepareBody(w, pageContent);
 	    };
 	
 	    return DomTamper;
@@ -325,7 +331,6 @@
 	    var executeAsync = function(service, stepIndex, w, input){
 	        var asyncStep = service.asyncSteps[stepIndex];
 	        var url = asyncStep.resolveUrl(asyncStep.beforeStep(input));
-	        console.log('async step [' + stepIndex + ']: ' + url);
 	        var requestParams = {
 	            method: 'GET',
 	            url: url,
@@ -417,7 +422,6 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
-	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -428,7 +432,6 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
-	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };
