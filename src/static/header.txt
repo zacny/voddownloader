@@ -2,7 +2,8 @@
 // @name           ${data.name}
 // @version        ${data.version}
 // @include@
-// @resource       css ${data.cssPath}
-// @resource       loader ${data.loaderPath}
+// @resource       buttons_css ${data.buttonsCssPath}
+// @resource       loader_css ${data.loaderCssPath}
+// @resource       content_css ${data.contentCssPath}
 // ==/UserScript==
 

@@ -23,8 +23,9 @@ const config = {
     static_dir: 'src/static',
     util_dir: 'src/util',
     script_name: pkg.config.scriptName,
-    css_name: pkg.config.cssName,
-    loader_name: pkg.config.loaderName,
+    buttons_css_name: pkg.config.buttonCssName,
+    loader_css_name: pkg.config.loaderCssName,
+    content_css_name: pkg.config.contentCssName,
     production: true
 };
 
@@ -117,11 +118,17 @@ function joinScriptParts() {
 }
 
 function joinCssFiles(){
-    return gulp.src(config.css_dir + '/*.css')
-        .pipe(order([
-            'download.css', 'loader.css', 'buttons.css', 'sources.css'
-        ]))
-        .pipe(concat(config.css_name))
+    return gulp.src([config.css_dir + '/sources.css', config.css_dir + '/buttons.css'])
+        .pipe(concat(config.buttons_css_name))
+        .pipe(gulp.dest(config.dist_dir));
+}
+
+function copyCssFiles(){
+    return gulp.src(config.css_dir + '/loader.css')
+        .pipe(rename("voddownloader-loader.css"))
+        .pipe(gulp.dest(config.dist_dir))
+        .pipe(gulp.src(config.css_dir + '/content.css'))
+        .pipe(rename("voddownloader-content.css"))
         .pipe(gulp.dest(config.dist_dir));
 }
 
@@ -173,8 +180,9 @@ function prepareHeaders(){
 
     headers.name = config.production ? pkg.config.production.name : pkg.name;
     headers.version = config.production ? pkg.version : pkg.version + '-develop';
-    headers.cssPath = getPath(config.css_name, config.dist_dir);
-    headers.loaderPath = getPath(config.loader_name, config.img_dir);
+    headers.buttonsCssPath = getPath(config.buttons_css_name, config.dist_dir);
+    headers.loaderCssPath = getPath(config.loader_css_name, config.dist_dir);
+    headers.contentCssPath = getPath(config.content_css_name, config.dist_dir);
 
     return headers;
 }
@@ -210,7 +218,7 @@ exports.default = gulp.series(
     cleanTmpFiles,
     gulp.parallel(utilPartAttach, sourcePartAttach, runPartAttach),
     joinScriptParts,
-    gulp.parallel(joinCssFiles,
+    gulp.parallel(copyCssFiles, joinCssFiles,
         gulp.series(replaceContent, replaceRegularExpressions, fillTemplate)
     )
 );
