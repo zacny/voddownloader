@@ -30,23 +30,24 @@ var Tool = (function(Tool) {
     };
 
     Tool.downloadFile = function(fileUrl, title){
-        var extension = fileUrl.split('.').pop();
+        var extension = Tool.deleteParametersFromUrl(fileUrl.split('.').pop());
         var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
         var name = title + '.' + extension;
-        var details = {
+        GM_download({
             url: fileUrl,
             name: name,
             onerror: function(response){
                 downloadErrorCallback(response);
             }
-        };
-
-        GM_download(details);
-        return name;
+        });
+        GM_notification({
+            title: 'Rozpoczęto pobieranie pliku',
+            text: name
+        });
     };
 
     var downloadErrorCallback = function (response) {
-        console.log(response.error + ' ' + response.details);
+        console.info(response.error + ' ' + response.details);
     };
 
     return Tool;

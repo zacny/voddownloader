@@ -12,7 +12,7 @@ var Starter = (function(Starter) {
         {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
         {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod.pl\//},
         {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
-        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\/wideo\//},
+        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
         {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//}
     ];
 

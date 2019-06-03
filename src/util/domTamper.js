@@ -96,11 +96,7 @@ var DomTamper = (function(DomTamper){
 
     var downloadActionClick = function (event) {
         var data = event.data;
-        var fileName = Tool.downloadFile(data.value.url, data.title);
-        GM_notification({
-            title: 'Rozpoczęto pobieranie pliku',
-            text: fileName
-        });
+        Tool.downloadFile(data.value.url, data.title);
     };
 
     var copyActionClick = function (data, w) {
