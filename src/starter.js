@@ -10,7 +10,7 @@ var Starter = (function(Starter) {
         {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/' + tvZones.join('|') + '\.tvp\.pl\/\d{6,}\/')},
         {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
         {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
-        {action: VOD.waitOnWrapper, pattern: new RegExp('^https:\/\/vod.pl\/(filmy|programy-onetu|da-vinci|seriale|programy-tv)\/.*')},
+        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod.pl\//},
         {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
         {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\/wideo\//},
         {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//}
