@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.5.0",
+  "version": "5.5.1",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -65,7 +65,7 @@
         "https://vod.tvp.pl/video/*",
         "/^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\\d{6,}/",
         "https://cyfrowa.tvp.pl/video/*",
-        "https://www.ipla.tv/wideo/*",
+        "https://www.ipla.tv/*",
         "https://player.pl/*",
         "https://www.cda.pl/*",
         "https://vod.pl/*",
@@ -74,6 +74,7 @@
         "https://video.wp.pl/*"
       ],
       "exclude": [
+        "https://vod.pl/playerpl*",
         "http://www.tvp.pl/sess/*",
         "https://www.cda.pl/iframe/*"
       ],

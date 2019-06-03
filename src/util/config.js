@@ -1,7 +1,7 @@
 var CONFIG = (function(CONFIG) {
     var settings = {
-        attempts: 10,
-        attempt_timeout: 1500,
+        attempts: 20,
+        attempt_timeout: 1750,
         id_error: 'Nie udało się odnaleźć idetyfikatora.',
         api_error: 'Nie odnaleziono adresów do strumieni.',
         call_error: 'Błąd pobierania informacji o materiale.',

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.5.0
+// @version        5.5.1
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -11,13 +11,14 @@
 // @include        https://vod.tvp.pl/video/*
 // @include        /^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\d{6,}/
 // @include        https://cyfrowa.tvp.pl/video/*
-// @include        https://www.ipla.tv/wideo/*
+// @include        https://www.ipla.tv/*
 // @include        https://player.pl/*
 // @include        https://www.cda.pl/*
 // @include        https://vod.pl/*
 // @include        https://redir.atmcdn.pl/*
 // @include        https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include        https://video.wp.pl/*
+// @exclude        https://vod.pl/playerpl*
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
@@ -45,8 +46,8 @@
 	
 	var CONFIG = (function(CONFIG) {
 	    var settings = {
-	        attempts: 10,
-	        attempt_timeout: 1500,
+	        attempts: 20,
+	        attempt_timeout: 1750,
 	        id_error: 'Nie udało się odnaleźć idetyfikatora.',
 	        api_error: 'Nie odnaleziono adresów do strumieni.',
 	        call_error: 'Błąd pobierania informacji o materiale.',
@@ -121,22 +122,24 @@
 	    };
 	
 	    Tool.downloadFile = function(fileUrl, title){
-	        var extension = fileUrl.split('.').pop();
+	        var extension = Tool.deleteParametersFromUrl(fileUrl.split('.').pop());
 	        var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
 	        var name = title + '.' + extension;
-	        var details = {
+	        GM_download({
 	            url: fileUrl,
 	            name: name,
 	            onerror: function(response){
 	                downloadErrorCallback(response);
 	            }
-	        };
-	
-	        GM_download(details);
-	        return name;
+	        });
+	        GM_notification({
+	            title: 'Rozpoczęto pobieranie pliku',
+	            text: name
+	        });
 	    };
 	
 	    var downloadErrorCallback = function (response) {
+	        console.info(response.error + ' ' + response.details);
 	    };
 	
 	    return Tool;
@@ -239,11 +242,7 @@
 	
 	    var downloadActionClick = function (event) {
 	        var data = event.data;
-	        var fileName = Tool.downloadFile(data.value.url, data.title);
-	        GM_notification({
-	            title: 'Rozpoczęto pobieranie pliku',
-	            text: fileName
-	        });
+	        Tool.downloadFile(data.value.url, data.title);
 	    };
 	
 	    var copyActionClick = function (data, w) {
@@ -993,7 +992,7 @@
 	        {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
 	        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod.pl\//},
 	        {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
-	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\/wideo\//},
+	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
 	        {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//}
 	    ];
 	
