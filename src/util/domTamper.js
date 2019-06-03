@@ -20,7 +20,8 @@ var DomTamper = (function(DomTamper){
         }
     };
 
-    var prepareContent = function(w, name){
+    var prepareHead = function(w, name){
+        DomTamper.injectStyle(w, 'loader_css');
         DomTamper.injectStyle(w, 'content_css');
         injectFont(w);
     };
@@ -32,12 +33,22 @@ var DomTamper = (function(DomTamper){
             .append(createTooltipText('tooltip-left', 'Zgłoś błąd'));
     };
 
+    var prepareBody = function(w, pageContent) {
+        var body = $(w.document.body);
+        if(body.children().length > 0){
+            body.children(":first").replaceWith(pageContent);
+        }
+        else {
+            body.append(pageContent);
+        }
+    };
+
     DomTamper.handleError = function(exception, w){
         if(w === undefined){
             w = window.open();
         }
-        var body = $(w.document.body);
-        prepareContent(w, 'content_css');
+
+        prepareHead(w, 'content_css');
         var pageContent = $('<div>').addClass('page-content');
         var container = $('<div>').addClass('container');
         var cause = $('<div>').addClass('cause').text(exception.message);
@@ -47,8 +58,7 @@ var DomTamper = (function(DomTamper){
         }
 
         pageContent.append(container).append(createBugReportLink());
-
-        body.children(":first").replaceWith(pageContent);
+        prepareBody(w, pageContent);
     };
 
     DomTamper.createButton = function(properties){
@@ -72,7 +82,7 @@ var DomTamper = (function(DomTamper){
         container.append(loaderContent.append(loaderText).append(loaderRing));
         pageContent.append(container);
 
-        body.append(pageContent);
+        prepareBody(w, pageContent);
     };
 
     var createTooltipText = function(tooltipClass, tooltipMessage){
@@ -159,7 +169,7 @@ var DomTamper = (function(DomTamper){
     DomTamper.createDocument = function(data, w){
         Tool.numberModeSort(data.formats);
 
-        prepareContent(w, 'content_css');
+        prepareHead(w, 'content_css');
         setWindowTitle(data, w);
         var body = $(w.document.body);
 
@@ -168,7 +178,7 @@ var DomTamper = (function(DomTamper){
         pageContent.append($('<div>').attr('id', 'snackbar'));
         pageContent.append(createBugReportLink());
 
-        body.children(":first").replaceWith(pageContent);
+        prepareBody(w, pageContent);
     };
 
     return DomTamper;
