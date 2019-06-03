@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.4.4",
+  "version": "5.4.5",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -66,7 +66,7 @@
         "https://www.ipla.tv/wideo/*",
         "https://player.pl/*",
         "https://www.cda.pl/*",
-        "/^https://vod.pl/(filmy|programy-onetu|da-vinci|seriale|programy-tv)/.*",
+        "https://vod.pl/*",
         "https://redir.atmcdn.pl/*",
         "https://*.redcdn.pl/file/o2/redefine/partner/*",
         "https://video.wp.pl/*"
