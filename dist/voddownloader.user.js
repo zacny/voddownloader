@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.5.2
+// @version        5.5.3
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -28,6 +28,7 @@
 // @grant          GM_download
 // @grant          GM_notification
 // @grant          GM_setClipboard
+// @grant          GM_info
 // @connect        tvp.pl
 // @connect        getmedia.redefine.pl
 // @connect        player-api.dreamlab.pl
@@ -73,7 +74,7 @@
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
 	                var url = this.urlTemplate;
-	                if(typeof input === 'string'){
+	                if(typeof input === 'string' || typeof input == 'number'){
 	                    return url.replace(new RegExp('#videoId', 'g'), input);
 	                }
 	                else if(typeof input === 'object') {
@@ -616,10 +617,16 @@
 	        },
 	        asyncSteps: [
 	            AsyncStep.setup({
+	               urlTemplate: '/playerapi/product/vod/#videoId?4K=true&platform=BROWSER',
+	               beforeStep: function(input) {
+	                   return idParser();
+	               }
+	            }),
+	            AsyncStep.setup({
 	                urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
 	                    '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
 	                beforeStep: function(input){
-	                    return idParser();
+	                    return getArticleId(input);
 	                },
 	                afterStep: function(output) {
 	                    return formatParser(output);
@@ -629,17 +636,17 @@
 	    });
 	
 	    var idParser = function(){
-	        var pageURL = $('.watching-now').closest('.embed-responsive').find('.embed-responsive-item').attr('href');
-	        if(!pageURL){
-	            pageURL = window.location.href;
+	        try {
+	            var videoData = $('.nuvi-player').attr('data-video-playlist');
+	            return videoData.match(/\d+/)[0];
 	        }
-	
-	        var lastComma = pageURL.lastIndexOf(",");
-	        if (lastComma > - 1) {
-	            return pageURL.substring(lastComma+1);
+	        catch(e){
+	            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + pageURL));
 	        }
+	    };
 	
-	        throw new Exception(CONFIG.get('id_error', 'Źródło: ' + pageURL));
+	    var getArticleId = function(json){
+	        return json.externalArticleId;
 	    };
 	
 	    var formatParser = function(data){
@@ -993,6 +1000,7 @@
 	    console.info('jQuery: ' + $().jquery);
 	    DomTamper.injectStyle(window, 'buttons_css');
 	    Starter.start();
+	    //Download type detection
 	});
 
 }).bind(this)(jQuery);
