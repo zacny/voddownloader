@@ -21,33 +21,15 @@ var Tool = (function(Tool) {
         console.log.apply(this, $.merge([message], params));
     };
 
-    Tool.copyToClipboard = function(text) {
-        var $temp = $("<input>");
-        $("body").append($temp);
-        $temp.val(text).select();
-        document.execCommand("copy");
-        $temp.remove();
-    };
-
     Tool.downloadFile = function(fileUrl, title){
         var extension = Tool.deleteParametersFromUrl(fileUrl.split('.').pop());
         var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
         var name = title + '.' + extension;
-        GM_download({
-            url: fileUrl,
-            name: name,
-            onerror: function(response){
-                downloadErrorCallback(response);
-            }
-        });
+        GM_download(fileUrl, name);
         GM_notification({
             title: 'Rozpoczęto pobieranie pliku',
             text: name
         });
-    };
-
-    var downloadErrorCallback = function (response) {
-        console.info(response.error + ' ' + response.details);
     };
 
     return Tool;

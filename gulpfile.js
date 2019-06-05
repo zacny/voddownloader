@@ -6,8 +6,6 @@ var gulp = require('gulp'),
     rename = require("gulp-rename"),
     header = require('gulp-header'),
     clean = require('gulp-clean'),
-    server = require( 'gulp-develop-server'),
-    livereload = require('gulp-livereload'),
     log = require('fancy-log'),
     colors = require('colors/safe'),
     pkg = require('./package');
@@ -198,21 +196,8 @@ function fillTemplate() {
         .pipe(gulp.dest(config.dist_dir))
 }
 
-function startServer(cb){
-    server.listen(config.server.options, livereload.listen );
-    function restart(file) {
-        server.changed( function( error ) {
-            if( ! error ) livereload.changed( file.path );
-        });
-    }
-    gulp.watch(config.server.files).on( 'change', restart );
-    cb();
-}
-
 exports.clean = cleanTmpFiles;
 exports.clean.description = "clean temporary files";
-exports.server = startServer;
-exports.server.description = "run development server";
 exports.default = gulp.series(
     detectDevelopmentFlag,
     cleanTmpFiles,

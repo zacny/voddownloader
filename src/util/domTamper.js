@@ -101,14 +101,10 @@ var DomTamper = (function(DomTamper){
 
     var copyActionClick = function (data, w) {
         var snackbar = $(w.document.body).find('#snackbar');
-        Tool.copyToClipboard(data.value.url);
+        GM_setClipboard(data.value.url);
         snackbar.text('Skopiowano do schowka.');
         snackbar.addClass('animate');
         setTimeout(function(){ snackbar.removeClass('animate'); }, 3000);
-    };
-
-    var openActionClick = function (event) {
-        window.open(event.data.value.url);
     };
 
     var createRow = function(data, rowClass, w){
@@ -117,11 +113,14 @@ var DomTamper = (function(DomTamper){
         var actions = $('<td>').addClass('actions');
         actions.append(createAction('fa-save', 'Zapisz').click(params, downloadActionClick));
         actions.append(createAction('fa-clone', 'Kopiuj').click(
-            function () {
+            function() {
                 copyActionClick(data, w);
             })
         );
-        actions.append(createAction('fa-film', 'Otwórz').click(params, openActionClick));
+        actions.append(
+            createAction('fa-film', 'Otwórz').attr('href', data.value.url)
+                .attr('rel', 'noopener').attr('target', '_blank')
+        );
 
         var descriptionText = data.value.quality == undefined ?
             'Bitrate: ' + data.value.bitrate :
@@ -167,8 +166,6 @@ var DomTamper = (function(DomTamper){
 
         prepareHead(w, 'content_css');
         setWindowTitle(data, w);
-        var body = $(w.document.body);
-
         var pageContent = $('<div>').addClass('page-content');
         pageContent.append(createTable(data, w));
         pageContent.append($('<div>').attr('id', 'snackbar'));

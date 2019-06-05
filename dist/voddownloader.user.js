@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.5.1
+// @version        5.5.2
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -8,6 +8,7 @@
 //                 miniskrypt.hubaiitv.pl
 // @author         Przmus, zacny
 // @namespace      http://www.ipla.tv/
+// @source         https://github.com/zacny/voddownloader
 // @include        https://vod.tvp.pl/video/*
 // @include        /^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\d{6,}/
 // @include        https://cyfrowa.tvp.pl/video/*
@@ -26,6 +27,7 @@
 // @grant          GM_xmlhttpRequest
 // @grant          GM_download
 // @grant          GM_notification
+// @grant          GM_setClipboard
 // @connect        tvp.pl
 // @connect        getmedia.redefine.pl
 // @connect        player-api.dreamlab.pl
@@ -46,8 +48,8 @@
 	
 	var CONFIG = (function(CONFIG) {
 	    var settings = {
-	        attempts: 20,
-	        attempt_timeout: 1750,
+	        attempts: 10,
+	        attempt_timeout: 1500,
 	        id_error: 'Nie udało się odnaleźć idetyfikatora.',
 	        api_error: 'Nie odnaleziono adresów do strumieni.',
 	        call_error: 'Błąd pobierania informacji o materiale.',
@@ -113,33 +115,15 @@
 	        console.log.apply(this, $.merge([message], params));
 	    };
 	
-	    Tool.copyToClipboard = function(text) {
-	        var $temp = $("<input>");
-	        $("body").append($temp);
-	        $temp.val(text).select();
-	        document.execCommand("copy");
-	        $temp.remove();
-	    };
-	
 	    Tool.downloadFile = function(fileUrl, title){
 	        var extension = Tool.deleteParametersFromUrl(fileUrl.split('.').pop());
 	        var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
 	        var name = title + '.' + extension;
-	        GM_download({
-	            url: fileUrl,
-	            name: name,
-	            onerror: function(response){
-	                downloadErrorCallback(response);
-	            }
-	        });
+	        GM_download(fileUrl, name);
 	        GM_notification({
 	            title: 'Rozpoczęto pobieranie pliku',
 	            text: name
 	        });
-	    };
-	
-	    var downloadErrorCallback = function (response) {
-	        console.info(response.error + ' ' + response.details);
 	    };
 	
 	    return Tool;
@@ -247,14 +231,10 @@
 	
 	    var copyActionClick = function (data, w) {
 	        var snackbar = $(w.document.body).find('#snackbar');
-	        Tool.copyToClipboard(data.value.url);
+	        GM_setClipboard(data.value.url);
 	        snackbar.text('Skopiowano do schowka.');
 	        snackbar.addClass('animate');
 	        setTimeout(function(){ snackbar.removeClass('animate'); }, 3000);
-	    };
-	
-	    var openActionClick = function (event) {
-	        window.open(event.data.value.url);
 	    };
 	
 	    var createRow = function(data, rowClass, w){
@@ -263,11 +243,14 @@
 	        var actions = $('<td>').addClass('actions');
 	        actions.append(createAction('fa-save', 'Zapisz').click(params, downloadActionClick));
 	        actions.append(createAction('fa-clone', 'Kopiuj').click(
-	            function () {
+	            function() {
 	                copyActionClick(data, w);
 	            })
 	        );
-	        actions.append(createAction('fa-film', 'Otwórz').click(params, openActionClick));
+	        actions.append(
+	            createAction('fa-film', 'Otwórz').attr('href', data.value.url)
+	                .attr('rel', 'noopener').attr('target', '_blank')
+	        );
 	
 	        var descriptionText = data.value.quality == undefined ?
 	            'Bitrate: ' + data.value.bitrate :
@@ -313,8 +296,6 @@
 	
 	        prepareHead(w, 'content_css');
 	        setWindowTitle(data, w);
-	        var body = $(w.document.body);
-	
 	        var pageContent = $('<div>').addClass('page-content');
 	        pageContent.append(createTable(data, w));
 	        pageContent.append($('<div>').attr('id', 'snackbar'));
