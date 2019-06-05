@@ -8,7 +8,7 @@ var AsyncStep = (function(AsyncStep){
             afterStep: function (output) {return output},
             resolveUrl: function (input) {
                 var url = this.urlTemplate;
-                if(typeof input === 'string'){
+                if(typeof input === 'string' || typeof input == 'number'){
                     return url.replace(new RegExp('#videoId', 'g'), input);
                 }
                 else if(typeof input === 'object') {
