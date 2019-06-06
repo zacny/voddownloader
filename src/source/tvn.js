@@ -32,7 +32,7 @@ var TVN = (function(TVN) {
             return videoData.match(/\d+/)[0];
         }
         catch(e){
-            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + pageURL));
+            throw new Exception(CONFIG.get('id_error', 'Nie odnaleziono identyfikatora.'));
         }
     };
 

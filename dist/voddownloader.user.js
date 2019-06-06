@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.5.3
+// @version        5.5.4
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -641,7 +641,7 @@
 	            return videoData.match(/\d+/)[0];
 	        }
 	        catch(e){
-	            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + pageURL));
+	            throw new Exception(CONFIG.get('id_error', 'Nie odnaleziono identyfikatora.'));
 	        }
 	    };
 	
