@@ -6,17 +6,19 @@ var WP = (function(WP) {
         button: {
             class: 'material__category wp_download_button'
         },
-        asyncSteps: [
-            AsyncStep.setup({
-                urlTemplate: 'https://video.wp.pl/player/mid,#videoId,embed.json',
-                beforeStep: function(input){
-                    return idParser();
-                },
-                afterStep: function(output) {
-                    return grabVideoFormats(output);
-                }
-            })
-        ]
+        asyncChains: {
+            default: [
+                AsyncStep.setup({
+                    urlTemplate: 'https://video.wp.pl/player/mid,#videoId,embed.json',
+                    beforeStep: function (input) {
+                        return idParser();
+                    },
+                    afterStep: function (output) {
+                        return grabVideoFormats(output);
+                    }
+                })
+            ]
+        }
     });
 
     var idParser = function () {

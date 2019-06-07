@@ -1,14 +1,14 @@
 var Executor = (function(Executor){
-    var executeAsync = function(service, stepIndex, w, input){
-        var asyncStep = service.asyncSteps[stepIndex];
-        var url = asyncStep.resolveUrl(asyncStep.beforeStep(input));
-        console.log('async step [' + stepIndex + ']: ' + url);
+    var executeAsync = function(service, options, w){
+        var resolveUrl = beforeStep(service, options);
+        console.log('step ' + options.chainName + '[' + options.stepIndex + ']: ' + resolveUrl.url);
         var requestParams = {
             method: 'GET',
-            url: url,
+            url: resolveUrl.url,
             responseType: 'json',
             onload: function(data) {
-                asyncCallback(service, stepIndex, w, data.response);
+                options.data = data.response;
+                asyncCallback(service, options, w);
             },
             onerror: function(){
                 DomTamper.handleError(new Exception(CONFIG.get('call_error')), w);
@@ -20,19 +20,44 @@ var Executor = (function(Executor){
         GM_xmlhttpRequest(requestParams);
     };
 
-    var asyncCallback = function(service, stepIndex, w, response){
+    var beforeStep = function(service, options){
+        var steps = service.asyncChains[options.chainName];
+        var currentStep = steps[options.stepIndex];
+        var result = currentStep.beforeStep(options.data);
+        if(typeof result === 'string' || typeof result == 'number'){
+            result = {
+                videoId: result
+            }
+        }
+        if(options.urlParams){
+            $.extend(true, options.urlParams, result);
+        }
+        else {
+            options.urlParams = result;
+        }
+        return currentStep.resolveUrl(options.urlParams);
+    };
+
+    var afterStep = function(service, options) {
+        var steps = service.asyncChains[options.chainName];
+        var currentStep = steps[options.stepIndex];
+        var output = currentStep.afterStep(options.data);
+        options.data = output;
+        options.stepIndex += 1;
+        return steps[options.stepIndex];
+    };
+
+    var asyncCallback = function(service, options, w){
         try {
-            var currentStep = service.asyncSteps[stepIndex];
-            var nextStep = service.asyncSteps[stepIndex+1];
-            var output = currentStep.afterStep(response);
+            var nextStep = afterStep(service, options);
             if(nextStep !== undefined) {
                 return Promise.resolve().then(
-                    Executor.asyncChain(service, stepIndex+1, output, w)
+                    Executor.asyncChain(service, options, w)
                 );
             }
             else {
                 return Promise.resolve().then(
-                    service.onDone(output, w)
+                    service.onDone(options.data, w)
                 );
             }
         }
@@ -42,14 +67,14 @@ var Executor = (function(Executor){
         }
     };
 
-    Executor.asyncChain = function(service, stepIndex, input, w){
+    Executor.asyncChain = function(service, options, w){
         try {
             if(w === undefined){
                 w = window.open();
                 DomTamper.createLoader(w);
             }
 
-            executeAsync(service, stepIndex, w, input);
+            executeAsync(service, options, w);
         }
         catch(e){
             DomTamper.handleError(e, w);

@@ -6,17 +6,19 @@ var CYF_TVP = (function(CYF_TVP) {
         button: {
             class: 'video-block__btn tvp_cyf_downlaod_button'
         },
-        asyncSteps: [
-            AsyncStep.setup({
-                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
-                beforeStep: function(input){
-                    return idParser();
-                },
-                afterStep: function(output) {
-                    return VOD_TVP.grabVideoFormats(output);
-                }
-            })
-        ]
+        asyncChains: {
+            default: [
+                AsyncStep.setup({
+                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+                    beforeStep: function (input) {
+                        return idParser();
+                    },
+                    afterStep: function (output) {
+                        return VOD_TVP.grabVideoFormats(output);
+                    }
+                })
+            ]
+        }
     });
 
     var idParser = function(){

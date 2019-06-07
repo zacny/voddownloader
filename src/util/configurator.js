@@ -15,10 +15,19 @@ var Configurator = (function(Configurator){
                 style: '',
                 class: '',
                 click: function(){
-                    Executor.asyncChain(service, 0);
+                    var chainName = service.chainSelector();
+                    Executor.asyncChain(service, {
+                        stepIndex: 0,
+                        chainName: chainName
+                    });
                 }
             },
-            asyncSteps: [],
+            asyncChains: {
+                default: []
+            },
+            chainSelector: function(){
+                return "default";
+            },
             onDone: function(data, w) {
                 DomTamper.createDocument(data, w);
             }
