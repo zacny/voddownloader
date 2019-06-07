@@ -6,6 +6,8 @@ https://www.ipla.tv/wideo/dzieci/Dinopociag/5010809
 
 #TVN
 https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114/odcinek-1,S01E01,1979
+https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114
+https://player.pl/filmy-online/podejrzani,68000
 
 #TVP_CYF
 https://cyfrowa.tvp.pl/video/podroz-za-jeden-usmiech,odc-1-pechowy-dzien,40674581
@@ -39,6 +41,7 @@ https://vod.pl/programy-onetu/onet-rano-online-za-darmo/9l14dv6
 https://vod.pl/seriale/policjantki-i-policjanci/yxz8cmk
 #player
 https://vod.pl/playerpl-promocja/programy-online/automaniak-odcinki,139/odcinek-2,S06E02,16815
+https://vod.pl/playerpl-promocja/programy-online/dzentelmeni-i-wiesniacy-odcinki,10536
 
 #VOD_IPLA
 https://vod.pl/seriale/swiat-wedlug-kiepskich/v20nc47

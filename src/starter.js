@@ -7,7 +7,7 @@ var Starter = (function(Starter) {
     var matcher = [
         {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\/video\//},
         {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
-        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/' + tvZones.join('|') + '\.tvp\.pl\/\d{6,}\/')},
+        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/(' + tvZones.join('|') + ')\.tvp\.pl\/\\d{6,}\/')},
         {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
         {action: CDA.waitOnWrapper, pattern: /^https:\/\/www\.cda\.pl\//},
         {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod.pl\//},

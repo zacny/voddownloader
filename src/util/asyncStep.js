@@ -8,17 +8,16 @@ var AsyncStep = (function(AsyncStep){
             afterStep: function (output) {return output},
             resolveUrl: function (input) {
                 var url = this.urlTemplate;
-                if(typeof input === 'string' || typeof input == 'number'){
-                    return url.replace(new RegExp('#videoId', 'g'), input);
-                }
-                else if(typeof input === 'object') {
-                    $.each(input, function (key, value) {
-                        url = url.replace(new RegExp('#'+key,'g'), value);
-                    });
-                    return url;
-                }
+                var urlParams = {};
+                $.each(input, function (key, value) {
+                    url = url.replace(new RegExp('#'+key,'g'), value);
+                    urlParams[key] = value;
+                });
 
-                return '';
+                return {
+                    url: url,
+                    urlParams: urlParams
+                };
             }
         };
 

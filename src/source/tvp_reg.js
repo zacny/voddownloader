@@ -6,17 +6,19 @@ var TVP_REG = (function(TVP_REG) {
         button: {
             class: 'tvp_reg_download_button'
         },
-        asyncSteps: [
-            AsyncStep.setup({
-                urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
-                beforeStep: function(input){
-                    return idParser();
-                },
-                afterStep: function(output) {
-                    return VOD_TVP.grabVideoFormats(output);
-                }
-            })
-        ]
+        asyncChains: {
+            default: [
+                AsyncStep.setup({
+                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+                    beforeStep: function (input) {
+                        return idParser();
+                    },
+                    afterStep: function (output) {
+                        return VOD_TVP.grabVideoFormats(output);
+                    }
+                })
+            ]
+        }
     });
 
     var idParser = function(){
