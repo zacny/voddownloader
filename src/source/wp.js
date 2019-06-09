@@ -29,7 +29,7 @@ var WP = (function(WP) {
             return match[1];
         }
         catch(e){
-            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + pageURL));
+            throw new Exception(CONFIG.get('id_error'), 'Źródło: ' + pageURL);
         }
     };
 

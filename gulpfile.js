@@ -22,7 +22,6 @@ const config = {
     util_dir: 'src/util',
     script_name: pkg.config.scriptName,
     buttons_css_name: pkg.config.buttonCssName,
-    loader_css_name: pkg.config.loaderCssName,
     content_css_name: pkg.config.contentCssName,
     production: true
 };
@@ -122,10 +121,7 @@ function joinCssFiles(){
 }
 
 function copyCssFiles(){
-    return gulp.src(config.css_dir + '/loader.css')
-        .pipe(rename("voddownloader-loader.css"))
-        .pipe(gulp.dest(config.dist_dir))
-        .pipe(gulp.src(config.css_dir + '/content.css'))
+    return gulp.src(config.css_dir + '/content.css')
         .pipe(rename("voddownloader-content.css"))
         .pipe(gulp.dest(config.dist_dir));
 }

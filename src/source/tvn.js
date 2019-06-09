@@ -89,7 +89,7 @@ var TVN = (function(TVN) {
             }
         }
 
-        throw new Exception(CONFIG.get('id_error', 'Źródło: ' + window.location.href));
+        throw new Exception(config.get('id_error'), 'Źródło: ' + window.location.href);
     };
 
     var idParser = function(){
@@ -116,7 +116,7 @@ var TVN = (function(TVN) {
             return match[1];
         }
 
-        throw new Exception(CONFIG.get('id_error', 'Źródło: ' + window.location.href));
+        throw new Exception(CONFIG.get('id_error'), 'Źródło: ' + window.location.href);
     };
 
     var formatParser = function(data){

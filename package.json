@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.6.0",
+  "version": "5.7.0",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -92,7 +92,11 @@
         "player-api.dreamlab.pl"
       ],
       "run-at": "document-end",
-      "require": "https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
+      "require": [
+        "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js"
+      ]
     }
   }
 }

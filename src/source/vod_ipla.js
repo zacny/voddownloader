@@ -29,7 +29,7 @@ var VOD_IPLA = (function(VOD_IPLA) {
             return JSON.parse(jsonObject[0].media).result.mediaItem.id;
         }
         catch(e){
-            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + match));
+            throw new Exception(config.get('id_error'), 'Źródło: ' + match);
         }
     };
 

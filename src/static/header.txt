@@ -2,8 +2,9 @@
 // @name           ${data.name}
 // @version        ${data.version}
 // @include@
+// @resource       bootstrap_css https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css
+// @resource       mdb_css https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css
 // @resource       buttons_css ${data.buttonsCssPath}
-// @resource       loader_css ${data.loaderCssPath}
 // @resource       content_css ${data.contentCssPath}
 // ==/UserScript==
 
