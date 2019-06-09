@@ -26,7 +26,7 @@ var TVP_REG = (function(TVP_REG) {
             return $('div.js-video').attr('data-object-id');
         }
         catch(e){
-            throw new Exception(CONFIG.get('id_error', 'Źródło: ' + $('div.js-video').get(0)));
+            throw new Exception(config.get('id_error'), 'Źródło: ' + $('div.js-video').get(0));
         }
     };
 
