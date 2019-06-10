@@ -37,7 +37,6 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js
 // @resource       bootstrap_css https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css
-// @resource       mdb_css https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css
 // @resource       buttons_css http://localhost:5011/dist/voddownloader-buttons.css
 // @resource       content_css http://localhost:5011/dist/voddownloader-content.css
 // ==/UserScript==
@@ -168,7 +167,10 @@
 	    var prepareHead = function(w){
 	        injectFont(w, 'fontawesome');
 	        injectStylesheet(w, 'bootstrap_css');
-	        // injectStylesheet(w, 'mdb_css');
+			var head = $(w.document.head);
+			var stylesheet = $('<link>').attr('name', name).attr('type', 'text/css').attr('rel', 'stylesheet')
+				.attr('href',  'https://localhost:5011/lib/mdb.min.css');
+			head.append(stylesheet);
 	        DomTamper.injectStyle(w, 'content_css');
 	    };
 	
