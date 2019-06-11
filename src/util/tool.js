@@ -32,5 +32,16 @@ var Tool = (function(Tool) {
         });
     };
 
+    Tool.loadScripts = function(scripts, callback){
+        $.each(scripts, function( index, script ) {
+            console.log('load: ' + script);
+            $.getScript(script).done(function(){
+                if (index == scripts.length -1){
+                    callback();
+                }
+            });
+        });
+    }
+
     return Tool;
 }(Tool || {}));

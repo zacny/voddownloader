@@ -34,9 +34,6 @@
 // @connect        player-api.dreamlab.pl
 // @run-at         document-end
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
-// @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
-// @require        https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js
-// @resource       bootstrap_css https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css
 // @resource       buttons_css http://localhost:5011/dist/voddownloader-buttons.css
 // @resource       content_css http://localhost:5011/dist/voddownloader-content.css
 // ==/UserScript==
@@ -53,7 +50,17 @@
 	    var settings = {
 	        attempts: 10,
 	        attempt_timeout: 1500,
-	        fontUrl: 'https://use.fontawesome.com/releases/v5.8.2/css/all.css',
+	        fontawesome: {
+	            css: 'https://use.fontawesome.com/releases/v5.8.2/css/all.css',
+	        },
+	        bootstrap: {
+	            css: 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css',
+	            script: 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js'
+	        },
+	        mdb: {
+	            css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
+	            script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'
+	        },
 	        id_error: 'Nie udało się odnaleźć idetyfikatora.',
 	        api_error: 'Nie odnaleziono adresów do strumieni.',
 	        call_error: 'Błąd pobierania informacji o materiale.',
@@ -62,7 +69,12 @@
 	    };
 	
 	    config.get = function(name) {
-	        return settings[name];
+	        var nameParts = name.split('.');
+	        var element = settings;
+	        for(var i = 0; i < nameParts.length; i++){
+	            var element = element[nameParts[i]];
+	        }
+	        return element;
 	    };
 	
 	    return config;
@@ -131,6 +143,17 @@
 	        });
 	    };
 	
+	    Tool.loadScripts = function(scripts, callback){
+	        $.each(scripts, function( index, script ) {
+	            console.log('load: ' + script);
+	            $.getScript(script).done(function(){
+	                if (index == scripts.length -1){
+	                    callback();
+	                }
+	            });
+	        });
+	    }
+	
 	    return Tool;
 	}(Tool || {}));
 	
@@ -146,31 +169,19 @@
 	        }
 	    };
 	
-	    var injectStylesheet = function(w, name) {
+	    var injectStylesheet = function (w, name) {
 	        var head = $(w.document.head);
 	        if(!head.find('link[name="' + name + '"]').length){
 	            var stylesheet = $('<link>').attr('name', name).attr('type', 'text/css').attr('rel', 'stylesheet')
-	                .attr('href',  GM_getResourceURL(name));
-	            head.append(stylesheet);
-	        }
-	    };
-	
-	    var injectFont = function (w, name) {
-	        var head = $(w.document.head);
-	        if(!head.find('link[name="' + name + '"]').length){
-	            var stylesheet = $('<link>').attr('name', name).attr('type', 'text/css').attr('rel', 'stylesheet')
-	                .attr('href',  config.get('fontUrl'));
+	                .attr('href',  config.get(name));
 	            head.append(stylesheet);
 	        }
 	    };
 	
 	    var prepareHead = function(w){
-	        injectFont(w, 'fontawesome');
-	        injectStylesheet(w, 'bootstrap_css');
-			var head = $(w.document.head);
-			var stylesheet = $('<link>').attr('name', name).attr('type', 'text/css').attr('rel', 'stylesheet')
-				.attr('href',  'https://localhost:5011/lib/mdb.min.css');
-			head.append(stylesheet);
+	        injectStylesheet(w, 'fontawesome.css');
+	        injectStylesheet(w, 'bootstrap.css');
+	        injectStylesheet(w, 'mdb.css');
 	        DomTamper.injectStyle(w, 'content_css');
 	    };
 	
@@ -183,7 +194,7 @@
 	        return $('<div>').addClass('bug-report-position').append(button);
 	    };
 	
-	    var prepareBody = function(w, pageContent) {
+	    var prepareBody = function(w, pageContent, runScripts) {
 	        var body = $(w.document.body);
 	        if(body.children().length > 0){
 	            body.children(":first").replaceWith(pageContent);
@@ -191,6 +202,23 @@
 	        else {
 	            body.append(pageContent);
 	        }
+	        if(runScripts){
+	            loadScripts(pageContent, w);
+	        }
+	    };
+	
+	    var loadScripts = function(pageContent, w){
+	        var scripts = [
+	            config.get('bootstrap.script'),
+	            config.get('mdb.script'),
+	            'http://localhost:5011/dist/waves.js'
+	        ];
+	        Tool.loadScripts(scripts, function(){
+	            var buttons = pageContent.find('.btn:not(.btn-flat), .btn-floating');
+	            Waves.attach(buttons, ['waves-light']);
+	            Waves.init({}, w);
+	            console.log('waves done');
+	        })
 	    };
 	
 	    DomTamper.handleError = function(exception, w){
@@ -211,7 +239,7 @@
 	
 	        pageContent.append(card.append(cardHeader).append(cardBody))
 	            .append(createBugReportLink(w, 'btn-danger'));
-	        prepareBody(w, pageContent);
+	        prepareBody(w, pageContent, false);
 	    };
 	
 	    DomTamper.createButton = function(properties){
@@ -235,7 +263,7 @@
 	        cardBody.append(bodyContainer.append(spinner));
 	        card.append(cardHeader).append(cardBody);
 	        pageContent.append(card);
-	        prepareBody(w, pageContent);
+	        prepareBody(w, pageContent, false);
 	    };
 	
 	    var createAction = function(iconClass, label){
@@ -317,7 +345,7 @@
 	        pageContent.append(createTable(data, w));
 	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
 	
-	        prepareBody(w, pageContent);
+	        prepareBody(w, pageContent, true);
 	    };
 	
 	    return DomTamper;

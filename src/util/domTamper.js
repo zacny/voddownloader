@@ -10,28 +10,19 @@ var DomTamper = (function(DomTamper){
         }
     };
 
-    var injectStylesheet = function(w, name) {
+    var injectStylesheet = function (w, name) {
         var head = $(w.document.head);
         if(!head.find('link[name="' + name + '"]').length){
             var stylesheet = $('<link>').attr('name', name).attr('type', 'text/css').attr('rel', 'stylesheet')
-                .attr('href',  GM_getResourceURL(name));
-            head.append(stylesheet);
-        }
-    };
-
-    var injectFont = function (w, name) {
-        var head = $(w.document.head);
-        if(!head.find('link[name="' + name + '"]').length){
-            var stylesheet = $('<link>').attr('name', name).attr('type', 'text/css').attr('rel', 'stylesheet')
-                .attr('href',  config.get('fontUrl'));
+                .attr('href',  config.get(name));
             head.append(stylesheet);
         }
     };
 
     var prepareHead = function(w){
-        injectFont(w, 'fontawesome');
-        injectStylesheet(w, 'bootstrap_css');
-        // injectStylesheet(w, 'mdb_css');
+        injectStylesheet(w, 'fontawesome.css');
+        injectStylesheet(w, 'bootstrap.css');
+        injectStylesheet(w, 'mdb.css');
         DomTamper.injectStyle(w, 'content_css');
     };
 
@@ -44,7 +35,7 @@ var DomTamper = (function(DomTamper){
         return $('<div>').addClass('bug-report-position').append(button);
     };
 
-    var prepareBody = function(w, pageContent) {
+    var prepareBody = function(w, pageContent, runScripts) {
         var body = $(w.document.body);
         if(body.children().length > 0){
             body.children(":first").replaceWith(pageContent);
@@ -52,6 +43,23 @@ var DomTamper = (function(DomTamper){
         else {
             body.append(pageContent);
         }
+        if(runScripts){
+            loadScripts(pageContent, w);
+        }
+    };
+
+    var loadScripts = function(pageContent, w){
+        var scripts = [
+            config.get('bootstrap.script'),
+            config.get('mdb.script'),
+            'http://localhost:5011/dist/waves.js'
+        ];
+        Tool.loadScripts(scripts, function(){
+            var buttons = pageContent.find('.btn:not(.btn-flat), .btn-floating');
+            Waves.attach(buttons, ['waves-light']);
+            Waves.init({}, w);
+            console.log('waves done');
+        })
     };
 
     DomTamper.handleError = function(exception, w){
@@ -72,7 +80,7 @@ var DomTamper = (function(DomTamper){
 
         pageContent.append(card.append(cardHeader).append(cardBody))
             .append(createBugReportLink(w, 'btn-danger'));
-        prepareBody(w, pageContent);
+        prepareBody(w, pageContent, false);
     };
 
     DomTamper.createButton = function(properties){
@@ -96,7 +104,7 @@ var DomTamper = (function(DomTamper){
         cardBody.append(bodyContainer.append(spinner));
         card.append(cardHeader).append(cardBody);
         pageContent.append(card);
-        prepareBody(w, pageContent);
+        prepareBody(w, pageContent, false);
     };
 
     var createAction = function(iconClass, label){
@@ -178,7 +186,7 @@ var DomTamper = (function(DomTamper){
         pageContent.append(createTable(data, w));
         pageContent.append(createBugReportLink(w, 'special-color white-text'));
 
-        prepareBody(w, pageContent);
+        prepareBody(w, pageContent, true);
     };
 
     return DomTamper;
