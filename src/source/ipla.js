@@ -69,7 +69,7 @@ var IPLA = (function(IPLA) {
             return Tool.getUrlParameter('vid', frameSrc);
         }
         catch(e){
-            throw new Exception(config.get('error.id'), 'Źródło: ' + frameSrc);
+            throw new Exception(config.error.id, window.location.href);
         }
     };
 

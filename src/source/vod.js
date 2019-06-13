@@ -30,7 +30,7 @@ var VOD = (function(VOD) {
             return id.match(/mvp:(.+)/)[1];
         }
         catch(e){
-            throw new Exception(config.get('error.id'), 'Źródło: ' + id);
+            throw new Exception(config.error.id, window.location.href);
         }
     };
 

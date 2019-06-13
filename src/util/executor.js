@@ -1,5 +1,6 @@
 var Executor = (function(Executor){
     var executeAsync = function(service, options, w){
+        var exceptionParams = [options.stepIndex, window.location.href];
         var resolveUrl = beforeStep(service, options);
         console.log('step ' + options.chainName + '[' + options.stepIndex + ']: ' + resolveUrl.url);
         var requestParams = {
@@ -11,10 +12,10 @@ var Executor = (function(Executor){
                 asyncCallback(service, options, w);
             },
             onerror: function(){
-                DomTamper.handleError(new Exception(config.get('error.call')), w);
+                DomTamper.handleError(new Exception(config.error.call, exceptionParams), w);
             },
             ontimeout: function(){
-                DomTamper.handleError(new Exception(config.get('error.timeout')), w);
+                DomTamper.handleError(new Exception(config.error.timeout, exceptionParams), w);
             }
         };
         GM_xmlhttpRequest(requestParams);
@@ -62,8 +63,7 @@ var Executor = (function(Executor){
             }
         }
         catch(e){
-            DomTamper.handleError(new Exception(config.get('error.api'),
-                'Błąd przetwarzania odpowiedzi asynchronicznej.'), w);
+            DomTamper.handleError(new Exception(config.error.api, options.stepIndex, window.location.href), w);
         }
     };
 

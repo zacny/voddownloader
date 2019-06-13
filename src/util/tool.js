@@ -28,5 +28,17 @@ var Tool = (function(Tool) {
         GM_download(fileUrl, name);
     };
 
+    Tool.template = function(templates, ...keys){
+        return (function(...values) {
+            var dict = values[values.length - 1] || {};
+            var result = [templates[0]];
+            keys.forEach(function(key, i) {
+                var value = Number.isInteger(key) ? values[key] : dict[key];
+                result.push(value, templates[i + 1]);
+            });
+            return result.join('');
+        });
+    };
+
     return Tool;
 }(Tool || {}));

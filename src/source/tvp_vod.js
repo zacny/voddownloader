@@ -27,12 +27,13 @@ var VOD_TVP = (function(VOD_TVP) {
         }
     });
 
-    var idParser = function(){
+    var idParser = function() {
         var src = properties.wrapper.get().attr('data-id');
         var videoId = src.split("/").pop();
 
-        if(videoId === null)
-            throw new Exception(config.get('error.id'), 'Źródło: ' + src);
+        if(videoId === null){
+            throw new Exception(config.error.id, window.location.href);
+        }
 
         return {
             videoId: videoId

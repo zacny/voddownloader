@@ -20,7 +20,7 @@ var CDA = (function(CDA) {
                     w.location.href = url;
                 }
                 else {
-                    throw new Exception(config.get('error.call'), 'Upewnij się, że html5 player jest włączony.');
+                    throw new Exception(config.error.idCdn, window.location.href);
                 }
             }
         }catch(e){
