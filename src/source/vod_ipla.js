@@ -29,7 +29,7 @@ var VOD_IPLA = (function(VOD_IPLA) {
             return JSON.parse(jsonObject[0].media).result.mediaItem.id;
         }
         catch(e){
-            throw new Exception(config.error.id, window.location.href);
+            throw new Exception(config.error.id, window.location.href);//incorrect page url
         }
     };
 

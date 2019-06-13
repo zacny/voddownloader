@@ -22,12 +22,11 @@ var TVP_REG = (function(TVP_REG) {
     });
 
     var idParser = function(){
-        try {
-            return $('div.js-video').attr('data-object-id');
-        }
-        catch(e){
-            throw new Exception(config.error.id, window.location.href);
-        }
+        var dataId = $('div.js-video').attr('data-object-id');
+        if(dataId != undefined)
+            return dataId;
+
+        throw new Exception(config.error.id, window.location.href);
     };
 
     TVP_REG.waitOnWrapper = function(){

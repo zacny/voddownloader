@@ -43,7 +43,7 @@ var TVN = (function(TVN) {
     var serialIdParser = function () {
         var match = window.location.href.match(/odcinki,(\d+)/);
         if(match && match[1]){
-            throw new Exception(config.error.tvnId(window.location.href));
+            throw new Exception(config.error.tvnId, window.location.href);
         }
 
         return vodIdParser();
@@ -55,7 +55,7 @@ var TVN = (function(TVN) {
             return match[1];
         }
 
-        throw new Exception(config.error.tvnId(window.location.href));
+        throw new Exception(config.error.tvnId, window.location.href);
     };
 
     var formatParser = function(data){
