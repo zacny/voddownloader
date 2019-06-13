@@ -15,7 +15,7 @@ var WrapperDetector = (function(WrapperDetector){
         } else {
             attempt = (attempt > 0) ? attempt-1 : attempt;
             return Promise.resolve().then(
-                setTimeout(checkWrapperExist, config.get('attempt_timeout'), attempt, properties)
+                setTimeout(checkWrapperExist, config.get('attemptTimeout'), attempt, properties)
             );
         }
     };

@@ -1,6 +1,5 @@
 $(document).ready(function(){
-    console.info('jQuery: ' + $().jquery);
+    console.info('voddownloader with jQuery v' + $().jquery);
     DomTamper.injectStyle(window, 'buttons_css');
     Starter.start();
-    // console.log(GM_info.downloadMode);
 });

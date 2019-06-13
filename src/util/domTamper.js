@@ -35,7 +35,15 @@ var DomTamper = (function(DomTamper){
         return $('<div>').addClass('bug-report-position').append(button);
     };
 
-    var prepareBody = function(w, pageContent, runScripts) {
+    var prepareBody = function(w, pageContent, detection) {
+        appendOrReplace(w, pageContent);
+        attachWaveEffect(w, pageContent);
+        if(detection) {
+            PluginSettingsDetector.detect(w);
+        }
+    };
+
+    var appendOrReplace = function (w, pageContent) {
         var body = $(w.document.body);
         if(body.children().length > 0){
             body.children(":first").replaceWith(pageContent);
@@ -43,23 +51,12 @@ var DomTamper = (function(DomTamper){
         else {
             body.append(pageContent);
         }
-        if(runScripts){
-            loadScripts(pageContent, w);
-        }
     };
 
-    var loadScripts = function(pageContent, w){
-        var scripts = [
-            config.get('bootstrap.script'),
-            config.get('mdb.script'),
-            'http://localhost:5011/dist/waves.js'
-        ];
-        Tool.loadScripts(scripts, function(){
-            var buttons = pageContent.find('.btn:not(.btn-flat), .btn-floating');
-            Waves.attach(buttons, ['waves-light']);
-            Waves.init({}, w);
-            console.log('waves done');
-        })
+    var attachWaveEffect = function(w, pageContent){
+        var buttons = pageContent.find('.btn:not(.btn-flat), .btn-floating');
+        Waves.attach(buttons, ['waves-light']);
+        Waves.init({}, w);
     };
 
     DomTamper.handleError = function(exception, w){
@@ -80,7 +77,7 @@ var DomTamper = (function(DomTamper){
 
         pageContent.append(card.append(cardHeader).append(cardBody))
             .append(createBugReportLink(w, 'btn-danger'));
-        prepareBody(w, pageContent, false);
+        prepareBody(w, pageContent);
     };
 
     DomTamper.createButton = function(properties){
@@ -104,7 +101,7 @@ var DomTamper = (function(DomTamper){
         cardBody.append(bodyContainer.append(spinner));
         card.append(cardHeader).append(cardBody);
         pageContent.append(card);
-        prepareBody(w, pageContent, false);
+        prepareBody(w, pageContent);
     };
 
     var createAction = function(iconClass, label){
@@ -112,31 +109,32 @@ var DomTamper = (function(DomTamper){
             .append($('<i>').addClass('fas pr-1').addClass(iconClass)).append(label);
     };
 
-    var downloadActionClick = function (event) {
-        var data = event.data;
+    var downloadActionClick = function (data, w) {
+        var options = {title: 'Rozpoczęto pobieranie pliku', content: data.title};
         Tool.downloadFile(data.value.url, data.title);
+        Notification.show(options, w);
     };
 
     var copyActionClick = function (data, w) {
-        var snackbar = $(w.document.body).find('#snackbar');
         GM_setClipboard(data.value.url);
-        snackbar.text('Skopiowano do schowka.');
-        snackbar.addClass('animate');
-        setTimeout(function(){ snackbar.removeClass('animate'); }, 3000);
+        var options = {title: 'Kopiowanie', content: 'Skopiowano do schowka'};
+        Notification.show(options, w);
+    };
+
+    var openActionClick = function (data, w) {
+        w.open(data.value.url);
     };
 
     var createRow = function(data, rowClass, w){
-        var params = {title: data.title, value: data.value};
         var actions = $('<td>').attr('scope', 'row').addClass('actions-row');
-        actions.append(createAction('fa-save', 'Zapisz').click(params, downloadActionClick));
-        actions.append(createAction('fa-clone', 'Kopiuj').click(
-            function() {
-                copyActionClick(data, w);
-            })
+        actions.append(createAction('fa-save', 'Zapisz').click(
+            function(){downloadActionClick(data, w)})
         );
-        actions.append(
-            createAction('fa-film', 'Otwórz').attr('href', data.value.url)
-                .attr('rel', 'noopener').attr('target', '_blank')
+        actions.append(createAction('fa-clone', 'Kopiuj').click(
+            function() {copyActionClick(data, w)})
+        );
+        actions.append(createAction('fa-film', 'Otwórz').click(
+            function() {openActionClick(data, w)})
         );
 
         var descriptionText = data.value.quality == undefined ?
@@ -185,8 +183,13 @@ var DomTamper = (function(DomTamper){
         var pageContent = $('<div>').addClass('page-content');
         pageContent.append(createTable(data, w));
         pageContent.append(createBugReportLink(w, 'special-color white-text'));
-
+        pageContent.append(createNotificationContainer());
         prepareBody(w, pageContent, true);
+    };
+
+    var createNotificationContainer = function(){
+        return $('<div>').attr('id', 'notification-container')
+            .attr('aria-live', 'polite').attr('aria-atomic', 'true').addClass('notification-container');
     };
 
     return DomTamper;
