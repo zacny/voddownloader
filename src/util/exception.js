@@ -1,4 +1,4 @@
-function Exception(message, description) {
-    this.message = message;
-    this.description = description;
+function Exception(error, ...templateParams) {
+    this.error = error;
+    this.templateParams = templateParams;
 }

@@ -10,19 +10,19 @@ var DomTamper = (function(DomTamper){
         }
     };
 
-    var injectStylesheet = function (w, name) {
+    var injectStylesheet = function (w, setting) {
         var head = $(w.document.head);
-        if(!head.find('link[name="' + name + '"]').length){
-            var stylesheet = $('<link>').attr('name', name).attr('type', 'text/css').attr('rel', 'stylesheet')
-                .attr('href',  config.get(name));
+        if(!head.find('link[name="' + setting.id + '"]').length){
+            var stylesheet = $('<link>').attr('name', setting.id).attr('type', 'text/css').attr('rel', 'stylesheet')
+                .attr('href',  setting.css);
             head.append(stylesheet);
         }
     };
 
     var prepareHead = function(w){
-        injectStylesheet(w, 'fontawesome.css');
-        injectStylesheet(w, 'bootstrap.css');
-        injectStylesheet(w, 'mdb.css');
+        injectStylesheet(w, config.fontawesome);
+        injectStylesheet(w, config.bootstrap);
+        injectStylesheet(w, config.mdb);
         DomTamper.injectStyle(w, 'content_css');
     };
 
@@ -65,15 +65,14 @@ var DomTamper = (function(DomTamper){
         }
 
         prepareHead(w);
+        var message = exception.error.template(exception.templateParams);
         var pageContent = $('<div>').addClass('page-content');
         var card = $('<div>').addClass('card text-white bg-danger mb-3');
         var cardHeader = $('<div>').addClass('card-header')
             .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
         var cardBody = $('<div>').addClass('card-body')
-            .append($('<h5>').addClass('card-title').text(exception.message));
-        if(exception.description !== undefined){
-            cardBody.append($('<div>').addClass('card-text text-white').text(exception.description));
-        }
+            .append($('<h5>').addClass('card-title').text(exception.error.caption))
+            .append($('<div>').addClass('card-text text-white').text(message));
 
         pageContent.append(card.append(cardHeader).append(cardBody))
             .append(createBugReportLink(w, 'btn-danger'));

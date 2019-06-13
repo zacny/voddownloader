@@ -41,75 +41,10 @@
 (function vodDownloader($) {
     'use strict';
 
-    function Exception(message, description) {
-	    this.message = message;
-	    this.description = description;
+    function Exception(error, ...templateParams) {
+	    this.error = error;
+	    this.templateParams = templateParams;
 	}
-	
-	var config = (function(config) {
-	    var settings = {
-	        attempts: 10,
-	        attemptTimeout: 1500,
-	        storageItem: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
-	        fontawesome: {
-	            css: 'https://use.fontawesome.com/releases/v5.8.2/css/all.css'
-	        },
-	        bootstrap: {
-	            css: 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css'
-	        },
-	        mdb: {
-	            css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
-	            /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
-	        },
-	        error: {
-	            id: 'Nie udało się odnaleźć idetyfikatora.',
-	            api: 'Nie odnaleziono adresów do strumieni.',
-	            call: 'Błąd pobierania informacji o materiale.',
-	            drm: 'Materiał posiada DRM. Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.',
-	            timeout: 'Zbyt długi czas odpowiedzi. Przypuszczalnie problem sieciowy.'
-	        }
-	    };
-	
-	    config.get = function(name) {
-	        var nameParts = name.split('.');
-	        var element = settings;
-	        for(var i = 0; i < nameParts.length; i++){
-	            var element = element[nameParts[i]];
-	        }
-	        return element;
-	    };
-	
-	    return config;
-	}(config || {}));
-	
-	
-	var AsyncStep = (function(AsyncStep){
-	    AsyncStep.setup = function(properties){
-	        var step = {
-	            urlTemplate: '',
-	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
-	            beforeStep: function(input){return input},
-	            /** Will be done after async call **/
-	            afterStep: function (output) {return output},
-	            resolveUrl: function (input) {
-	                var url = this.urlTemplate;
-	                var urlParams = {};
-	                $.each(input, function (key, value) {
-	                    url = url.replace(new RegExp('#'+key,'g'), value);
-	                    urlParams[key] = value;
-	                });
-	
-	                return {
-	                    url: url,
-	                    urlParams: urlParams
-	                };
-	            }
-	        };
-	
-	        return $.extend(true, step, properties);
-	    };
-	    return AsyncStep;
-	}(AsyncStep || {}));
 	
 	var Tool = (function(Tool) {
 	    Tool.deleteParametersFromUrl = function(url){
@@ -141,8 +76,108 @@
 	        GM_download(fileUrl, name);
 	    };
 	
+	    Tool.template = function(templates, ...keys){
+	        return (function(...values) {
+	            var dict = values[values.length - 1] || {};
+	            var result = [templates[0]];
+	            keys.forEach(function(key, i) {
+	                var value = Number.isInteger(key) ? values[key] : dict[key];
+	                result.push(value, templates[i + 1]);
+	            });
+	            return result.join('');
+	        });
+	    };
+	
 	    return Tool;
 	}(Tool || {}));
+	
+	const config = {
+	    attempts: 10,
+	    attemptTimeout: 1500,
+	    storageItem: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
+	    fontawesome: {
+	        id: 'fontawesome',
+	        css: 'https://use.fontawesome.com/releases/v5.8.2/css/all.css'
+	    },
+	    bootstrap: {
+	        id: 'bootstrap',
+	        css: 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css'
+	    },
+	    mdb: {
+	        id: 'mdb',
+	        css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
+	        /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
+	    },
+	    error: {
+	        id: {
+	            caption: 'Nie udało się odnaleźć idetyfikatora.',
+	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
+	                zakończył się niepowodzeniem.\nMoże to oznaczać błąd skryptu.`,
+	        },
+	        tvnId: {
+	            caption: 'Nie udało się odnaleźć idetyfikatora.',
+	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
+	                zakończył się niepowodzeniem.\nJeżeli jest to główna strona programu oznacza to, 
+	                że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka 
+	                i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
+	        },
+	        cdnId: {
+	            caption: 'Nie udało się odnaleźć idetyfikatora.',
+	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
+	                zakończył się niepowodzeniem. Upewnij się, że html5 player jest włączony.\n
+	                Może to oznaczać błąd skryptu.`,
+	        },
+	        api: {
+	            caption: 'Nie odnaleziono adresów do strumieni.',
+	            template: Tool.template`Błąd przetwarzania odpowiedzi asynchronicznej dla kroku z indeksem: ${0} 
+	                na stronie: '${1}'\nZgłoś problem autorom skryptu.`,
+	        },
+	        call: {
+	            caption: 'Błąd pobierania informacji o materiale.',
+	            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: '${1}'\n
+	                Zgłoś problem autorom skryptu.`,
+	        },
+	        drm: {
+	            caption: 'Materiał posiada DRM.',
+	            template: Tool.template`Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów. 
+	                Materiał ze strony: '${0}' nie jest publicznie dostępny.`,
+	        },
+	        timeout: {
+	            caption: 'Zbyt długi czas odpowiedzi.',
+	            template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie '${1}' nie dotarły 
+	                informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
+	        }
+	    }
+	};
+	
+	
+	var AsyncStep = (function(AsyncStep){
+	    AsyncStep.setup = function(properties){
+	        var step = {
+	            urlTemplate: '',
+	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
+	            beforeStep: function(input){return input},
+	            /** Will be done after async call **/
+	            afterStep: function (output) {return output},
+	            resolveUrl: function (input) {
+	                var url = this.urlTemplate;
+	                var urlParams = {};
+	                $.each(input, function (key, value) {
+	                    url = url.replace(new RegExp('#'+key,'g'), value);
+	                    urlParams[key] = value;
+	                });
+	
+	                return {
+	                    url: url,
+	                    urlParams: urlParams
+	                };
+	            }
+	        };
+	
+	        return $.extend(true, step, properties);
+	    };
+	    return AsyncStep;
+	}(AsyncStep || {}));
 	
 	var Notification = (function(Notification) {
 	    var create = function(title, bodyContent, special) {
@@ -214,7 +249,7 @@
 	        return $('<button>').attr('type', 'button').addClass('btn btn-dark btn-sm m-1 pl-3 pr-3')
 	            .append($('<i>').addClass('fas pr-1 fa-window-close')).append('Nie pokazuj więcej').click(function(){
 	                var rootElement = $(w.document.body);
-	                w.localStorage.setItem(config.get('storageItem'), true);
+	                w.localStorage.setItem(config.storageItem, true);
 	                $('.toast.special-color', rootElement).toast('hide');
 	                setTimeout(function(){
 	                    $('.toast.special-color', rootElement).remove();
@@ -231,8 +266,8 @@
 	        var downloadMode = GM_info.downloadMode;
 	        if(downloadMode !== 'browser'){
 	            disableDownload(w);
-	            var value = w.localStorage.getItem(config.get('storageItem'));
-	            console.log('[' + config.get('storageItem') + ']: ' + value);
+	            var value = w.localStorage.getItem(config.storageItem);
+	            console.log('[' + config.storageItem + ']: ' + value);
 	            if(value !== 'true'){
 	                prepareWarningNotification(w);
 	            }
@@ -253,19 +288,19 @@
 	        }
 	    };
 	
-	    var injectStylesheet = function (w, name) {
+	    var injectStylesheet = function (w, setting) {
 	        var head = $(w.document.head);
-	        if(!head.find('link[name="' + name + '"]').length){
-	            var stylesheet = $('<link>').attr('name', name).attr('type', 'text/css').attr('rel', 'stylesheet')
-	                .attr('href',  config.get(name));
+	        if(!head.find('link[name="' + setting.id + '"]').length){
+	            var stylesheet = $('<link>').attr('name', setting.id).attr('type', 'text/css').attr('rel', 'stylesheet')
+	                .attr('href',  setting.css);
 	            head.append(stylesheet);
 	        }
 	    };
 	
 	    var prepareHead = function(w){
-	        injectStylesheet(w, 'fontawesome.css');
-	        injectStylesheet(w, 'bootstrap.css');
-	        injectStylesheet(w, 'mdb.css');
+	        injectStylesheet(w, config.fontawesome);
+	        injectStylesheet(w, config.bootstrap);
+	        injectStylesheet(w, config.mdb);
 	        DomTamper.injectStyle(w, 'content_css');
 	    };
 	
@@ -308,15 +343,14 @@
 	        }
 	
 	        prepareHead(w);
+	        var message = exception.error.template(exception.templateParams);
 	        var pageContent = $('<div>').addClass('page-content');
 	        var card = $('<div>').addClass('card text-white bg-danger mb-3');
 	        var cardHeader = $('<div>').addClass('card-header')
 	            .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
 	        var cardBody = $('<div>').addClass('card-body')
-	            .append($('<h5>').addClass('card-title').text(exception.message));
-	        if(exception.description !== undefined){
-	            cardBody.append($('<div>').addClass('card-text text-white').text(exception.description));
-	        }
+	            .append($('<h5>').addClass('card-title').text(exception.error.caption))
+	            .append($('<div>').addClass('card-text text-white').text(message));
 	
 	        pageContent.append(card.append(cardHeader).append(cardBody))
 	            .append(createBugReportLink(w, 'btn-danger'));
@@ -440,6 +474,7 @@
 	
 	var Executor = (function(Executor){
 	    var executeAsync = function(service, options, w){
+	        var exceptionParams = [options.stepIndex, window.location.href];
 	        var resolveUrl = beforeStep(service, options);
 	        console.log('step ' + options.chainName + '[' + options.stepIndex + ']: ' + resolveUrl.url);
 	        var requestParams = {
@@ -451,10 +486,10 @@
 	                asyncCallback(service, options, w);
 	            },
 	            onerror: function(){
-	                DomTamper.handleError(new Exception(config.get('error.call')), w);
+	                DomTamper.handleError(new Exception(config.error.call, exceptionParams), w);
 	            },
 	            ontimeout: function(){
-	                DomTamper.handleError(new Exception(config.get('error.timeout')), w);
+	                DomTamper.handleError(new Exception(config.error.timeout, exceptionParams), w);
 	            }
 	        };
 	        GM_xmlhttpRequest(requestParams);
@@ -502,8 +537,7 @@
 	            }
 	        }
 	        catch(e){
-	            DomTamper.handleError(new Exception(config.get('error.api'),
-	                'Błąd przetwarzania odpowiedzi asynchronicznej.'), w);
+	            DomTamper.handleError(new Exception(config.error.api, options.stepIndex, window.location.href), w);
 	        }
 	    };
 	
@@ -573,7 +607,7 @@
 	        }
 	        else {
 	            return Promise.resolve().then(
-	                setTimeout(checkVideoChange, config.get('attemptTimeout'), oldSrc, videoChangeCallback)
+	                setTimeout(checkVideoChange, config.attemptTimeout, oldSrc, videoChangeCallback)
 	            );
 	        }
 	    };
@@ -603,7 +637,7 @@
 	        } else {
 	            attempt = (attempt > 0) ? attempt-1 : attempt;
 	            return Promise.resolve().then(
-	                setTimeout(checkWrapperExist, config.get('attemptTimeout'), attempt, properties)
+	                setTimeout(checkWrapperExist, config.attemptTimeout, attempt, properties)
 	            );
 	        }
 	    };
@@ -618,7 +652,7 @@
 	    };
 	
 	    WrapperDetector.run = function(properties, videoChangeCallback) {
-	        checkWrapperExist(config.get('attempts'), properties);
+	        checkWrapperExist(config.attempts, properties);
 	        if(typeof videoChangeCallback === "function"){
 	            ChangeVideoDetector.run(videoChangeCallback);
 	        }
@@ -655,12 +689,13 @@
 	        }
 	    });
 	
-	    var idParser = function(){
-	        var src = properties.wrapper.get().attr('data-id');
-	        var videoId = src.split("/").pop();
-	
-	        if(videoId === null)
-	            throw new Exception(config.get('error.id'), 'Źródło: ' + src);
+	    var idParser = function() {
+	        // var src = properties.wrapper.get().attr('data-id');
+	        // var videoId = src.split("/").pop();
+	        //
+	        // if(videoId === null){
+	            throw new Exception(config.error.id, window.location.href);
+	        // }
 	
 	        return {
 	            videoId: videoId
@@ -730,7 +765,7 @@
 	            return src.split("/").pop();
 	        }
 	        catch(e){
-	            throw new Exception(config.get('error.id'), 'Źródło: ' + src);
+	            throw new Exception(config.error.id, window.location.href);
 	        }
 	    };
 	
@@ -769,7 +804,7 @@
 	            return $('div.js-video').attr('data-object-id');
 	        }
 	        catch(e){
-	            throw new Exception(config.get('error.id'), 'Źródło: ' + $('div.js-video').get(0));
+	            throw new Exception(config.error.id, window.location.href);
 	        }
 	    };
 	
@@ -871,7 +906,7 @@
 	            }
 	        }
 	
-	        throw new Exception(config.get('error.id'), 'Źródło: ' + window.location.href);
+	        throw new Exception(config.error.caption.id, config.error.template.idTvn(window.location.href));
 	    };
 	
 	    var idParser = function(){
@@ -898,7 +933,7 @@
 	            return match[1];
 	        }
 	
-	        throw new Exception(CONFIG.get('error.id'), 'Źródło: ' + window.location.href);
+	        throw new Exception(config.error.caption.id, config.error.template.id(window.location.href));
 	    };
 	
 	    var formatParser = function(data){
@@ -1005,7 +1040,7 @@
 	            return Tool.getUrlParameter('vid', frameSrc);
 	        }
 	        catch(e){
-	            throw new Exception(config.get('error.id'), 'Źródło: ' + frameSrc);
+	            throw new Exception(config.error.id, window.location.href);
 	        }
 	    };
 	
@@ -1044,7 +1079,7 @@
 	            return id.match(/mvp:(.+)/)[1];
 	        }
 	        catch(e){
-	            throw new Exception(config.get('error.id'), 'Źródło: ' + id);
+	            throw new Exception(config.error.id, window.location.href);
 	        }
 	    };
 	
@@ -1116,7 +1151,7 @@
 	            return JSON.parse(jsonObject[0].media).result.mediaItem.id;
 	        }
 	        catch(e){
-	            throw new Exception(config.get('error.id'), 'Źródło: ' + match);
+	            throw new Exception(config.error.id, window.location.href);
 	        }
 	    };
 	
@@ -1158,7 +1193,7 @@
 	            return match[1];
 	        }
 	        catch(e){
-	            throw new Exception(CONFIG.get('error.id'), 'Źródło: ' + pageURL);
+	            throw new Exception(config.error.id, window.location.href);
 	        }
 	    };
 	
@@ -1211,7 +1246,7 @@
 	                    w.location.href = url;
 	                }
 	                else {
-	                    throw new Exception(config.get('error.call'), 'Upewnij się, że html5 player jest włączony.');
+	                    throw new Exception(config.error.idCdn, window.location.href);
 	                }
 	            }
 	        }catch(e){

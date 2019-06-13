@@ -82,7 +82,7 @@ function cleanTmpFiles() {
 function utilPartAttach() {
     return gulp.src(config.util_dir + '/*.js')
         .pipe(order([
-            'exception.js', 'config.js', 'asyncStep.js', 'tool.js', 'notification.js', 'pluginSettingsDetector.js',
+            'exception.js', 'tool.js', 'config.js', 'asyncStep.js', 'notification.js', 'pluginSettingsDetector.js',
             'domTamper.js', 'executor.js', 'configurator.js', 'changeVideoDetector.js', 'wrapperDetector.js'
         ]))
         .pipe(concat('utils.js'))
