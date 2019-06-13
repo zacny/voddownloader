@@ -22,13 +22,11 @@ var CYF_TVP = (function(CYF_TVP) {
     });
 
     var idParser = function(){
-        try {
-            var src = $('iframe#JS-TVPlayer').attr('src');
+        var src = $('iframe#JS-TVPlayer').attr('src');
+        if(src !== undefined)
             return src.split("/").pop();
-        }
-        catch(e){
-            throw new Exception(config.error.id, window.location.href);
-        }
+
+        throw new Exception(config.error.id, window.location.href);
     };
 
     CYF_TVP.waitOnWrapper = function(){

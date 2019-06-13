@@ -15,33 +15,34 @@ const config = {
         css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
         /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
     },
+    /** Use \\ in template to break a line */
     error: {
         id: {
             caption: 'Nie udało się odnaleźć idetyfikatora.',
             template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
-                zakończył się niepowodzeniem.\nMoże to oznaczać błąd skryptu.`,
+                zakończył się niepowodzeniem. Może to oznaczać błąd skryptu.`,
         },
         tvnId: {
             caption: 'Nie udało się odnaleźć idetyfikatora.',
             template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
-                zakończył się niepowodzeniem.\nJeżeli jest to główna strona programu oznacza to, 
+                zakończył się niepowodzeniem.\\Jeżeli jest to główna strona programu oznacza to, 
                 że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka 
-                i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
+                i spróbuj ponownie.\\Może to również oznaczać błąd skryptu.`,
         },
         cdnId: {
             caption: 'Nie udało się odnaleźć idetyfikatora.',
             template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
-                zakończył się niepowodzeniem. Upewnij się, że html5 player jest włączony.\n
+                zakończył się niepowodzeniem. Upewnij się, że html5 player jest włączony.\\
                 Może to oznaczać błąd skryptu.`,
         },
         api: {
             caption: 'Nie odnaleziono adresów do strumieni.',
             template: Tool.template`Błąd przetwarzania odpowiedzi asynchronicznej dla kroku z indeksem: ${0} 
-                na stronie: '${1}'\nZgłoś problem autorom skryptu.`,
+                na stronie: '${1}'\\Zgłoś problem autorom skryptu.`,
         },
         call: {
             caption: 'Błąd pobierania informacji o materiale.',
-            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: '${1}'\n
+            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: '${1}'\\
                 Zgłoś problem autorom skryptu.`,
         },
         drm: {
@@ -52,7 +53,7 @@ const config = {
         timeout: {
             caption: 'Zbyt długi czas odpowiedzi.',
             template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie '${1}' nie dotarły 
-                informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
+                informacje zwrotne.\\Przypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
         }
     }
 };

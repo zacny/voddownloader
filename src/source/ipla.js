@@ -24,8 +24,9 @@ var IPLA = (function(IPLA) {
     });
 
     var idParser = function(){
-        if(location.href.match(/[\a-z\d]{32}/) !== null) {
-            return window.location.href.match(/[\a-z\d]{32}/)[0];
+        var match = location.href.match(/[\a-z\d]{32}/);
+        if(match && match[0]) {
+            return match[0];
         }
 
         return grabVideoIdFromWatchingNowElement();
@@ -54,23 +55,22 @@ var IPLA = (function(IPLA) {
     };
 
     var grabVideoIdFromWatchingNowElement = function(){
-        try {
-            var href = $('div.vod-image-wrapper__overlay').closest('a').attr('href');
-            return href.match(/[\a-z\d]{32}/)[0];
+        var href = $('div.vod-image-wrapper__overlay').closest('a').attr('href');
+        if(href !== undefined){
+            var match = href.match(/[\a-z\d]{32}/);
+            if(match && match[0]){
+                return match[0];
+            }
         }
-        catch(e){
-            return grabVideoIdFromHtmlElement();
-        }
+        return grabVideoIdFromHtmlElement();
     };
 
     var grabVideoIdFromHtmlElement = function(){
-        try{
-            var frameSrc = $('app-commercial-wallpaper iframe:first-child').attr('src');
+        var frameSrc = $('app-commercial-wallpaper iframe:first-child').attr('src');
+        if(frameSrc !== undefined)
             return Tool.getUrlParameter('vid', frameSrc);
-        }
-        catch(e){
-            throw new Exception(config.error.id, window.location.href);
-        }
+
+        throw new Exception(config.error.id, window.location.href);
     };
 
     return IPLA;

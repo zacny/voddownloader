@@ -33,6 +33,7 @@
 // @run-at         document-end
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
+// @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
 // @require        http://localhost:5011/lib/js/mdb-with-waves-patch.js
 // @resource       buttons_css http://localhost:5011/lib/css/voddownloader-buttons.css
 // @resource       content_css http://localhost:5011/lib/css/voddownloader-content.css
@@ -108,33 +109,34 @@
 	        css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
 	        /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
 	    },
+	    /** Use \\ in template to break a line */
 	    error: {
 	        id: {
 	            caption: 'Nie udało się odnaleźć idetyfikatora.',
 	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
-	                zakończył się niepowodzeniem.\nMoże to oznaczać błąd skryptu.`,
+	                zakończył się niepowodzeniem. Może to oznaczać błąd skryptu.`,
 	        },
 	        tvnId: {
 	            caption: 'Nie udało się odnaleźć idetyfikatora.',
 	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
-	                zakończył się niepowodzeniem.\nJeżeli jest to główna strona programu oznacza to, 
+	                zakończył się niepowodzeniem.\\Jeżeli jest to główna strona programu oznacza to, 
 	                że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka 
-	                i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
+	                i spróbuj ponownie.\\Może to również oznaczać błąd skryptu.`,
 	        },
 	        cdnId: {
 	            caption: 'Nie udało się odnaleźć idetyfikatora.',
 	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
-	                zakończył się niepowodzeniem. Upewnij się, że html5 player jest włączony.\n
+	                zakończył się niepowodzeniem. Upewnij się, że html5 player jest włączony.\\
 	                Może to oznaczać błąd skryptu.`,
 	        },
 	        api: {
 	            caption: 'Nie odnaleziono adresów do strumieni.',
 	            template: Tool.template`Błąd przetwarzania odpowiedzi asynchronicznej dla kroku z indeksem: ${0} 
-	                na stronie: '${1}'\nZgłoś problem autorom skryptu.`,
+	                na stronie: '${1}'\\Zgłoś problem autorom skryptu.`,
 	        },
 	        call: {
 	            caption: 'Błąd pobierania informacji o materiale.',
-	            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: '${1}'\n
+	            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: '${1}'\\
 	                Zgłoś problem autorom skryptu.`,
 	        },
 	        drm: {
@@ -145,7 +147,7 @@
 	        timeout: {
 	            caption: 'Zbyt długi czas odpowiedzi.',
 	            template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie '${1}' nie dotarły 
-	                informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
+	                informacje zwrotne.\\Przypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
 	        }
 	    }
 	};
@@ -343,14 +345,19 @@
 	        }
 	
 	        prepareHead(w);
-	        var message = exception.error.template(exception.templateParams);
+	        debugger;
+	        var message = exception.error.template(exception.templateParams).replace(/\\/g, '<br/>');
 	        var pageContent = $('<div>').addClass('page-content');
 	        var card = $('<div>').addClass('card text-white bg-danger mb-3');
 	        var cardHeader = $('<div>').addClass('card-header')
 	            .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
 	        var cardBody = $('<div>').addClass('card-body')
 	            .append($('<h5>').addClass('card-title').text(exception.error.caption))
-	            .append($('<div>').addClass('card-text text-white').text(message));
+	            .append($('<div>').addClass('card-text text-white mb-3').append(message))
+	            .append($('<div>').addClass('card-text text-white')
+	                .append('Informacje o systemie: ').append(platform.description))
+	            .append($('<div>').addClass('card-text text-white')
+	                .append('Wersja pluginu: ').append(GM_info.version));
 	
 	        pageContent.append(card.append(cardHeader).append(cardBody))
 	            .append(createBugReportLink(w, 'btn-danger'));
@@ -690,16 +697,14 @@
 	    });
 	
 	    var idParser = function() {
-	        // var src = properties.wrapper.get().attr('data-id');
-	        // var videoId = src.split("/").pop();
-	        //
-	        // if(videoId === null){
-	            throw new Exception(config.error.id, window.location.href);
-	        // }
+	        var src = properties.wrapper.get().attr('data-id');
+	        if(src !== undefined){
+	            return {
+	                videoId: src.split("/").pop()
+	            };
+	        }
 	
-	        return {
-	            videoId: videoId
-	        };
+	        throw new Exception(config.error.id, window.location.href);
 	    };
 	
 	    var getRealVideoId = function(json){
@@ -760,13 +765,11 @@
 	    });
 	
 	    var idParser = function(){
-	        try {
-	            var src = $('iframe#JS-TVPlayer').attr('src');
+	        var src = $('iframe#JS-TVPlayer').attr('src');
+	        if(src !== undefined)
 	            return src.split("/").pop();
-	        }
-	        catch(e){
-	            throw new Exception(config.error.id, window.location.href);
-	        }
+	
+	        throw new Exception(config.error.id, window.location.href);
 	    };
 	
 	    CYF_TVP.waitOnWrapper = function(){
@@ -800,12 +803,11 @@
 	    });
 	
 	    var idParser = function(){
-	        try {
-	            return $('div.js-video').attr('data-object-id');
-	        }
-	        catch(e){
-	            throw new Exception(config.error.id, window.location.href);
-	        }
+	        var dataId = $('div.js-video').attr('data-object-id');
+	        if(dataId != undefined)
+	            return dataId;
+	
+	        throw new Exception(config.error.id, window.location.href);
 	    };
 	
 	    TVP_REG.waitOnWrapper = function(){
@@ -835,79 +837,9 @@
 	                        return formatParser(output);
 	                    }
 	                })
-	            ],
-	            serial: [
-	                AsyncStep.setup({
-	                    urlTemplate: 'https://player.pl/playerapi/item/translate?programId=#programId' +
-	                        '&4K=true&platform=BROWSER',
-	                    beforeStep: function(input){
-	                         return serialIdParser();
-	                    },
-	                    afterStep: function(output) {
-	                        return {
-	                            serialId: output.id
-	                        };
-	                    }
-	                }),
-	                AsyncStep.setup({
-	                    urlTemplate: 'https://player.pl/playerapi/product/vod/serial/#serialId/season/list?4K=true' +
-	                        '&platform=BROWSER',
-	                    afterStep: function(output) {
-	                        return {
-	                            seasonId: output[0].id
-	                        };
-	                    }
-	                }),
-	                AsyncStep.setup({
-	                    urlTemplate: 'https://player.pl/playerapi/product/vod/serial/#serialId/season/#seasonId/' +
-	                        'episode/list?4K=true&platform=BROWSER',
-	                    afterStep: function(output) {
-	                        return {
-	                            episodeId: output[0].externalArticleId
-	                        };
-	                    }
-	                }),
-	                AsyncStep.setup({
-	                    urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
-	                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#episodeId',
-	                    afterStep: function(output) {
-	                        return formatParser(output);
-	                    }
-	                })
 	            ]
-	        },
-	        chainSelector: function(){
-	            return selectChain();
 	        }
 	    });
-	
-	    var selectChain = function(){
-	        if($('.watching-now').length > 0){
-	            return "default";
-	        }
-	        var pageURL = window.location.href;
-	        var match = pageURL.match(/odcinki,(\d+)\/.*,(\d+)/);
-	        if(match && match[2]){
-	            return "default";
-	        }
-	        match = pageURL.match(/odcinki,(\d+)/);
-	        if(match && match[1]){
-	            return "serial";
-	        }
-	
-	        return "default";
-	    };
-	
-	    var serialIdParser = function () {
-	        var match = window.location.href.match(/odcinki,(\d+)/);
-	        if(match && match[1]){
-	            return {
-	                programId: match[1]
-	            }
-	        }
-	
-	        throw new Exception(config.error.caption.id, config.error.template.idTvn(window.location.href));
-	    };
 	
 	    var idParser = function(){
 	        var watchingNow = $('.watching-now').closest('.embed-responsive').find('.embed-responsive-item');
@@ -924,6 +856,15 @@
 	            return match[2];
 	        }
 	
+	        return serialIdParser();
+	    };
+	
+	    var serialIdParser = function () {
+	        var match = window.location.href.match(/odcinki,(\d+)/);
+	        if(match && match[1]){
+	            throw new Exception(config.error.tvnId, window.location.href);
+	        }
+	
 	        return vodIdParser();
 	    };
 	
@@ -933,7 +874,7 @@
 	            return match[1];
 	        }
 	
-	        throw new Exception(config.error.caption.id, config.error.template.id(window.location.href));
+	        throw new Exception(config.error.tvnId, window.location.href);
 	    };
 	
 	    var formatParser = function(data){
@@ -995,8 +936,9 @@
 	    });
 	
 	    var idParser = function(){
-	        if(location.href.match(/[\a-z\d]{32}/) !== null) {
-	            return window.location.href.match(/[\a-z\d]{32}/)[0];
+	        var match = location.href.match(/[\a-z\d]{32}/);
+	        if(match && match[0]) {
+	            return match[0];
 	        }
 	
 	        return grabVideoIdFromWatchingNowElement();
@@ -1025,23 +967,22 @@
 	    };
 	
 	    var grabVideoIdFromWatchingNowElement = function(){
-	        try {
-	            var href = $('div.vod-image-wrapper__overlay').closest('a').attr('href');
-	            return href.match(/[\a-z\d]{32}/)[0];
+	        var href = $('div.vod-image-wrapper__overlay').closest('a').attr('href');
+	        if(href !== undefined){
+	            var match = href.match(/[\a-z\d]{32}/);
+	            if(match && match[0]){
+	                return match[0];
+	            }
 	        }
-	        catch(e){
-	            return grabVideoIdFromHtmlElement();
-	        }
+	        return grabVideoIdFromHtmlElement();
 	    };
 	
 	    var grabVideoIdFromHtmlElement = function(){
-	        try{
-	            var frameSrc = $('app-commercial-wallpaper iframe:first-child').attr('src');
+	        var frameSrc = $('app-commercial-wallpaper iframe:first-child').attr('src');
+	        if(frameSrc !== undefined)
 	            return Tool.getUrlParameter('vid', frameSrc);
-	        }
-	        catch(e){
-	            throw new Exception(config.error.id, window.location.href);
-	        }
+	
+	        throw new Exception(config.error.id, window.location.href);
 	    };
 	
 	    return IPLA;
@@ -1145,14 +1086,14 @@
 	    });
 	
 	    var idParser = function(){
-	        try {
-	            var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
-	            var jsonObject = JSON.parse(match[2]);
-	            return JSON.parse(jsonObject[0].media).result.mediaItem.id;
-	        }
-	        catch(e){
+	        // try {
+	        //     var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
+	        //     var jsonObject = JSON.parse(match[2]);
+	        //     return JSON.parse(jsonObject[0].media).result.mediaItem.id;
+	        // }
+	        // catch(e){
 	            throw new Exception(config.error.id, window.location.href);
-	        }
+	        // }
 	    };
 	
 	    VOD_IPLA.waitOnWrapper = function(){
@@ -1246,7 +1187,7 @@
 	                    w.location.href = url;
 	                }
 	                else {
-	                    throw new Exception(config.error.idCdn, window.location.href);
+	                    throw new Exception(config.error.cdnId, window.location.href);
 	                }
 	            }
 	        }catch(e){
