@@ -14,6 +14,8 @@ var gulp = require('gulp'),
 const config = {
     tmp_dir: 'tmp',
     dist_dir: 'dist',
+    lib_css_dir: 'lib/css',
+    lib_js_dir: 'lib/js',
     img_dir: 'img',
     css_dir: 'src/css',
     src_dir: 'src',
@@ -23,6 +25,7 @@ const config = {
     script_name: pkg.config.scriptName,
     buttons_css_name: pkg.config.buttonCssName,
     content_css_name: pkg.config.contentCssName,
+    mdb_witch_patch_name: pkg.config.mdbWithPathName,
     production: true
 };
 
@@ -79,8 +82,8 @@ function cleanTmpFiles() {
 function utilPartAttach() {
     return gulp.src(config.util_dir + '/*.js')
         .pipe(order([
-            'exception.js', 'config.js', 'asyncStep.js', 'tool.js', 'domTamper.js', 'executor.js',
-            'configurator.js', 'changeVideoDetector.js', 'wrapperDetector.js'
+            'exception.js', 'config.js', 'asyncStep.js', 'tool.js', 'notification.js', 'pluginSettingsDetector.js',
+            'domTamper.js', 'executor.js', 'configurator.js', 'changeVideoDetector.js', 'wrapperDetector.js'
         ]))
         .pipe(concat('utils.js'))
         .pipe(gulp.dest(config.tmp_dir));
@@ -117,13 +120,13 @@ function joinScriptParts() {
 function joinCssFiles(){
     return gulp.src([config.css_dir + '/sources.css', config.css_dir + '/buttons.css'])
         .pipe(concat(config.buttons_css_name))
-        .pipe(gulp.dest(config.dist_dir));
+        .pipe(gulp.dest(config.lib_css_dir));
 }
 
 function copyCssFiles(){
     return gulp.src(config.css_dir + '/content.css')
         .pipe(rename("voddownloader-content.css"))
-        .pipe(gulp.dest(config.dist_dir));
+        .pipe(gulp.dest(config.lib_css_dir));
 }
 
 //remove some expressions before release
@@ -174,9 +177,9 @@ function prepareHeaders(){
 
     headers.name = config.production ? pkg.config.production.name : pkg.name;
     headers.version = config.production ? pkg.version : pkg.version + '-develop';
-    headers.buttonsCssPath = getPath(config.buttons_css_name, config.dist_dir);
-    headers.loaderCssPath = getPath(config.loader_css_name, config.dist_dir);
-    headers.contentCssPath = getPath(config.content_css_name, config.dist_dir);
+    headers.buttonsCssPath = getPath(config.buttons_css_name, config.lib_css_dir);
+    headers.contentCssPath = getPath(config.content_css_name, config.lib_css_dir);
+    headers.mdbJsPath = getPath(config.mdb_witch_patch_name, config.lib_js_dir);
 
     return headers;
 }

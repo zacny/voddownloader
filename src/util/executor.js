@@ -11,10 +11,10 @@ var Executor = (function(Executor){
                 asyncCallback(service, options, w);
             },
             onerror: function(){
-                DomTamper.handleError(new Exception(config.get('call_error')), w);
+                DomTamper.handleError(new Exception(config.get('error.call')), w);
             },
             ontimeout: function(){
-                DomTamper.handleError(new Exception(config.get('timeout_error')), w);
+                DomTamper.handleError(new Exception(config.get('error.timeout')), w);
             }
         };
         GM_xmlhttpRequest(requestParams);
@@ -62,7 +62,7 @@ var Executor = (function(Executor){
             }
         }
         catch(e){
-            DomTamper.handleError(new Exception(config.get('api_error'),
+            DomTamper.handleError(new Exception(config.get('error.api'),
                 'Błąd przetwarzania odpowiedzi asynchronicznej.'), w);
         }
     };

@@ -23,10 +23,8 @@
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
-// @grant          GM_getResourceURL
 // @grant          GM_xmlhttpRequest
 // @grant          GM_download
-// @grant          GM_notification
 // @grant          GM_setClipboard
 // @grant          GM_info
 // @connect        tvp.pl
@@ -34,8 +32,10 @@
 // @connect        player-api.dreamlab.pl
 // @run-at         document-end
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
-// @resource       buttons_css http://localhost:5011/dist/voddownloader-buttons.css
-// @resource       content_css http://localhost:5011/dist/voddownloader-content.css
+// @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
+// @require        http://localhost:5011/lib/js/mdb-with-waves-patch.js
+// @resource       buttons_css http://localhost:5011/lib/css/voddownloader-buttons.css
+// @resource       content_css http://localhost:5011/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($) {
@@ -49,23 +49,25 @@
 	var config = (function(config) {
 	    var settings = {
 	        attempts: 10,
-	        attempt_timeout: 1500,
+	        attemptTimeout: 1500,
+	        storageItem: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
 	        fontawesome: {
-	            css: 'https://use.fontawesome.com/releases/v5.8.2/css/all.css',
+	            css: 'https://use.fontawesome.com/releases/v5.8.2/css/all.css'
 	        },
 	        bootstrap: {
-	            css: 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css',
-	            script: 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js'
+	            css: 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css'
 	        },
 	        mdb: {
 	            css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
-	            script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'
+	            /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
 	        },
-	        id_error: 'Nie udało się odnaleźć idetyfikatora.',
-	        api_error: 'Nie odnaleziono adresów do strumieni.',
-	        call_error: 'Błąd pobierania informacji o materiale.',
-	        drm_error: 'Materiał posiada DRM. Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.',
-	        timeout_error: 'Zbyt długi czas odpowiedzi. Przypuszczalnie problem sieciowy.'
+	        error: {
+	            id: 'Nie udało się odnaleźć idetyfikatora.',
+	            api: 'Nie odnaleziono adresów do strumieni.',
+	            call: 'Błąd pobierania informacji o materiale.',
+	            drm: 'Materiał posiada DRM. Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów.',
+	            timeout: 'Zbyt długi czas odpowiedzi. Przypuszczalnie problem sieciowy.'
+	        }
 	    };
 	
 	    config.get = function(name) {
@@ -137,25 +139,107 @@
 	        var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
 	        var name = title + '.' + extension;
 	        GM_download(fileUrl, name);
-	        GM_notification({
-	            title: 'Rozpoczęto pobieranie pliku',
-	            text: name
-	        });
 	    };
-	
-	    Tool.loadScripts = function(scripts, callback){
-	        $.each(scripts, function( index, script ) {
-	            console.log('load: ' + script);
-	            $.getScript(script).done(function(){
-	                if (index == scripts.length -1){
-	                    callback();
-	                }
-	            });
-	        });
-	    }
 	
 	    return Tool;
 	}(Tool || {}));
+	
+	var Notification = (function(Notification) {
+	    var create = function(title, bodyContent, special) {
+	        var specialContentClasses = special ? ' special-color white-text' : '';
+	        var content = $('<div>').addClass('toast notification' + specialContentClasses).attr('role', 'alert')
+	            .attr('aria-live', 'assertive').attr('aria-atomic', 'true')
+	            .attr('name', special ? 'special' : 'normal').attr('data-delay', '5000');
+	        var header = $('<div>').addClass('toast-header special-color-dark white-text');
+	        var warnIcon = $('<i>').addClass('fas fa-exclamation-triangle pr-2');
+	        var title = $('<strong>').addClass('mr-auto').text(title);
+	        var time = $('<small>').text(new Date().toLocaleTimeString());
+	        var close = $('<button>').attr('type', 'button').addClass('ml-2 mb-1 close white-text')
+	            .attr('data-dismiss', 'toast').attr('aria-label', 'Close')
+	            .append($('<span>').attr('aria-hidden', 'true').text('\u00D7'));
+	
+	        if(special){
+	            header.append(warnIcon);
+	            content.attr('data-autohide', 'false');
+	        }
+	        header.append(title).append(time).append(close);
+	        var body = $('<div>').addClass('toast-body notification-body').append(bodyContent);
+	
+	        content.append(header).append(body);
+	        return content;
+	    };
+	
+	    Notification.show = function(options, w){
+	        options = options || {};
+	        var special = false;
+	        if (options.hasOwnProperty('special')) {
+	            special = options.special;
+	        }
+	        if(!options.hasOwnProperty('title') || !options.hasOwnProperty('content')){
+	            return;
+	        }
+	
+	        var rootElement = $(w.document.body);
+	        var notification = create(options.title, options.content, special);
+	        $('#notification-container', rootElement).append(notification);
+	        $('.toast', rootElement).toast('show');
+	        $('.toast', rootElement).on('hidden.bs.toast', function (){
+	            $.each($(this), function(index, value) {
+	                var element = $(value);
+	                element.remove();
+	            });
+	        })
+	    };
+	
+	    return Notification;
+	}(Notification || {}));
+	
+	var PluginSettingsDetector = (function(PluginSettingsDetector){
+	    var prepareWarningNotification = function(w) {
+	        var bodyContent = $('<div>')
+	            .append('Twój dodatek ma nieprawidłowe ustawienia, przez co nie możesz korzystać z opcji ')
+	            .append('bezpośredniego pobierania plików. Możesz skorygować je w następujący sposób:');
+	        var list = $('<ol>').addClass('m-0')
+	            .append($('<li>').text('Otwórz Panel sterowania Tampermonkey i kliknij ustawienia.'))
+	            .append($('<li>').text('Ogólne > Tryb konfiguracji > Expert'))
+	            .append($('<li>').text('Pobieranie BETA > Tryb pobierania > API przeglądarki'))
+	            .append($('<li>').text('Zapisz ustawienia, a jeżeli przeglądarka zapyta o możliwość zarządzania' +
+	                ' pobieranymi plikami, należy się zgodzić'));
+	        bodyContent.append(list).append(createButton(w));
+	        var options = {title: 'Wykryto problem', content: bodyContent, special: true};
+	        Notification.show(options, w);
+	    };
+	
+	    var createButton = function(w){
+	        return $('<button>').attr('type', 'button').addClass('btn btn-dark btn-sm m-1 pl-3 pr-3')
+	            .append($('<i>').addClass('fas pr-1 fa-window-close')).append('Nie pokazuj więcej').click(function(){
+	                var rootElement = $(w.document.body);
+	                w.localStorage.setItem(config.get('storageItem'), true);
+	                $('.toast.special-color', rootElement).toast('hide');
+	                setTimeout(function(){
+	                    $('.toast.special-color', rootElement).remove();
+	                }, 1000);
+	            });
+	    };
+	
+	    var disableDownload = function(w){
+	        var rootElement = $(w.document.body);
+	        $('.fa-save', rootElement).closest('button').attr('disabled', true);
+	    };
+	
+	    PluginSettingsDetector.detect = function(w){
+	        var downloadMode = GM_info.downloadMode;
+	        if(downloadMode !== 'browser'){
+	            disableDownload(w);
+	            var value = w.localStorage.getItem(config.get('storageItem'));
+	            console.log('[' + config.get('storageItem') + ']: ' + value);
+	            if(value !== 'true'){
+	                prepareWarningNotification(w);
+	            }
+	        }
+	    };
+	    return PluginSettingsDetector;
+	}(PluginSettingsDetector || {}));
 	
 	/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
 	var DomTamper = (function(DomTamper){
@@ -194,7 +278,15 @@
 	        return $('<div>').addClass('bug-report-position').append(button);
 	    };
 	
-	    var prepareBody = function(w, pageContent, runScripts) {
+	    var prepareBody = function(w, pageContent, detection) {
+	        appendOrReplace(w, pageContent);
+	        attachWaveEffect(w, pageContent);
+	        if(detection) {
+	            PluginSettingsDetector.detect(w);
+	        }
+	    };
+	
+	    var appendOrReplace = function (w, pageContent) {
 	        var body = $(w.document.body);
 	        if(body.children().length > 0){
 	            body.children(":first").replaceWith(pageContent);
@@ -202,23 +294,12 @@
 	        else {
 	            body.append(pageContent);
 	        }
-	        if(runScripts){
-	            loadScripts(pageContent, w);
-	        }
 	    };
 	
-	    var loadScripts = function(pageContent, w){
-	        var scripts = [
-	            config.get('bootstrap.script'),
-	            config.get('mdb.script'),
-	            'http://localhost:5011/dist/waves.js'
-	        ];
-	        Tool.loadScripts(scripts, function(){
-	            var buttons = pageContent.find('.btn:not(.btn-flat), .btn-floating');
-	            Waves.attach(buttons, ['waves-light']);
-	            Waves.init({}, w);
-	            console.log('waves done');
-	        })
+	    var attachWaveEffect = function(w, pageContent){
+	        var buttons = pageContent.find('.btn:not(.btn-flat), .btn-floating');
+	        Waves.attach(buttons, ['waves-light']);
+	        Waves.init({}, w);
 	    };
 	
 	    DomTamper.handleError = function(exception, w){
@@ -239,7 +320,7 @@
 	
 	        pageContent.append(card.append(cardHeader).append(cardBody))
 	            .append(createBugReportLink(w, 'btn-danger'));
-	        prepareBody(w, pageContent, false);
+	        prepareBody(w, pageContent);
 	    };
 	
 	    DomTamper.createButton = function(properties){
@@ -263,7 +344,7 @@
 	        cardBody.append(bodyContainer.append(spinner));
 	        card.append(cardHeader).append(cardBody);
 	        pageContent.append(card);
-	        prepareBody(w, pageContent, false);
+	        prepareBody(w, pageContent);
 	    };
 	
 	    var createAction = function(iconClass, label){
@@ -271,31 +352,32 @@
 	            .append($('<i>').addClass('fas pr-1').addClass(iconClass)).append(label);
 	    };
 	
-	    var downloadActionClick = function (event) {
-	        var data = event.data;
+	    var downloadActionClick = function (data, w) {
+	        var options = {title: 'Rozpoczęto pobieranie pliku', content: data.title};
 	        Tool.downloadFile(data.value.url, data.title);
+	        Notification.show(options, w);
 	    };
 	
 	    var copyActionClick = function (data, w) {
-	        var snackbar = $(w.document.body).find('#snackbar');
 	        GM_setClipboard(data.value.url);
-	        snackbar.text('Skopiowano do schowka.');
-	        snackbar.addClass('animate');
-	        setTimeout(function(){ snackbar.removeClass('animate'); }, 3000);
+	        var options = {title: 'Kopiowanie', content: 'Skopiowano do schowka'};
+	        Notification.show(options, w);
+	    };
+	
+	    var openActionClick = function (data, w) {
+	        w.open(data.value.url);
 	    };
 	
 	    var createRow = function(data, rowClass, w){
-	        var params = {title: data.title, value: data.value};
 	        var actions = $('<td>').attr('scope', 'row').addClass('actions-row');
-	        actions.append(createAction('fa-save', 'Zapisz').click(params, downloadActionClick));
-	        actions.append(createAction('fa-clone', 'Kopiuj').click(
-	            function() {
-	                copyActionClick(data, w);
-	            })
+	        actions.append(createAction('fa-save', 'Zapisz').click(
+	            function(){downloadActionClick(data, w)})
 	        );
-	        actions.append(
-	            createAction('fa-film', 'Otwórz').attr('href', data.value.url)
-	                .attr('rel', 'noopener').attr('target', '_blank')
+	        actions.append(createAction('fa-clone', 'Kopiuj').click(
+	            function() {copyActionClick(data, w)})
+	        );
+	        actions.append(createAction('fa-film', 'Otwórz').click(
+	            function() {openActionClick(data, w)})
 	        );
 	
 	        var descriptionText = data.value.quality == undefined ?
@@ -344,8 +426,13 @@
 	        var pageContent = $('<div>').addClass('page-content');
 	        pageContent.append(createTable(data, w));
 	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
-	
+	        pageContent.append(createNotificationContainer());
 	        prepareBody(w, pageContent, true);
+	    };
+	
+	    var createNotificationContainer = function(){
+	        return $('<div>').attr('id', 'notification-container')
+	            .attr('aria-live', 'polite').attr('aria-atomic', 'true').addClass('notification-container');
 	    };
 	
 	    return DomTamper;
@@ -364,10 +451,10 @@
 	                asyncCallback(service, options, w);
 	            },
 	            onerror: function(){
-	                DomTamper.handleError(new Exception(config.get('call_error')), w);
+	                DomTamper.handleError(new Exception(config.get('error.call')), w);
 	            },
 	            ontimeout: function(){
-	                DomTamper.handleError(new Exception(config.get('timeout_error')), w);
+	                DomTamper.handleError(new Exception(config.get('error.timeout')), w);
 	            }
 	        };
 	        GM_xmlhttpRequest(requestParams);
@@ -415,7 +502,7 @@
 	            }
 	        }
 	        catch(e){
-	            DomTamper.handleError(new Exception(config.get('api_error'),
+	            DomTamper.handleError(new Exception(config.get('error.api'),
 	                'Błąd przetwarzania odpowiedzi asynchronicznej.'), w);
 	        }
 	    };
@@ -486,7 +573,7 @@
 	        }
 	        else {
 	            return Promise.resolve().then(
-	                setTimeout(checkVideoChange, config.get('attempt_timeout'), oldSrc, videoChangeCallback)
+	                setTimeout(checkVideoChange, config.get('attemptTimeout'), oldSrc, videoChangeCallback)
 	            );
 	        }
 	    };
@@ -516,7 +603,7 @@
 	        } else {
 	            attempt = (attempt > 0) ? attempt-1 : attempt;
 	            return Promise.resolve().then(
-	                setTimeout(checkWrapperExist, config.get('attempt_timeout'), attempt, properties)
+	                setTimeout(checkWrapperExist, config.get('attemptTimeout'), attempt, properties)
 	            );
 	        }
 	    };
@@ -573,7 +660,7 @@
 	        var videoId = src.split("/").pop();
 	
 	        if(videoId === null)
-	            throw new Exception(config.get('id_error'), 'Źródło: ' + src);
+	            throw new Exception(config.get('error.id'), 'Źródło: ' + src);
 	
 	        return {
 	            videoId: videoId
@@ -643,7 +730,7 @@
 	            return src.split("/").pop();
 	        }
 	        catch(e){
-	            throw new Exception(config.get('id_error'), 'Źródło: ' + src);
+	            throw new Exception(config.get('error.id'), 'Źródło: ' + src);
 	        }
 	    };
 	
@@ -682,7 +769,7 @@
 	            return $('div.js-video').attr('data-object-id');
 	        }
 	        catch(e){
-	            throw new Exception(config.get('id_error'), 'Źródło: ' + $('div.js-video').get(0));
+	            throw new Exception(config.get('error.id'), 'Źródło: ' + $('div.js-video').get(0));
 	        }
 	    };
 	
@@ -784,7 +871,7 @@
 	            }
 	        }
 	
-	        throw new Exception(config.get('id_error'), 'Źródło: ' + window.location.href);
+	        throw new Exception(config.get('error.id'), 'Źródło: ' + window.location.href);
 	    };
 	
 	    var idParser = function(){
@@ -811,7 +898,7 @@
 	            return match[1];
 	        }
 	
-	        throw new Exception(CONFIG.get('id_error'), 'Źródło: ' + window.location.href);
+	        throw new Exception(CONFIG.get('error.id'), 'Źródło: ' + window.location.href);
 	    };
 	
 	    var formatParser = function(data){
@@ -918,7 +1005,7 @@
 	            return Tool.getUrlParameter('vid', frameSrc);
 	        }
 	        catch(e){
-	            throw new Exception(config.get('id_error'), 'Źródło: ' + frameSrc);
+	            throw new Exception(config.get('error.id'), 'Źródło: ' + frameSrc);
 	        }
 	    };
 	
@@ -957,7 +1044,7 @@
 	            return id.match(/mvp:(.+)/)[1];
 	        }
 	        catch(e){
-	            throw new Exception(config.get('id_error'), 'Źródło: ' + id);
+	            throw new Exception(config.get('error.id'), 'Źródło: ' + id);
 	        }
 	    };
 	
@@ -1029,7 +1116,7 @@
 	            return JSON.parse(jsonObject[0].media).result.mediaItem.id;
 	        }
 	        catch(e){
-	            throw new Exception(config.get('id_error'), 'Źródło: ' + match);
+	            throw new Exception(config.get('error.id'), 'Źródło: ' + match);
 	        }
 	    };
 	
@@ -1071,7 +1158,7 @@
 	            return match[1];
 	        }
 	        catch(e){
-	            throw new Exception(CONFIG.get('id_error'), 'Źródło: ' + pageURL);
+	            throw new Exception(CONFIG.get('error.id'), 'Źródło: ' + pageURL);
 	        }
 	    };
 	
@@ -1124,7 +1211,7 @@
 	                    w.location.href = url;
 	                }
 	                else {
-	                    throw new Exception(config.get('call_error'), 'Upewnij się, że html5 player jest włączony.');
+	                    throw new Exception(config.get('error.call'), 'Upewnij się, że html5 player jest włączony.');
 	                }
 	            }
 	        }catch(e){
@@ -1170,10 +1257,9 @@
 	}(Starter || {}));
 	
 	$(document).ready(function(){
-	    console.info('jQuery: ' + $().jquery);
+	    console.info('voddownloader with jQuery v' + $().jquery);
 	    DomTamper.injectStyle(window, 'buttons_css');
 	    Starter.start();
-	    // console.log(GM_info.downloadMode);
 	});
 
 }).bind(this)(jQuery);

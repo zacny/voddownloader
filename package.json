@@ -53,8 +53,8 @@
     },
     "scriptName": "voddownloader.user.js",
     "buttonCssName": "voddownloader-buttons.css",
-    "loaderCssName": "voddownloader-loader.css",
     "contentCssName": "voddownloader-content.css",
+    "mdbWithPathName": "mdb-with-waves-patch.js",
     "headers": {
       "description": "Skrypt służący do pobierania materiałów ze znanych serwisów VOD.\n//                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.\n//                 Cześć kodu pochodzi z:\n//                 miniskrypt.blogspot.com,\n//                 miniskrypt.hubaiitv.pl",
       "author": "Przmus, zacny",
@@ -79,10 +79,8 @@
       ],
       "grant": [
         "GM_getResourceText",
-        "GM_getResourceURL",
         "GM_xmlhttpRequest",
         "GM_download",
-        "GM_notification",
         "GM_setClipboard",
         "GM_info"
       ],
@@ -93,7 +91,8 @@
       ],
       "run-at": "document-end",
       "require": [
-        "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+        "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"
       ]
     }
   }

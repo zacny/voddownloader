@@ -26,22 +26,7 @@ var Tool = (function(Tool) {
         var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
         var name = title + '.' + extension;
         GM_download(fileUrl, name);
-        GM_notification({
-            title: 'Rozpoczęto pobieranie pliku',
-            text: name
-        });
     };
-
-    Tool.loadScripts = function(scripts, callback){
-        $.each(scripts, function( index, script ) {
-            console.log('load: ' + script);
-            $.getScript(script).done(function(){
-                if (index == scripts.length -1){
-                    callback();
-                }
-            });
-        });
-    }
 
     return Tool;
 }(Tool || {}));
