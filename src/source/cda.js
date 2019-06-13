@@ -20,7 +20,7 @@ var CDA = (function(CDA) {
                     w.location.href = url;
                 }
                 else {
-                    throw new Exception(config.error.idCdn, window.location.href);
+                    throw new Exception(config.error.cdnId, window.location.href);
                 }
             }
         }catch(e){

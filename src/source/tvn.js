@@ -18,79 +18,9 @@ var TVN = (function(TVN) {
                         return formatParser(output);
                     }
                 })
-            ],
-            serial: [
-                AsyncStep.setup({
-                    urlTemplate: 'https://player.pl/playerapi/item/translate?programId=#programId' +
-                        '&4K=true&platform=BROWSER',
-                    beforeStep: function(input){
-                         return serialIdParser();
-                    },
-                    afterStep: function(output) {
-                        return {
-                            serialId: output.id
-                        };
-                    }
-                }),
-                AsyncStep.setup({
-                    urlTemplate: 'https://player.pl/playerapi/product/vod/serial/#serialId/season/list?4K=true' +
-                        '&platform=BROWSER',
-                    afterStep: function(output) {
-                        return {
-                            seasonId: output[0].id
-                        };
-                    }
-                }),
-                AsyncStep.setup({
-                    urlTemplate: 'https://player.pl/playerapi/product/vod/serial/#serialId/season/#seasonId/' +
-                        'episode/list?4K=true&platform=BROWSER',
-                    afterStep: function(output) {
-                        return {
-                            episodeId: output[0].externalArticleId
-                        };
-                    }
-                }),
-                AsyncStep.setup({
-                    urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
-                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#episodeId',
-                    afterStep: function(output) {
-                        return formatParser(output);
-                    }
-                })
             ]
-        },
-        chainSelector: function(){
-            return selectChain();
         }
     });
-
-    var selectChain = function(){
-        if($('.watching-now').length > 0){
-            return "default";
-        }
-        var pageURL = window.location.href;
-        var match = pageURL.match(/odcinki,(\d+)\/.*,(\d+)/);
-        if(match && match[2]){
-            return "default";
-        }
-        match = pageURL.match(/odcinki,(\d+)/);
-        if(match && match[1]){
-            return "serial";
-        }
-
-        return "default";
-    };
-
-    var serialIdParser = function () {
-        var match = window.location.href.match(/odcinki,(\d+)/);
-        if(match && match[1]){
-            return {
-                programId: match[1]
-            }
-        }
-
-        throw new Exception(config.error.caption.id, config.error.template.idTvn(window.location.href));
-    };
 
     var idParser = function(){
         var watchingNow = $('.watching-now').closest('.embed-responsive').find('.embed-responsive-item');
@@ -107,6 +37,15 @@ var TVN = (function(TVN) {
             return match[2];
         }
 
+        return serialIdParser();
+    };
+
+    var serialIdParser = function () {
+        var match = window.location.href.match(/odcinki,(\d+)/);
+        if(match && match[1]){
+            throw new Exception(config.error.tvnId(window.location.href));
+        }
+
         return vodIdParser();
     };
 
@@ -116,7 +55,7 @@ var TVN = (function(TVN) {
             return match[1];
         }
 
-        throw new Exception(config.error.caption.id, config.error.template.id(window.location.href));
+        throw new Exception(config.error.tvnId(window.location.href));
     };
 
     var formatParser = function(data){
