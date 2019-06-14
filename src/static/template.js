@@ -1,6 +1,6 @@
-(function vodDownloader($) {
+(function vodDownloader($, platform, Waves) {
     'use strict';
 
     // @include@
 
-}).bind(this)(jQuery);
+}).bind(this)(jQuery, platform, Waves);

@@ -14,7 +14,7 @@ var DomTamper = (function(DomTamper){
         var head = $(w.document.head);
         if(!head.find('link[name="' + setting.id + '"]').length){
             var stylesheet = $('<link>').attr('name', setting.id).attr('type', 'text/css').attr('rel', 'stylesheet')
-                .attr('href',  setting.css);
+                .attr('href', setting.css);
             head.append(stylesheet);
         }
     };
@@ -65,13 +65,19 @@ var DomTamper = (function(DomTamper){
         }
 
         prepareHead(w);
-        var message = exception.error.template.apply(this, exception.templateParams).replace(/\n/g, '<br/>');
+        var message = "Natrafiono na niespodziewany błąd: " + exception;
+        var caption = "Niespodziewany błąd";
+        if(exception.error){
+            message = exception.error.template.apply(this, exception.templateParams).replace(/\n/g, '<br/>');
+            caption = exception.error.caption;
+        }
+
         var pageContent = $('<div>').addClass('page-content');
         var card = $('<div>').addClass('card text-white bg-danger mb-3');
         var cardHeader = $('<div>').addClass('card-header')
             .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
         var cardBody = $('<div>').addClass('card-body')
-            .append($('<h5>').addClass('card-title').text(exception.error.caption))
+            .append($('<h5>').addClass('card-title').text(caption))
             .append($('<div>').addClass('card-text text-white mb-3').append(message))
             .append($('<div>').addClass('card-text text-white')
                 .append('Informacje o systemie: ').append(platform.description))

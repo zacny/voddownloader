@@ -67,8 +67,9 @@ var IPLA = (function(IPLA) {
 
     var grabVideoIdFromHtmlElement = function(){
         var frameSrc = $('app-commercial-wallpaper iframe:first-child').attr('src');
-        if(frameSrc !== undefined)
+        if(frameSrc !== undefined) {
             return Tool.getUrlParameter('vid', frameSrc);
+        }
 
         throw new Exception(config.error.id, window.location.href);
     };

@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name           voddownloader
-// @version        5.7.0-develop
+// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @version        5.7.0
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -34,17 +34,17 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
-// @require        http://localhost:5011/lib/js/mdb-with-waves-patch.js
-// @resource       buttons_css http://localhost:5011/lib/css/voddownloader-buttons.css
-// @resource       content_css http://localhost:5011/lib/css/voddownloader-content.css
+// @require        https://raw.githubusercontent.com/zacny/voddownloader/master/lib/js/mdb-with-waves-patch.js
+// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
+// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
 // ==/UserScript==
 
-(function vodDownloader($) {
+(function vodDownloader($, platform, Waves) {
     'use strict';
 
-    function Exception(error, ...templateParams) {
+    function Exception(error, templateParams) {
 	    this.error = error;
-	    this.templateParams = templateParams;
+	    this.templateParams = Array.isArray(templateParams) ? templateParams : [templateParams];
 	}
 	
 	var Tool = (function(Tool) {
@@ -72,8 +72,8 @@
 	
 	    Tool.downloadFile = function(fileUrl, title){
 	        var extension = Tool.deleteParametersFromUrl(fileUrl.split('.').pop());
-	        var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
-	        var name = title + '.' + extension;
+	        var movieTitle = (title !== undefined && title !== '' ) ? title : 'nieznany';
+	        var name = movieTitle + '.' + extension;
 	        GM_download(fileUrl, name);
 	    };
 	
@@ -107,47 +107,45 @@
 	    mdb: {
 	        id: 'mdb',
 	        css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
-	        /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
 	    },
-	    /** Use \\ in template to break a line */
 	    error: {
 	        id: {
 	            caption: 'Nie udało się odnaleźć idetyfikatora.',
-	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
+	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: "${0}" \
 	                zakończył się niepowodzeniem. Może to oznaczać błąd skryptu.`,
 	        },
 	        tvnId: {
 	            caption: 'Nie udało się odnaleźć idetyfikatora.',
-	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
-	                zakończył się niepowodzeniem.\\Jeżeli jest to główna strona programu oznacza to, 
-	                że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka 
-	                i spróbuj ponownie.\\Może to również oznaczać błąd skryptu.`,
+	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: "${0}" \
+	                zakończył się niepowodzeniem.\nJeżeli jest to główna strona programu oznacza to, \
+	                że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka \
+	                i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
 	        },
 	        cdnId: {
 	            caption: 'Nie udało się odnaleźć idetyfikatora.',
-	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: '${0}' 
-	                zakończył się niepowodzeniem. Upewnij się, że html5 player jest włączony.\\
+	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: "${0}" \
+	                zakończył się niepowodzeniem. Upewnij się, że html5 player jest włączony.
 	                Może to oznaczać błąd skryptu.`,
 	        },
 	        api: {
 	            caption: 'Nie odnaleziono adresów do strumieni.',
-	            template: Tool.template`Błąd przetwarzania odpowiedzi asynchronicznej dla kroku z indeksem: ${0} 
-	                na stronie: '${1}'\\Zgłoś problem autorom skryptu.`,
+	            template: Tool.template`Błąd przetwarzania odpowiedzi asynchronicznej dla kroku z indeksem: ${0} \
+	                na stronie: "${1}".\nZgłoś problem autorom skryptu.`,
 	        },
 	        call: {
 	            caption: 'Błąd pobierania informacji o materiale.',
-	            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: '${1}'\\
+	            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: "${1}"
 	                Zgłoś problem autorom skryptu.`,
 	        },
 	        drm: {
 	            caption: 'Materiał posiada DRM.',
-	            template: Tool.template`Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów. 
-	                Materiał ze strony: '${0}' nie jest publicznie dostępny.`,
+	            template: Tool.template`Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów. \
+	                Materiał ze strony: "${0}" nie jest publicznie dostępny.`,
 	        },
 	        timeout: {
 	            caption: 'Zbyt długi czas odpowiedzi.',
-	            template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie '${1}' nie dotarły 
-	                informacje zwrotne.\\Przypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
+	            template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie "${1}" nie dotarły \
+	                informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
 	        }
 	    }
 	};
@@ -157,9 +155,7 @@
 	    AsyncStep.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
-	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
 	            beforeStep: function(input){return input},
-	            /** Will be done after async call **/
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
 	                var url = this.urlTemplate;
@@ -189,7 +185,7 @@
 	            .attr('name', special ? 'special' : 'normal').attr('data-delay', '5000');
 	        var header = $('<div>').addClass('toast-header special-color-dark white-text');
 	        var warnIcon = $('<i>').addClass('fas fa-exclamation-triangle pr-2');
-	        var title = $('<strong>').addClass('mr-auto').text(title);
+	        var notificationTitle = $('<strong>').addClass('mr-auto').text(title);
 	        var time = $('<small>').text(new Date().toLocaleTimeString());
 	        var close = $('<button>').attr('type', 'button').addClass('ml-2 mb-1 close white-text')
 	            .attr('data-dismiss', 'toast').attr('aria-label', 'Close')
@@ -199,7 +195,7 @@
 	            header.append(warnIcon);
 	            content.attr('data-autohide', 'false');
 	        }
-	        header.append(title).append(time).append(close);
+	        header.append(notificationTitle).append(time).append(close);
 	        var body = $('<div>').addClass('toast-body notification-body').append(bodyContent);
 	
 	        content.append(header).append(body);
@@ -269,7 +265,6 @@
 	        if(downloadMode !== 'browser'){
 	            disableDownload(w);
 	            var value = w.localStorage.getItem(config.storageItem);
-	            console.log('[' + config.storageItem + ']: ' + value);
 	            if(value !== 'true'){
 	                prepareWarningNotification(w);
 	            }
@@ -278,7 +273,6 @@
 	    return PluginSettingsDetector;
 	}(PluginSettingsDetector || {}));
 	
-	/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
 	var DomTamper = (function(DomTamper){
 	
 	    DomTamper.injectStyle = function(w, name){
@@ -294,7 +288,7 @@
 	        var head = $(w.document.head);
 	        if(!head.find('link[name="' + setting.id + '"]').length){
 	            var stylesheet = $('<link>').attr('name', setting.id).attr('type', 'text/css').attr('rel', 'stylesheet')
-	                .attr('href',  setting.css);
+	                .attr('href', setting.css);
 	            head.append(stylesheet);
 	        }
 	    };
@@ -345,14 +339,19 @@
 	        }
 	
 	        prepareHead(w);
-	        debugger;
-	        var message = exception.error.template(exception.templateParams).replace(/\\/g, '<br/>');
+	        var message = "Natrafiono na niespodziewany błąd: " + exception;
+	        var caption = "Niespodziewany błąd";
+	        if(exception.error){
+	            message = exception.error.template.apply(this, exception.templateParams).replace(/\n/g, '<br/>');
+	            caption = exception.error.caption;
+	        }
+	
 	        var pageContent = $('<div>').addClass('page-content');
 	        var card = $('<div>').addClass('card text-white bg-danger mb-3');
 	        var cardHeader = $('<div>').addClass('card-header')
 	            .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
 	        var cardBody = $('<div>').addClass('card-body')
-	            .append($('<h5>').addClass('card-title').text(exception.error.caption))
+	            .append($('<h5>').addClass('card-title').text(caption))
 	            .append($('<div>').addClass('card-text text-white mb-3').append(message))
 	            .append($('<div>').addClass('card-text text-white')
 	                .append('Informacje o systemie: ').append(platform.description))
@@ -361,6 +360,7 @@
 	
 	        pageContent.append(card.append(cardHeader).append(cardBody))
 	            .append(createBugReportLink(w, 'btn-danger'));
+	
 	        prepareBody(w, pageContent);
 	    };
 	
@@ -483,7 +483,6 @@
 	    var executeAsync = function(service, options, w){
 	        var exceptionParams = [options.stepIndex, window.location.href];
 	        var resolveUrl = beforeStep(service, options);
-	        console.log('step ' + options.chainName + '[' + options.stepIndex + ']: ' + resolveUrl.url);
 	        var requestParams = {
 	            method: 'GET',
 	            url: resolveUrl.url,
@@ -544,7 +543,8 @@
 	            }
 	        }
 	        catch(e){
-	            DomTamper.handleError(new Exception(config.error.api, options.stepIndex, window.location.href), w);
+	            var exceptionParams = [options.stepIndex, window.location.href];
+	            DomTamper.handleError(new Exception(config.error.api, exceptionParams), w);
 	        }
 	    };
 	
@@ -609,7 +609,6 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
-	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -620,7 +619,6 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
-	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };
@@ -766,8 +764,9 @@
 	
 	    var idParser = function(){
 	        var src = $('iframe#JS-TVPlayer').attr('src');
-	        if(src !== undefined)
+	        if(src !== undefined) {
 	            return src.split("/").pop();
+	        }
 	
 	        throw new Exception(config.error.id, window.location.href);
 	    };
@@ -804,8 +803,9 @@
 	
 	    var idParser = function(){
 	        var dataId = $('div.js-video').attr('data-object-id');
-	        if(dataId != undefined)
+	        if(dataId != undefined) {
 	            return dataId;
+	        }
 	
 	        throw new Exception(config.error.id, window.location.href);
 	    };
@@ -979,8 +979,9 @@
 	
 	    var grabVideoIdFromHtmlElement = function(){
 	        var frameSrc = $('app-commercial-wallpaper iframe:first-child').attr('src');
-	        if(frameSrc !== undefined)
+	        if(frameSrc !== undefined) {
 	            return Tool.getUrlParameter('vid', frameSrc);
+	        }
 	
 	        throw new Exception(config.error.id, window.location.href);
 	    };
@@ -1086,14 +1087,14 @@
 	    });
 	
 	    var idParser = function(){
-	        // try {
-	        //     var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
-	        //     var jsonObject = JSON.parse(match[2]);
-	        //     return JSON.parse(jsonObject[0].media).result.mediaItem.id;
-	        // }
-	        // catch(e){
-	            throw new Exception(config.error.id, window.location.href);
-	        // }
+	        try {
+	            var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
+	            var jsonObject = JSON.parse(match[2]);
+	            return JSON.parse(jsonObject[0].media).result.mediaItem.id;
+	        }
+	        catch(e){
+	            throw new Exception(config.error.id, window.location.href);//incorrect page url
+	        }
 	    };
 	
 	    VOD_IPLA.waitOnWrapper = function(){
@@ -1238,4 +1239,4 @@
 	    Starter.start();
 	});
 
-}).bind(this)(jQuery);
+}).bind(this)(jQuery, platform, Waves);
