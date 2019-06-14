@@ -1,4 +1,4 @@
-function Exception(error, ...templateParams) {
+function Exception(error, templateParams) {
     this.error = error;
-    this.templateParams = templateParams;
+    this.templateParams = Array.isArray(templateParams) ? templateParams : [templateParams];
 }

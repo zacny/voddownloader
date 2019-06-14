@@ -63,7 +63,8 @@ var Executor = (function(Executor){
             }
         }
         catch(e){
-            DomTamper.handleError(new Exception(config.error.api, options.stepIndex, window.location.href), w);
+            var exceptionParams = [options.stepIndex, window.location.href];
+            DomTamper.handleError(new Exception(config.error.api, exceptionParams), w);
         }
     };
 
