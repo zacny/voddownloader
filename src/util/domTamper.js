@@ -65,8 +65,7 @@ var DomTamper = (function(DomTamper){
         }
 
         prepareHead(w);
-        debugger;
-        var message = exception.error.template(exception.templateParams).replace(/\\/g, '<br/>');
+        var message = exception.error.template.apply(this, exception.templateParams).replace(/\n/g, '<br/>');
         var pageContent = $('<div>').addClass('page-content');
         var card = $('<div>').addClass('card text-white bg-danger mb-3');
         var cardHeader = $('<div>').addClass('card-header')
@@ -81,6 +80,7 @@ var DomTamper = (function(DomTamper){
 
         pageContent.append(card.append(cardHeader).append(cardBody))
             .append(createBugReportLink(w, 'btn-danger'));
+
         prepareBody(w, pageContent);
     };
 
