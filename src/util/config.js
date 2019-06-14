@@ -28,12 +28,6 @@ const config = {
                 że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka \
                 i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
         },
-        cdnId: {
-            caption: 'Nie udało się odnaleźć idetyfikatora.',
-            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: "${0}" \
-                zakończył się niepowodzeniem. Upewnij się, że html5 player jest włączony.
-                Może to oznaczać błąd skryptu.`,
-        },
         api: {
             caption: 'Nie odnaleziono adresów do strumieni.',
             template: Tool.template`Błąd przetwarzania odpowiedzi asynchronicznej dla kroku z indeksem: ${0} \
