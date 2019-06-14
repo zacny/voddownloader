@@ -23,8 +23,9 @@ var TVP_REG = (function(TVP_REG) {
 
     var idParser = function(){
         var dataId = $('div.js-video').attr('data-object-id');
-        if(dataId != undefined)
+        if(dataId != undefined) {
             return dataId;
+        }
 
         throw new Exception(config.error.id, window.location.href);
     };

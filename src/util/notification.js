@@ -6,7 +6,7 @@ var Notification = (function(Notification) {
             .attr('name', special ? 'special' : 'normal').attr('data-delay', '5000');
         var header = $('<div>').addClass('toast-header special-color-dark white-text');
         var warnIcon = $('<i>').addClass('fas fa-exclamation-triangle pr-2');
-        var title = $('<strong>').addClass('mr-auto').text(title);
+        var notificationTitle = $('<strong>').addClass('mr-auto').text(title);
         var time = $('<small>').text(new Date().toLocaleTimeString());
         var close = $('<button>').attr('type', 'button').addClass('ml-2 mb-1 close white-text')
             .attr('data-dismiss', 'toast').attr('aria-label', 'Close')
@@ -16,7 +16,7 @@ var Notification = (function(Notification) {
             header.append(warnIcon);
             content.attr('data-autohide', 'false');
         }
-        header.append(title).append(time).append(close);
+        header.append(notificationTitle).append(time).append(close);
         var body = $('<div>').addClass('toast-body notification-body').append(bodyContent);
 
         content.append(header).append(body);

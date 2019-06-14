@@ -23,8 +23,9 @@ var CYF_TVP = (function(CYF_TVP) {
 
     var idParser = function(){
         var src = $('iframe#JS-TVPlayer').attr('src');
-        if(src !== undefined)
+        if(src !== undefined) {
             return src.split("/").pop();
+        }
 
         throw new Exception(config.error.id, window.location.href);
     };

@@ -23,8 +23,8 @@ var Tool = (function(Tool) {
 
     Tool.downloadFile = function(fileUrl, title){
         var extension = Tool.deleteParametersFromUrl(fileUrl.split('.').pop());
-        var title = (title !== undefined && title !== '' ) ? title : 'nieznany';
-        var name = title + '.' + extension;
+        var movieTitle = (title !== undefined && title !== '' ) ? title : 'nieznany';
+        var name = movieTitle + '.' + extension;
         GM_download(fileUrl, name);
     };
 
