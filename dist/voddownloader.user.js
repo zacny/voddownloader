@@ -121,12 +121,6 @@
 	                że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka \
 	                i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
 	        },
-	        cdnId: {
-	            caption: 'Nie udało się odnaleźć idetyfikatora.',
-	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: "${0}" \
-	                zakończył się niepowodzeniem. Upewnij się, że html5 player jest włączony.
-	                Może to oznaczać błąd skryptu.`,
-	        },
 	        api: {
 	            caption: 'Nie odnaleziono adresów do strumieni.',
 	            template: Tool.template`Błąd przetwarzania odpowiedzi asynchronicznej dla kroku z indeksem: ${0} \
@@ -1184,11 +1178,14 @@
 	        try {
 	            var url = $("video.pb-video-player").attr('src');
 	            if(url !== undefined){
-	                if (!url.match(/blank\.mp4/)) {
+	                if(!url.match(/blank\.mp4/)){
 	                    w.location.href = url;
 	                }
+	                else if(l !== undefined){
+	                    w.location.href = l;
+	                }
 	                else {
-	                    throw new Exception(config.error.cdnId, window.location.href);
+	                    throw new Exception(config.error.id, window.location.href);
 	                }
 	            }
 	        }catch(e){

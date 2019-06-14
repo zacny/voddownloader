@@ -16,11 +16,16 @@ var CDA = (function(CDA) {
         try {
             var url = $("video.pb-video-player").attr('src');
             if(url !== undefined){
-                if (!url.match(/blank\.mp4/)) {
+                /** HTML5 player */
+                if(!url.match(/blank\.mp4/)){
                     w.location.href = url;
                 }
+                /** Flash pleyar - l is an existing variable on page */
+                else if(l !== undefined){
+                    w.location.href = l;
+                }
                 else {
-                    throw new Exception(config.error.cdnId, window.location.href);
+                    throw new Exception(config.error.id, window.location.href);
                 }
             }
         }catch(e){
