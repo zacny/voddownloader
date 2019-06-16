@@ -65,15 +65,17 @@ var DomTamper = (function(DomTamper){
         }
 
         prepareHead(w);
-        var message = "Natrafiono na niespodziewany błąd: " + exception;
-        var caption = "Niespodziewany błąd";
+        var type = 'error';
+        var caption = 'Niespodziewany błąd';
+        var message = 'Natrafiono na niespodziewany błąd: ' + exception;
         if(exception.error){
             message = exception.error.template.apply(this, exception.templateParams).replace(/\n/g, '<br/>');
             caption = exception.error.caption;
+            type = exception.error.type !== undefined ? exception.error.type : 'error';
         }
-
+        var typeClass = type === 'error' ? 'bg-danger' : 'bg-dark';
         var pageContent = $('<div>').addClass('page-content');
-        var card = $('<div>').addClass('card text-white bg-danger mb-3');
+        var card = $('<div>').addClass('card text-white mb-3').addClass(typeClass);
         var cardHeader = $('<div>').addClass('card-header')
             .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
         var cardBody = $('<div>').addClass('card-body')
@@ -85,7 +87,7 @@ var DomTamper = (function(DomTamper){
                 .append('Wersja pluginu: ').append(GM_info.version));
 
         pageContent.append(card.append(cardHeader).append(cardBody))
-            .append(createBugReportLink(w, 'btn-danger'));
+            .append(createBugReportLink(w, type === 'error' ? 'btn-danger' : 'special-color white-text'));
 
         prepareBody(w, pageContent);
     };

@@ -57,12 +57,12 @@ var VOD_TVP = (function(VOD_TVP) {
                     });
                 }
             });
+            return {
+                title: data.title,
+                formats: formats
+            };
         }
-
-        return {
-            title: data.title,
-            formats: formats
-        };
+        throw new Exception(config.error.noSource, window.location.href);
     };
 
     VOD_TVP.waitOnWrapper = function(){

@@ -28,20 +28,17 @@ const config = {
                 że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka \
                 i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
         },
-        api: {
-            caption: 'Nie odnaleziono adresów do strumieni.',
-            template: Tool.template`Błąd przetwarzania odpowiedzi asynchronicznej dla kroku z indeksem: ${0} \
-                na stronie: "${1}".\nZgłoś problem autorom skryptu.`,
-        },
         call: {
             caption: 'Błąd pobierania informacji o materiale.',
             template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: "${1}"
                 Zgłoś problem autorom skryptu.`,
         },
-        drm: {
-            caption: 'Materiał posiada DRM.',
-            template: Tool.template`Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów. \
-                Materiał ze strony: "${0}" nie jest publicznie dostępny.`,
+        noSource: {
+            caption: 'Nie udało się odnaleźć źródeł do materiału.',
+            template: Tool.template`Materiał ze strony ${0} nie posiada zdefiniowanych źródeł, które mogłyby zostać \
+                wyświetlone. \nMoże to oznaczać, że nie jest on publicznie dostępny, dostępne źródła nie mogą zostać \
+                wyświetlone w przeglądarce bez dodatkowego oprogramowania lub jest umieszczony w płatnej strefie.`,
+            type: 'info'
         },
         timeout: {
             caption: 'Zbyt długi czas odpowiedzi.',

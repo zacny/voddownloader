@@ -3,11 +3,13 @@ https://www.cda.pl/video/1721002ce
 
 #IPLA
 https://www.ipla.tv/wideo/dzieci/Dinopociag/5010809
+https://www.ipla.tv/wideo/film/Asteriks-i-Obeliks-Tajemnica-magicznego-wywaru/77640b9ec5c061ef8b51e98faa55dc69
 
 #TVN
 https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114/odcinek-1,S01E01,1979
 https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114
 https://player.pl/filmy-online/podejrzani,68000
+https://player.pl/programy-online/w-dobrym-stylu-odcinki,4667/odcinek-8,S03E08,82113
 
 #TVP_CYF
 https://cyfrowa.tvp.pl/video/podroz-za-jeden-usmiech,odc-1-pechowy-dzien,40674581

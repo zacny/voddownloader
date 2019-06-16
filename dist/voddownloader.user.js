@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.7.0
+// @version        5.7.2
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -121,20 +121,17 @@
 	                że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka \
 	                i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
 	        },
-	        api: {
-	            caption: 'Nie odnaleziono adresów do strumieni.',
-	            template: Tool.template`Błąd przetwarzania odpowiedzi asynchronicznej dla kroku z indeksem: ${0} \
-	                na stronie: "${1}".\nZgłoś problem autorom skryptu.`,
-	        },
 	        call: {
 	            caption: 'Błąd pobierania informacji o materiale.',
 	            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: "${1}"
 	                Zgłoś problem autorom skryptu.`,
 	        },
-	        drm: {
-	            caption: 'Materiał posiada DRM.',
-	            template: Tool.template`Ten skrypt służy do pobierania darmowych, niezabezpieczonych materiałów. \
-	                Materiał ze strony: "${0}" nie jest publicznie dostępny.`,
+	        noSource: {
+	            caption: 'Nie udało się odnaleźć źródeł do materiału.',
+	            template: Tool.template`Materiał ze strony ${0} nie posiada zdefiniowanych źródeł, które mogłyby zostać \
+	                wyświetlone. \nMoże to oznaczać, że nie jest on publicznie dostępny, dostępne źródła nie mogą zostać \
+	                wyświetlone w przeglądarce bez dodatkowego oprogramowania lub jest umieszczony w płatnej strefie.`,
+	            type: 'info'
 	        },
 	        timeout: {
 	            caption: 'Zbyt długi czas odpowiedzi.',
@@ -333,15 +330,17 @@
 	        }
 	
 	        prepareHead(w);
-	        var message = "Natrafiono na niespodziewany błąd: " + exception;
-	        var caption = "Niespodziewany błąd";
+	        var type = 'error';
+	        var caption = 'Niespodziewany błąd';
+	        var message = 'Natrafiono na niespodziewany błąd: ' + exception;
 	        if(exception.error){
 	            message = exception.error.template.apply(this, exception.templateParams).replace(/\n/g, '<br/>');
 	            caption = exception.error.caption;
+	            type = exception.error.type !== undefined ? exception.error.type : 'error';
 	        }
-	
+	        var typeClass = type === 'error' ? 'bg-danger' : 'bg-dark';
 	        var pageContent = $('<div>').addClass('page-content');
-	        var card = $('<div>').addClass('card text-white bg-danger mb-3');
+	        var card = $('<div>').addClass('card text-white mb-3').addClass(typeClass);
 	        var cardHeader = $('<div>').addClass('card-header')
 	            .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
 	        var cardBody = $('<div>').addClass('card-body')
@@ -353,7 +352,7 @@
 	                .append('Wersja pluginu: ').append(GM_info.version));
 	
 	        pageContent.append(card.append(cardHeader).append(cardBody))
-	            .append(createBugReportLink(w, 'btn-danger'));
+	            .append(createBugReportLink(w, type === 'error' ? 'btn-danger' : 'special-color white-text'));
 	
 	        prepareBody(w, pageContent);
 	    };
@@ -482,7 +481,7 @@
 	            url: resolveUrl.url,
 	            responseType: 'json',
 	            onload: function(data) {
-	                options.data = data.response;
+	                options.data = data.response || {};
 	                asyncCallback(service, options, w);
 	            },
 	            onerror: function(){
@@ -537,8 +536,7 @@
 	            }
 	        }
 	        catch(e){
-	            var exceptionParams = [options.stepIndex, window.location.href];
-	            DomTamper.handleError(new Exception(config.error.api, exceptionParams), w);
+	            DomTamper.handleError(e, w);
 	        }
 	    };
 	
@@ -718,12 +716,12 @@
 	                    });
 	                }
 	            });
+	            return {
+	                title: data.title,
+	                formats: formats
+	            };
 	        }
-	
-	        return {
-	            title: data.title,
-	            formats: formats
-	        };
+	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
 	    VOD_TVP.waitOnWrapper = function(){
@@ -890,11 +888,13 @@
 	            if(data.item.serie_title != null){
 	                title = data.item.serie_title + (title != '' ? ' - ' + title : '');
 	            }
+	
+	            return {
+	                title: title,
+	                formats: formats
+	            }
 	        }
-	        return {
-	            title: title,
-	            formats: formats
-	        }
+	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
 	    TVN.waitOnWrapper = function(){
@@ -953,11 +953,12 @@
 	                    quality: value.quality_p
 	                });
 	            });
+	            return {
+	                title: vod.title,
+	                formats: formats
+	            }
 	        }
-	        return {
-	            title: vod.title,
-	            formats: formats
-	        }
+	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
 	    var grabVideoIdFromWatchingNowElement = function(){
@@ -1024,7 +1025,7 @@
 	        var video = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
 	        var meta = ((data.result || new Array())[0] || {}).meta || {};
 	        var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
-	        if(videoData){
+	        if(videoData && videoData.length > 0){
 	            $.each(videoData, function( index, value ) {
 	                formats.push({
 	                    quality: value.vertical_resolution,
@@ -1032,11 +1033,13 @@
 	                    url: value.url
 	                });
 	            });
+	
+	            return {
+	                title: meta.title,
+	                formats: formats
+	            }
 	        }
-	        return {
-	            title: meta.title,
-	            formats: formats
-	        }
+	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
 	    var isTopWindow = function(){

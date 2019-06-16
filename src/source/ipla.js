@@ -47,11 +47,12 @@ var IPLA = (function(IPLA) {
                     quality: value.quality_p
                 });
             });
+            return {
+                title: vod.title,
+                formats: formats
+            }
         }
-        return {
-            title: vod.title,
-            formats: formats
-        }
+        throw new Exception(config.error.noSource, window.location.href);
     };
 
     var grabVideoIdFromWatchingNowElement = function(){
