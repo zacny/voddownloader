@@ -8,7 +8,7 @@ var Executor = (function(Executor){
             url: resolveUrl.url,
             responseType: 'json',
             onload: function(data) {
-                options.data = data.response;
+                options.data = data.response || {};
                 asyncCallback(service, options, w);
             },
             onerror: function(){
@@ -63,8 +63,7 @@ var Executor = (function(Executor){
             }
         }
         catch(e){
-            var exceptionParams = [options.stepIndex, window.location.href];
-            DomTamper.handleError(new Exception(config.error.api, exceptionParams), w);
+            DomTamper.handleError(e, w);
         }
     };
 

@@ -39,7 +39,7 @@ var VOD = (function(VOD) {
         var video = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
         var meta = ((data.result || new Array())[0] || {}).meta || {};
         var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
-        if(videoData){
+        if(videoData && videoData.length > 0){
             $.each(videoData, function( index, value ) {
                 formats.push({
                     quality: value.vertical_resolution,
@@ -47,11 +47,13 @@ var VOD = (function(VOD) {
                     url: value.url
                 });
             });
+
+            return {
+                title: meta.title,
+                formats: formats
+            }
         }
-        return {
-            title: meta.title,
-            formats: formats
-        }
+        throw new Exception(config.error.noSource, window.location.href);
     };
 
     var isTopWindow = function(){

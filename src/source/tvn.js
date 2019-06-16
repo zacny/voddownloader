@@ -77,11 +77,13 @@ var TVN = (function(TVN) {
             if(data.item.serie_title != null){
                 title = data.item.serie_title + (title != '' ? ' - ' + title : '');
             }
+
+            return {
+                title: title,
+                formats: formats
+            }
         }
-        return {
-            title: title,
-            formats: formats
-        }
+        throw new Exception(config.error.noSource, window.location.href);
     };
 
     TVN.waitOnWrapper = function(){
