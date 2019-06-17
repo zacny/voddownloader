@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.7.2",
+  "version": "5.8.0",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -59,7 +59,6 @@
       "description": "Skrypt służący do pobierania materiałów ze znanych serwisów VOD.\n//                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.\n//                 Cześć kodu pochodzi z:\n//                 miniskrypt.blogspot.com,\n//                 miniskrypt.hubaiitv.pl",
       "author": "Przmus, zacny",
       "namespace": "http://www.ipla.tv/",
-      "source": "https://github.com/zacny/voddownloader",
       "include": [
         "https://vod.tvp.pl/video/*",
         "/^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\\d{6,}/",
@@ -70,7 +69,8 @@
         "https://vod.pl/*",
         "https://redir.atmcdn.pl/*",
         "https://*.redcdn.pl/file/o2/redefine/partner/*",
-        "https://video.wp.pl/*"
+        "https://video.wp.pl/*",
+        "https://ninateka.pl/*"
       ],
       "exclude": [
         "https://vod.pl/playerpl*",

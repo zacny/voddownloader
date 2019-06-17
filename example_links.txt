@@ -52,3 +52,7 @@ https://vod.pl/programy-tv/ewa-gotuje/hbv34z7
 #WP
 https://video.wp.pl/i,samochod-do-ktorego-mowisz-sprawdzamy-asystenta-w-mercedesie-klasy-a,mid,2024006,cid,8053,klip.html
 https://video.wp.pl/i,powodz-grozi-wadowicom-gornym-nasz-reporter-jest-na-miejscu,mid,2037896,cid,4051,klip.html
+
+#NINATEKA
+https://ninateka.pl/kolekcja-teatralna/material/dzis-sa-moje-urodziny-tadeusz-kantor
+https://ninateka.pl/film/makbet
