@@ -8,6 +8,7 @@
 //                 miniskrypt.hubaiitv.pl
 // @author         Przmus, zacny
 // @namespace      http://www.ipla.tv/
+// @source         https://github.com/zacny/voddownloader
 // @include        https://vod.tvp.pl/video/*
 // @include        /^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\d{6,}/
 // @include        https://cyfrowa.tvp.pl/video/*
@@ -34,9 +35,9 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
-// @require        https://raw.githubusercontent.com/zacny/voddownloader/master/lib/js/mdb-with-waves-patch.js
-// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
-// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
+// @require        https://gitcdn.xyz/repo/zacny/voddownloader/master/lib/js/mdb-with-waves-patch.js
+// @resource       buttons_css https://gitcdn.xyz/repo/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
+// @resource       content_css https://gitcdn.xyz/repo/zacny/voddownloader/master/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($, platform, Waves) {
