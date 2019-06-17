@@ -1,7 +1,7 @@
 var VOD_TVP = (function(VOD_TVP) {
     var properties = Configurator.setup({
         wrapper: {
-            selector: 'div.playerContainer'
+            selector: 'div.playerContainerWrapper'
         },
         button: {
             class: 'video-block__btn tvp_vod_downlaod_button',
@@ -28,7 +28,7 @@ var VOD_TVP = (function(VOD_TVP) {
     });
 
     var idParser = function() {
-        var src = properties.wrapper.get().attr('data-id');
+        var src = $('div.playerContainer').attr('data-id');
         if(src !== undefined){
             return {
                 videoId: src.split("/").pop()

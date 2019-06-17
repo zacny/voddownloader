@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.7.2
+// @version        5.8.0
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -8,7 +8,6 @@
 //                 miniskrypt.hubaiitv.pl
 // @author         Przmus, zacny
 // @namespace      http://www.ipla.tv/
-// @source         https://github.com/zacny/voddownloader
 // @include        https://vod.tvp.pl/video/*
 // @include        /^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\d{6,}/
 // @include        https://cyfrowa.tvp.pl/video/*
@@ -19,6 +18,7 @@
 // @include        https://redir.atmcdn.pl/*
 // @include        https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include        https://video.wp.pl/*
+// @include        https://ninateka.pl/*
 // @exclude        https://vod.pl/playerpl*
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        https://www.cda.pl/iframe/*
@@ -660,7 +660,7 @@
 	var VOD_TVP = (function(VOD_TVP) {
 	    var properties = Configurator.setup({
 	        wrapper: {
-	            selector: 'div.playerContainer'
+	            selector: 'div.playerContainerWrapper'
 	        },
 	        button: {
 	            class: 'video-block__btn tvp_vod_downlaod_button',
@@ -687,7 +687,7 @@
 	    });
 	
 	    var idParser = function() {
-	        var src = properties.wrapper.get().attr('data-id');
+	        var src = $('div.playerContainer').attr('data-id');
 	        if(src !== undefined){
 	            return {
 	                videoId: src.split("/").pop()
@@ -1203,6 +1203,66 @@
 	    return CDA;
 	}(CDA || {}));
 	
+	var NINATEKA = (function(NINATEKA) {
+	    var properties = Configurator.setup({
+	        wrapper: {
+	            selector: '#videoPlayer, #player'
+	        },
+	        button: {
+	            class: 'ninateka_download_button',
+	            click: function(){
+	                clickButton();
+	            }
+	        }
+	    });
+	
+	    var getMp4Source = function(w, sources){
+	        var notFound = true;
+	        $.each(sources, function(key, value){
+	            if(value.type && value.type.match(/mp4/g)){
+	                notFound = false;
+	                w.location.href = value.src;
+	                return false;
+	            }
+	        });
+	
+	        return notFound;
+	    };
+	
+	    var clickButton = function(){
+	        var w = window.open();
+	        var notFound = true;
+	        try {
+	            var videoPlayer = $('#videoPlayer').data('player-setup');
+	            var sources = (videoPlayer || {}).sources || {};
+	            if(sources.length > 0){
+	                notFound = getMp4Source(w, sources);
+	            }
+	            else {
+	                $.each($('script[type="text/javascript"]').filter(':not([src])'), function(key, value){
+	                    var match = $(value).text().match(/fn_\S+\(playerOptionsWithMainSource,?\s\d+\)\.sources/g);
+	                    if(match && match[0]){
+	                        sources = eval(match[0]);
+	                        notFound = getMp4Source(w, sources);
+	                        return false;
+	                    }
+	                });
+	            }
+	            if(notFound){
+	                throw new Exception(config.error.id, window.location.href);
+	            }
+	        }catch(e){
+	            DomTamper.handleError(e, w);
+	        }
+	    };
+	
+	    NINATEKA.waitOnWrapper = function(){
+	        WrapperDetector.run(properties);
+	    };
+	
+	    return NINATEKA;
+	}(NINATEKA || {}));
+	
 	var Starter = (function(Starter) {
 	    var tvZones = [
 	        'bialystok', 'katowice', 'lodz', 'rzeszow', 'bydgoszcz', 'kielce', 'olsztyn', 'szczecin',
@@ -1218,7 +1278,8 @@
 	        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod.pl\//},
 	        {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
 	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
-	        {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//}
+	        {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//},
+	        {action: NINATEKA.waitOnWrapper, pattern: /^https:\/\/ninateka.pl\//}
 	    ];
 	
 	    Starter.start = function() {

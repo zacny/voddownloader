@@ -130,6 +130,20 @@
     padding: 5px 15px;
     font-family: Poppins,sans-serif;
 }
+
+.ninateka_download_button {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 100;
+    border: 0px;
+    padding: 3px 10px;
+    background-color: #ea1b2b;
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 13px;
+    font-weight: bold;
+}
 /* common style for buttons */
 .playerBox-x, .js-video {
     position: relative;
