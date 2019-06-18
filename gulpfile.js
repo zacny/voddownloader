@@ -179,7 +179,6 @@ function prepareHeaders(){
     headers.version = config.production ? pkg.version : pkg.version + '-develop';
     headers.buttonsCssPath = getPath(config.buttons_css_name, config.lib_css_dir);
     headers.contentCssPath = getPath(config.content_css_name, config.lib_css_dir);
-    headers.mdbJsPath = getPath(config.mdb_witch_patch_name, config.lib_js_dir);
 
     return headers;
 }
