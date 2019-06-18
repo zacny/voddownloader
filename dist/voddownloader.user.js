@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.8.1
+// @version        5.8.2
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -35,7 +35,7 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
-// @require        https://gitcdn.xyz/repo/zacny/voddownloader/master/lib/js/mdb-with-waves-patch.js
+// @require        https://gitcdn.xyz/cdn/zacny/voddownloader/4b17a120f521eaddf476d6e8fe3be152d506f244/lib/js/mdb-with-waves-patch.js
 // @resource       buttons_css https://gitcdn.xyz/repo/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
 // @resource       content_css https://gitcdn.xyz/repo/zacny/voddownloader/master/lib/css/voddownloader-content.css
 // ==/UserScript==
