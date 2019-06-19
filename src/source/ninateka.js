@@ -12,39 +12,34 @@ var NINATEKA = (function(NINATEKA) {
     });
 
     var getMp4Source = function(w, sources){
-        var notFound = true;
-        $.each(sources, function(key, value){
-            if(value.type && value.type.match(/mp4/g)){
-                notFound = false;
-                w.location.href = value.src;
-                return false;
+        for(var i = 0; i < sources.length; i++){
+            if(sources[i].type && sources[i].type.match(/mp4/g)){
+                w.location.href = sources[i].src;
+                return;
             }
-        });
+        }
 
-        return notFound;
+        throw new Exception(config.error.id, window.location.href);
     };
 
     var clickButton = function(){
         var w = window.open();
-        var notFound = true;
         try {
             var videoPlayer = $('#videoPlayer').data('player-setup');
             var sources = (videoPlayer || {}).sources || {};
             if(sources.length > 0){
-                notFound = getMp4Source(w, sources);
+                getMp4Source(w, sources);
             }
             else {
-                $.each($('script[type="text/javascript"]').filter(':not([src])'), function(key, value){
-                    var match = $(value).text().match(/fn_\S+\(playerOptionsWithMainSource,?\s\d+\)\.sources/g);
+                var scripts = $('script[type="text/javascript"]').filter(':not([src])');
+                for (var i = 0; i < scripts.length; i++) {
+                    var match = $(scripts[i]).text().match(/fn_\S+\(playerOptionsWithMainSource,\s*\d+\)\.sources/g);
                     if(match && match[0]){
                         sources = eval(match[0]);
-                        notFound = getMp4Source(w, sources);
-                        return false;
+                        getMp4Source(w, sources);
+                        break;
                     }
-                });
-            }
-            if(notFound){
-                throw new Exception(config.error.id, window.location.href);
+                }
             }
         }catch(e){
             DomTamper.handleError(e, w);
