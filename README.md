@@ -6,7 +6,7 @@ Creates a button in top right corner of video, that you can use to download a co
 #### currently supported vod services
 - [vod.tvp.pl](https://vod.tvp.pl/)
 - [cyfrowa.tvp.pl](https://cyfrowa.tvp.pl)
-- [tvp.pl](http://www.tvp.pl)
+- [ninateka.pl](http://ninateka.pl)
 - [polish local tv](https://regiony.tvp.pl/)
 - [player.pl](https://player.pl/)
 - [cda.pl](https://www.cda.pl)
