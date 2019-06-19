@@ -25,13 +25,24 @@ var VOD = (function(VOD) {
     });
 
     var idParser = function () {
-        try {
-            var id = $(".mvp").attr('id');
+        var id = $(".mvp").attr('id');
+        if(id !== undefined){
             return id.match(/mvp:(.+)/)[1];
         }
-        catch(e){
-            throw new Exception(config.error.id, window.location.href);
+
+        return parseFromJS();
+    };
+
+    var parseFromJS = function(){
+        var scripts = $('script[type="text/javascript"]').filter(':not([src])');
+        for (var i = 0; i < scripts.length; i++) {
+            var match = $(scripts[i]).text().match(/\"mvpId\"\s*:\s*\"(\d+\.\d+)\"/);
+            if(match && match[1]){
+                return match[1];
+            }
         }
+
+        throw new Exception(config.error.id, window.location.href);
     };
 
     var formatParser = function (data) {
