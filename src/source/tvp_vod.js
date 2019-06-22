@@ -51,10 +51,10 @@ var VOD_TVP = (function(VOD_TVP) {
         if(data.status == 'OK' && data.formats !== undefined){
             $.each(data.formats, function( index, value ) {
                 if(value.adaptive == false){
-                    formats.push({
+                    formats.push(new Format({
                         bitrate: value.totalBitrate,
                         url: value.url
-                    });
+                    }));
                 }
             });
             return {

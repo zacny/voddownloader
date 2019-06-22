@@ -1,6 +1,8 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.8.3
+// @version        5.9.0
+// @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
+// @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -36,8 +38,8 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
 // @require        https://gitcdn.xyz/cdn/zacny/voddownloader/4b17a120f521eaddf476d6e8fe3be152d506f244/lib/js/mdb-with-waves-patch.js
-// @resource       buttons_css https://gitcdn.xyz/repo/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
-// @resource       content_css https://gitcdn.xyz/repo/zacny/voddownloader/master/lib/css/voddownloader-content.css
+// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
+// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($, platform, Waves) {
@@ -46,6 +48,27 @@
     function Exception(error, templateParams) {
 	    this.error = error;
 	    this.templateParams = Array.isArray(templateParams) ? templateParams : [templateParams];
+	}
+	
+	function Format(data) {
+	    if('bitrate' in data){
+	        this.bitrate = data.bitrate;
+	    }
+	    else {
+	        this.bitrate = 'brak danych';
+	    }
+	    if('url' in data){
+	        this.url = data.url;
+	    }
+	    if('quality' in data){
+	        this.quality = data.quality;
+	    }
+	    if('playable' in data){
+	        this.playable = data.playable
+	    }
+	    else {
+	        this.playable = true;
+	    }
 	}
 	
 	var Tool = (function(Tool) {
@@ -711,10 +734,10 @@
 	        if(data.status == 'OK' && data.formats !== undefined){
 	            $.each(data.formats, function( index, value ) {
 	                if(value.adaptive == false){
-	                    formats.push({
+	                    formats.push(new Format({
 	                        bitrate: value.totalBitrate,
 	                        url: value.url
-	                    });
+	                    }));
 	                }
 	            });
 	            return {
@@ -878,11 +901,11 @@
 	            $.each(video_content, function( index, value ) {
 	                var lastPartOfUrl = Tool.deleteParametersFromUrl(value.url).split("/").pop();
 	                var bitrate = lastPartOfUrl.match(/\d{2,}/g);
-	                formats.push({
+	                formats.push(new Format({
 	                    quality: value.profile_name,
 	                    bitrate: bitrate,
 	                    url: value.url
-	                });
+	                }));
 	            });
 	            title = data.item.episode != null ? 'E'+data.item.episode : '';
 	            title = data.item.season != null ? 'S'+data.item.season + title : title;
@@ -948,11 +971,11 @@
 	        var vod = data.vod || {};
 	        if(vod.copies && vod.copies.length > 0){
 	            $.each(vod.copies, function( index, value ) {
-	                formats.push({
+	                formats.push(new Format({
 	                    bitrate: value.bitrate,
 	                    url: value.url,
 	                    quality: value.quality_p
-	                });
+	                }));
 	            });
 	            return {
 	                title: vod.title,
@@ -1039,11 +1062,11 @@
 	        var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
 	        if(videoData && videoData.length > 0){
 	            $.each(videoData, function( index, value ) {
-	                formats.push({
+	                formats.push(new Format({
 	                    quality: value.vertical_resolution,
 	                    bitrate: value.video_bitrate,
 	                    url: value.url
-	                });
+	                }));
 	            });
 	
 	            return {
@@ -1154,11 +1177,11 @@
 	        if(urls && urls.length > 0){
 	            $.each(urls, function( index, value ) {
 	                if(value.type === 'mp4@avc'){
-	                    formats.push({
+	                    formats.push(new Format({
 	                        bitrate: value.quality,
 	                        url: 'http:' + value.url,
 	                        quality: value.resolution
-	                    });
+	                    }));
 	                }
 	            });
 	        }
@@ -1194,10 +1217,10 @@
 	            var url = $("video.pb-video-player").attr('src');
 	            if(url !== undefined){
 	                if(!url.match(/blank\.mp4/)){
-	                    w.location.href = url;
+	                    prepareResult(url, w);
 	                }
 	                else if(l !== undefined){
-	                    w.location.href = l;
+	                    prepareResult(l, w);
 	                }
 	                else {
 	                    throw new Exception(config.error.id, window.location.href);
@@ -1206,6 +1229,20 @@
 	        }catch(e){
 	            DomTamper.handleError(e, w);
 	        }
+	    };
+	
+	    var prepareResult = function(url, w) {
+	        var title = $('meta[property="og:title"]');
+	        var quality = $('.quality-btn-active');
+	        var data = {
+	            title: title.length > 0 ? title.attr('content').trim() : 'brak danych',
+	            formats: [new Format({
+	                url: url,
+	                quality: quality.length > 0 ? quality.text() : undefined
+	            })]
+	        };
+	
+	        DomTamper.createDocument(data, w);
 	    };
 	
 	    CDA.waitOnWrapper = function(){
@@ -1228,10 +1265,23 @@
 	        }
 	    });
 	
+	    var prepareResult = function(url, w) {
+	        var title = $('meta[name="title"]');
+	        var data = {
+	            title: title.length > 0 ? title.attr('content').trim() : 'brak danych',
+	            formats: [new Format({
+	                url: url,
+	                quality: undefined
+	            })]
+	        };
+	
+	        DomTamper.createDocument(data, w);
+	    };
+	
 	    var getMp4Source = function(w, sources){
 	        for(var i = 0; i < sources.length; i++){
 	            if(sources[i].type && sources[i].type.match(/mp4/g)){
-	                w.location.href = sources[i].src;
+	                prepareResult(sources[i].src, w);
 	                return;
 	            }
 	        }
@@ -1250,7 +1300,7 @@
 	            else {
 	                var scripts = $('script[type="text/javascript"]').filter(':not([src])');
 	                for (var i = 0; i < scripts.length; i++) {
-	                    var match = $(scripts[i]).text().match(/fn_\S+\(playerOptionsWithMainSource,?\s\d+\)\.sources/g);
+	                    var match = $(scripts[i]).text().match(/fn_\S+\(playerOptionsWithMainSource,\s*\d+\)\.sources/g);
 	                    if(match && match[0]){
 	                        sources = eval(match[0]);
 	                        getMp4Source(w, sources);

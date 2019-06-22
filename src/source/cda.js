@@ -18,11 +18,11 @@ var CDA = (function(CDA) {
             if(url !== undefined){
                 /** HTML5 player */
                 if(!url.match(/blank\.mp4/)){
-                    w.location.href = url;
+                    prepareResult(url, w);
                 }
                 /** Flash pleyar - l is an existing variable on page */
                 else if(l !== undefined){
-                    w.location.href = l;
+                    prepareResult(l, w);
                 }
                 else {
                     throw new Exception(config.error.id, window.location.href);
@@ -31,6 +31,20 @@ var CDA = (function(CDA) {
         }catch(e){
             DomTamper.handleError(e, w);
         }
+    };
+
+    var prepareResult = function(url, w) {
+        var title = $('meta[property="og:title"]');
+        var quality = $('.quality-btn-active');
+        var data = {
+            title: title.length > 0 ? title.attr('content').trim() : 'brak danych',
+            formats: [new Format({
+                url: url,
+                quality: quality.length > 0 ? quality.text() : undefined
+            })]
+        };
+
+        DomTamper.createDocument(data, w);
     };
 
     CDA.waitOnWrapper = function(){

@@ -66,11 +66,11 @@ var TVN = (function(TVN) {
             $.each(video_content, function( index, value ) {
                 var lastPartOfUrl = Tool.deleteParametersFromUrl(value.url).split("/").pop();
                 var bitrate = lastPartOfUrl.match(/\d{2,}/g);
-                formats.push({
+                formats.push(new Format({
                     quality: value.profile_name,
                     bitrate: bitrate,
                     url: value.url
-                });
+                }));
             });
             title = data.item.episode != null ? 'E'+data.item.episode : '';
             title = data.item.season != null ? 'S'+data.item.season + title : title;

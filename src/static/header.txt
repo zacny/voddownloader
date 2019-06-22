@@ -1,6 +1,8 @@
 // ==UserScript==
 // @name           ${data.name}
 // @version        ${data.version}
+// @updateURL      ${data.updateUrl}
+// @downloadURL    ${data.downloadUrl}
 // @include@
 // @resource       buttons_css ${data.buttonsCssPath}
 // @resource       content_css ${data.contentCssPath}

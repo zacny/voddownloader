@@ -11,10 +11,23 @@ var NINATEKA = (function(NINATEKA) {
         }
     });
 
+    var prepareResult = function(url, w) {
+        var title = $('meta[name="title"]');
+        var data = {
+            title: title.length > 0 ? title.attr('content').trim() : 'brak danych',
+            formats: [new Format({
+                url: url,
+                quality: undefined
+            })]
+        };
+
+        DomTamper.createDocument(data, w);
+    };
+
     var getMp4Source = function(w, sources){
         for(var i = 0; i < sources.length; i++){
             if(sources[i].type && sources[i].type.match(/mp4/g)){
-                w.location.href = sources[i].src;
+                prepareResult(sources[i].src, w);
                 return;
             }
         }

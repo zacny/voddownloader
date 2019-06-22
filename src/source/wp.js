@@ -39,11 +39,11 @@ var WP = (function(WP) {
         if(urls && urls.length > 0){
             $.each(urls, function( index, value ) {
                 if(value.type === 'mp4@avc'){
-                    formats.push({
+                    formats.push(new Format({
                         bitrate: value.quality,
                         url: 'http:' + value.url,
                         quality: value.resolution
-                    });
+                    }));
                 }
             });
         }
