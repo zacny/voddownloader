@@ -1,5 +1,8 @@
 #CDA
+#with quality variants
 https://www.cda.pl/video/1721002ce
+#without quality variants
+https://www.cda.pl/video/359754156
 
 #IPLA
 https://www.ipla.tv/wideo/dzieci/Dinopociag/5010809

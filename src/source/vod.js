@@ -52,11 +52,11 @@ var VOD = (function(VOD) {
         var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
         if(videoData && videoData.length > 0){
             $.each(videoData, function( index, value ) {
-                formats.push({
+                formats.push(new Format({
                     quality: value.vertical_resolution,
                     bitrate: value.video_bitrate,
                     url: value.url
-                });
+                }));
             });
 
             return {

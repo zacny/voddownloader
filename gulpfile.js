@@ -1,14 +1,15 @@
 var gulp = require('gulp'),
-    order = require("gulp-order"),
+    order = require('gulp-order'),
     concat = require('gulp-concat'),
     replace = require('gulp-replace'),
     gulpif = require('gulp-if'),
-    rename = require("gulp-rename"),
+    rename = require('gulp-rename'),
     header = require('gulp-header'),
     clean = require('gulp-clean'),
+    template = require('gulp-template'),
     log = require('fancy-log'),
     colors = require('colors/safe'),
-    pkg = require('./package');
+    pkg = require('./package'),
     fs = require('fs');
 
 const config = {
@@ -23,6 +24,7 @@ const config = {
     static_dir: 'src/static',
     util_dir: 'src/util',
     script_name: pkg.config.scriptName,
+    meta_name: pkg.config.metaName,
     buttons_css_name: pkg.config.buttonCssName,
     content_css_name: pkg.config.contentCssName,
     mdb_witch_patch_name: pkg.config.mdbWithPathName,
@@ -51,7 +53,7 @@ function padEnd(target, minLen = 15, padStr = ' ') {
     return target + finalPad;
 }
 
-function extraHeaders() {
+function headersFromJson() {
     var headerData = pkg.config.headers;
     let ret = [];
     for (let field of Object.keys(headerData)) {
@@ -82,8 +84,9 @@ function cleanTmpFiles() {
 function utilPartAttach() {
     return gulp.src(config.util_dir + '/*.js')
         .pipe(order([
-            'exception.js', 'tool.js', 'config.js', 'asyncStep.js', 'notification.js', 'pluginSettingsDetector.js',
-            'domTamper.js', 'executor.js', 'configurator.js', 'changeVideoDetector.js', 'wrapperDetector.js'
+            'exception.js', 'format.js', 'tool.js', 'config.js', 'asyncStep.js', 'notification.js',
+            'pluginSettingsDetector.js', 'domTamper.js', 'executor.js', 'configurator.js', 'changeVideoDetector.js',
+            'wrapperDetector.js'
         ]))
         .pipe(concat('utils.js'))
         .pipe(gulp.dest(config.tmp_dir));
@@ -179,18 +182,27 @@ function prepareHeaders(){
     headers.version = config.production ? pkg.version : pkg.version + '-develop';
     headers.buttonsCssPath = getPath(config.buttons_css_name, config.lib_css_dir);
     headers.contentCssPath = getPath(config.content_css_name, config.lib_css_dir);
+    headers.updateUrl = getPath(config.meta_name, config.dist_dir);
+    headers.downloadUrl = getPath(config.script_name, config.dist_dir);
 
     return headers;
 }
 
-function fillTemplate() {
+function makeMetaJs(){
+    return gulp.src(config.static_dir + '/header.txt')
+        .pipe(template({ data : prepareHeaders() } )) //add environment dependent headers
+        .pipe(replace(/\/\/ @include@/, headersFromJson())) //fill headers from config file
+        .pipe(rename(config.meta_name))
+        .pipe(gulp.dest(config.dist_dir))
+}
+
+function makeUserJs() {
     var contentFile = fs.readFileSync(config.tmp_dir + '/content.js', 'utf8');
-    var headerFile = fs.readFileSync(config.static_dir + '/header.txt', 'utf8');
+    var headerFile = fs.readFileSync(config.dist_dir + '/' + config.meta_name, 'utf8');
     return gulp.src(config.static_dir + '/template.js')
+        .pipe(header(headerFile))
         .pipe(replace(/\/\/ @include@/, contentFile)) //fill template with script content
         .pipe(rename(config.script_name))
-        .pipe(header(headerFile, { data : prepareHeaders() } )) //add header
-        .pipe(replace(/\/\/ @include@/, extraHeaders())) //fill extra headers from config file
         .pipe(gulp.dest(config.dist_dir))
 }
 
@@ -202,7 +214,7 @@ exports.default = gulp.series(
     gulp.parallel(utilPartAttach, sourcePartAttach, runPartAttach),
     joinScriptParts,
     gulp.parallel(copyCssFiles, joinCssFiles,
-        gulp.series(replaceContent, replaceRegularExpressions, fillTemplate)
+        gulp.series(replaceContent, replaceRegularExpressions, makeMetaJs, makeUserJs)
     )
 );
 exports.default.description = "build project";

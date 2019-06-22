@@ -41,11 +41,11 @@ var IPLA = (function(IPLA) {
         var vod = data.vod || {};
         if(vod.copies && vod.copies.length > 0){
             $.each(vod.copies, function( index, value ) {
-                formats.push({
+                formats.push(new Format({
                     bitrate: value.bitrate,
                     url: value.url,
                     quality: value.quality_p
-                });
+                }));
             });
             return {
                 title: vod.title,
