@@ -1,7 +1,7 @@
 var CDA = (function(CDA) {
     var properties = Configurator.setup({
         wrapper: {
-            selector: '#player'
+            selector: '.pb-video-player-wrap'
         },
         button: {
             class: 'cda_download_button',

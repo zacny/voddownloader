@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.9.0",
+  "version": "5.9.1",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -68,7 +68,7 @@
         "https://cyfrowa.tvp.pl/video/*",
         "https://www.ipla.tv/*",
         "https://player.pl/*",
-        "https://www.cda.pl/*",
+        "https://*.cda.pl/*",
         "https://vod.pl/*",
         "https://redir.atmcdn.pl/*",
         "https://*.redcdn.pl/file/o2/redefine/partner/*",
