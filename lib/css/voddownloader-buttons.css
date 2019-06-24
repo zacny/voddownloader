@@ -5,6 +5,10 @@
     top: 0px;
     padding: 6px 12px;
     z-index: 5001;
+    background-color: #0E0F11;
+    border: 1px solid #3D4145;
+    color: #BBB;
+    font: 13px Arial,Helvetica,sans-serif;
 }
 
 .vod_download_button {
