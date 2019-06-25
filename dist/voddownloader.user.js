@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name           voddownloader
-// @version        5.9.1-develop
-// @updateURL      http://localhost:5011/dist/voddownloader.meta.js
-// @downloadURL    http://localhost:5011/dist/voddownloader.user.js
+// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @version        5.9.1
+// @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
+// @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -38,8 +38,8 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
 // @require        https://gitcdn.xyz/cdn/zacny/voddownloader/4b17a120f521eaddf476d6e8fe3be152d506f244/lib/js/mdb-with-waves-patch.js
-// @resource       buttons_css http://localhost:5011/lib/css/voddownloader-buttons.css
-// @resource       content_css http://localhost:5011/lib/css/voddownloader-content.css
+// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
+// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($, platform, Waves) {
@@ -131,7 +131,6 @@
 	    mdb: {
 	        id: 'mdb',
 	        css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
-	        /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
 	    },
 	    error: {
 	        id: {
@@ -171,9 +170,7 @@
 	    AsyncStep.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
-	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
 	            beforeStep: function(input){return input},
-	            /** Will be done after async call **/
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
 	                var url = this.urlTemplate;
@@ -283,7 +280,6 @@
 	        if(downloadMode !== 'browser'){
 	            disableDownload(w);
 	            var value = w.localStorage.getItem(config.storageItem);
-	            console.log('[' + config.storageItem + ']: ' + value);
 	            if(value !== 'true'){
 	                prepareWarningNotification(w);
 	            }
@@ -292,7 +288,6 @@
 	    return PluginSettingsDetector;
 	}(PluginSettingsDetector || {}));
 	
-	/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
 	var DomTamper = (function(DomTamper){
 	
 	    DomTamper.injectStyle = function(w, name){
@@ -505,7 +500,6 @@
 	    var executeAsync = function(service, options, w){
 	        var exceptionParams = [options.stepIndex, window.location.href];
 	        var resolveUrl = beforeStep(service, options);
-	        console.log('step ' + options.chainName + '[' + options.stepIndex + ']: ' + resolveUrl.url);
 	        var requestParams = {
 	            method: 'GET',
 	            url: resolveUrl.url,
@@ -631,7 +625,6 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
-	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -642,7 +635,6 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
-	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };
@@ -1224,11 +1216,9 @@
 	        try {
 	            var url = $("video.pb-video-player").attr('src');
 	            if(url !== undefined){
-	                /** HTML5 player */
 	                if(!url.match(/blank\.mp4/)){
 	                    prepareResult(url, w);
 	                }
-	                /** Flash pleyar - l is an existing variable on page */
 	                else if(l !== undefined){
 	                    prepareResult(l, w);
 	                }
