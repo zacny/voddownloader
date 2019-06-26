@@ -21,7 +21,7 @@ var NINATEKA = (function(NINATEKA) {
             })]
         };
 
-        DomTamper.createDocument(data, w);
+        DomTamper.createDocument(properties, data, w);
     };
 
     var getMp4Source = function(w, sources){

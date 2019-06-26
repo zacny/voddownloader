@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.9.1
+// @version        5.10.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -22,6 +22,7 @@
 // @include        https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include        https://video.wp.pl/*
 // @include        https://ninateka.pl/*
+// @include        https://www.arte.tv/player/*
 // @exclude        https://vod.pl/playerpl*
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        https://www.cda.pl/iframe/*
@@ -33,6 +34,7 @@
 // @connect        tvp.pl
 // @connect        getmedia.redefine.pl
 // @connect        player-api.dreamlab.pl
+// @connect        api.arte.tv
 // @run-at         document-end
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
@@ -51,24 +53,9 @@
 	}
 	
 	function Format(data) {
-	    if('bitrate' in data){
-	        this.bitrate = data.bitrate;
-	    }
-	    else {
-	        this.bitrate = 'brak danych';
-	    }
-	    if('url' in data){
-	        this.url = data.url;
-	    }
-	    if('quality' in data){
-	        this.quality = data.quality;
-	    }
-	    if('playable' in data){
-	        this.playable = data.playable
-	    }
-	    else {
-	        this.playable = true;
-	    }
+	    this.bitrate = 'brak danych';
+	    this.playable = true;
+	    $.extend(true, this, data);
 	}
 	
 	var Tool = (function(Tool) {
@@ -84,10 +71,19 @@
 	        return decodeURIComponent(results[1]) || 0;
 	    };
 	
-	    Tool.numberModeSort = function(formats){
-	        formats.sort(function (a, b) {
+	    Tool.numberModeSort = function(formats, reverse){
+	        var sort = formats.sort(function (a, b) {
 	            return b.bitrate - a.bitrate;
 	        });
+	        if(reverse){
+	            sort.reverse();
+	        }
+	    };
+	
+	    Tool.infoModeSort = function(formats){
+	        formats.sort(function (a, b) {
+	            return ('' + a.info).localeCompare(b.info);
+	        }).reverse();
 	    };
 	
 	    Tool.formatConsoleMessage = function(message, params){
@@ -438,9 +434,13 @@
 	            function() {openActionClick(data, w)})
 	        );
 	
-	        var descriptionText = data.value.quality == undefined ?
-	            'Bitrate: ' + data.value.bitrate :
-	            'Bitrate: ' + data.value.bitrate + ', Jakość: '+ data.value.quality;
+	        var descriptionText = 'Bitrate: ' + data.value.bitrate;
+	        if(data.value.quality) {
+	            descriptionText += ', Jakość: ' + data.value.quality;
+	        }
+	        if(data.value.info){
+	            descriptionText +=', ' + data.value.info;
+	        }
 	        var description = $('<td>').text(descriptionText);
 	
 	        return $('<tr>').append(actions).append(description);
@@ -476,8 +476,8 @@
 	        }
 	    };
 	
-	    DomTamper.createDocument = function(data, w){
-	        Tool.numberModeSort(data.formats);
+	    DomTamper.createDocument = function(service, data, w){
+	        service.formatter(data);
 	
 	        prepareHead(w);
 	        setWindowTitle(data, w);
@@ -611,8 +611,11 @@
 	            chainSelector: function(){
 	                return "default";
 	            },
+	            formatter: function(data){
+	                Tool.numberModeSort(data.formats);
+	            },
 	            onDone: function(data, w) {
-	                DomTamper.createDocument(data, w);
+	                DomTamper.createDocument(service, data, w);
 	            }
 	        };
 	
@@ -1242,7 +1245,7 @@
 	            })]
 	        };
 	
-	        DomTamper.createDocument(data, w);
+	        DomTamper.createDocument(properties, data, w);
 	    };
 	
 	    CDA.waitOnWrapper = function(){
@@ -1275,7 +1278,7 @@
 	            })]
 	        };
 	
-	        DomTamper.createDocument(data, w);
+	        DomTamper.createDocument(properties, data, w);
 	    };
 	
 	    var getMp4Source = function(w, sources){
@@ -1320,6 +1323,74 @@
 	    return NINATEKA;
 	}(NINATEKA || {}));
 	
+	var ARTE = (function(ARTE) {
+	    var properties = Configurator.setup({
+	        wrapper: {
+	            selector: 'div.avp-player'
+	        },
+	        button: {
+	            class: 'arte_download_button',
+	        },
+	        asyncChains: {
+	            default: [
+	                AsyncStep.setup({
+	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/pl/#videoId',
+	                    beforeStep: function (input) {
+	                        return idParser();
+	                    },
+	                    afterStep: function (output) {
+	                        return grabVideoFormats(output);
+	                    }
+	                })
+	            ]
+	        },
+	        formatter: function(data) {
+	            Tool.numberModeSort(data.formats, true);
+	            Tool.infoModeSort(data.formats);
+	        }
+	    });
+	
+	    var idParser = function() {
+	        try {
+	            var metaUrl = $('meta[property="og:url"]').attr('content');
+	            var url = decodeURIComponent(Tool.getUrlParameter('json_url', metaUrl));
+	            return Tool.deleteParametersFromUrl(url).split('/').pop();
+	        }
+	        catch {
+	            throw new Exception(config.error.id, window.location.href);
+	        }
+	    };
+	
+	    var grabVideoFormats = function(data){
+	        var formats = [];
+	        var title = (((data || {}).videoJsonPlayer || {}).eStat || {}).streamName || '';
+	        var streams = ((data || {}).videoJsonPlayer || {}).VSR || {};
+	        if(streams){
+	            Object.keys(streams).filter(function(k, i) {
+	                return k.startsWith("HTTPS");
+	            }).forEach(function(k) {
+	                var stream = streams[k];
+	                formats.push(new Format({
+	                    bitrate: stream.bitrate,
+	                    info: stream.versionShortLibelle,
+	                    url: stream.url
+	                }));
+	            });
+	            return {
+	                title: title,
+	                formats: formats
+	            };
+	        }
+	        throw new Exception(config.error.noSource, window.location.href);
+	    };
+	
+	    ARTE.waitOnWrapper = function(){
+	        WrapperDetector.run(properties);
+	    };
+	
+	    return ARTE;
+	}(ARTE || {}));
+	
 	var Starter = (function(Starter) {
 	    var tvZones = [
 	        'bialystok', 'katowice', 'lodz', 'rzeszow', 'bydgoszcz', 'kielce', 'olsztyn', 'szczecin',
@@ -1336,7 +1407,8 @@
 	        {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
 	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
 	        {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//},
-	        {action: NINATEKA.waitOnWrapper, pattern: /^https:\/\/ninateka.pl\//}
+	        {action: NINATEKA.waitOnWrapper, pattern: /^https:\/\/ninateka.pl\//},
+	        {action: ARTE.waitOnWrapper, pattern: /^https:\/\/www.arte.tv\/player\//}
 	    ];
 	
 	    Starter.start = function() {

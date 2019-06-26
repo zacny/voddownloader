@@ -14,6 +14,7 @@ Creates a button in top right corner of video, that you can use to download a co
 - [vod.pl - ipla bridge](https://vod.pl/cyfrowy-polsat-iplatv)
 - [ipla.tv](https://www.ipla.tv)
 - [video.wp.pl](https://video.wp.pl)
+- [arte.tv](https://www.arte.tv)
 
 ## Installation
 

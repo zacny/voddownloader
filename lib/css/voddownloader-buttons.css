@@ -148,6 +148,26 @@
     font-size: 13px;
     font-weight: bold;
 }
+
+.arte_download_button {
+    border-style: solid;
+    border-width: 0.125rem;
+    padding: 0.1875rem 1.75rem;
+    background-color: rgb(255, 255, 255);
+    border-color: rgb(255, 255, 255);
+    color: rgb(32, 32, 32);
+    cursor: pointer;
+    z-index: 4;
+    position: absolute;
+    font-family: 'barna',Arial,sans-serif;
+}
+
+.arte_download_button:focus, .arte_download_button:hover{
+    border-color: rgb(255, 255, 255);
+    background-color: rgb(32, 32, 32);
+    color: rgb(255, 255, 255);
+    transition: border-color 0.3s linear 0s;
+}
 /* common style for buttons */
 .playerBox-x, .js-video {
     position: relative;

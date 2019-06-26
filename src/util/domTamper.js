@@ -149,9 +149,13 @@ var DomTamper = (function(DomTamper){
             function() {openActionClick(data, w)})
         );
 
-        var descriptionText = data.value.quality == undefined ?
-            'Bitrate: ' + data.value.bitrate :
-            'Bitrate: ' + data.value.bitrate + ', Jakość: '+ data.value.quality;
+        var descriptionText = 'Bitrate: ' + data.value.bitrate;
+        if(data.value.quality) {
+            descriptionText += ', Jakość: ' + data.value.quality;
+        }
+        if(data.value.info){
+            descriptionText +=', ' + data.value.info;
+        }
         var description = $('<td>').text(descriptionText);
 
         return $('<tr>').append(actions).append(description);
@@ -187,8 +191,8 @@ var DomTamper = (function(DomTamper){
         }
     };
 
-    DomTamper.createDocument = function(data, w){
-        Tool.numberModeSort(data.formats);
+    DomTamper.createDocument = function(service, data, w){
+        service.formatter(data);
 
         prepareHead(w);
         setWindowTitle(data, w);

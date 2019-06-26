@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.9.1",
+  "version": "5.10.0",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -73,7 +73,8 @@
         "https://redir.atmcdn.pl/*",
         "https://*.redcdn.pl/file/o2/redefine/partner/*",
         "https://video.wp.pl/*",
-        "https://ninateka.pl/*"
+        "https://ninateka.pl/*",
+        "https://www.arte.tv/player/*"
       ],
       "exclude": [
         "https://vod.pl/playerpl*",
@@ -90,7 +91,8 @@
       "connect": [
         "tvp.pl",
         "getmedia.redefine.pl",
-        "player-api.dreamlab.pl"
+        "player-api.dreamlab.pl",
+        "api.arte.tv"
       ],
       "run-at": "document-end",
       "require": [
