@@ -44,7 +44,7 @@ var CDA = (function(CDA) {
             })]
         };
 
-        DomTamper.createDocument(data, w);
+        DomTamper.createDocument(properties, data, w);
     };
 
     CDA.waitOnWrapper = function(){

@@ -59,6 +59,7 @@ var TVN = (function(TVN) {
     };
 
     var formatParser = function(data){
+        debugger;
         var formats = [];
         var title;
         var video_content = (((data.item || {}).videos || {}).main || {}).video_content || {};

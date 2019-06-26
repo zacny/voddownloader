@@ -59,3 +59,7 @@ https://video.wp.pl/i,powodz-grozi-wadowicom-gornym-nasz-reporter-jest-na-miejsc
 #NINATEKA
 https://ninateka.pl/kolekcja-teatralna/material/dzis-sa-moje-urodziny-tadeusz-kantor
 https://ninateka.pl/film/makbet
+
+#ARTE
+https://www.arte.tv/pl/videos/079474-057-A/re-zestarzec-sie-w-domu/
+https://www.arte.tv/pl/videos/049509-000-A/jharia-kraina-ognia/

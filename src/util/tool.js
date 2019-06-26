@@ -11,10 +11,19 @@ var Tool = (function(Tool) {
         return decodeURIComponent(results[1]) || 0;
     };
 
-    Tool.numberModeSort = function(formats){
-        formats.sort(function (a, b) {
+    Tool.numberModeSort = function(formats, reverse){
+        var sort = formats.sort(function (a, b) {
             return b.bitrate - a.bitrate;
         });
+        if(reverse){
+            sort.reverse();
+        }
+    };
+
+    Tool.infoModeSort = function(formats){
+        formats.sort(function (a, b) {
+            return ('' + a.info).localeCompare(b.info);
+        }).reverse();
     };
 
     Tool.formatConsoleMessage = function(message, params){

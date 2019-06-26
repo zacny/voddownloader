@@ -28,8 +28,11 @@ var Configurator = (function(Configurator){
             chainSelector: function(){
                 return "default";
             },
+            formatter: function(data){
+                Tool.numberModeSort(data.formats);
+            },
             onDone: function(data, w) {
-                DomTamper.createDocument(data, w);
+                DomTamper.createDocument(service, data, w);
             }
         };
 
