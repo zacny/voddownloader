@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.10.0
+// @version        5.10.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1372,6 +1372,7 @@
 	                var stream = streams[k];
 	                formats.push(new Format({
 	                    bitrate: stream.bitrate,
+	                    quality: stream.width + ' x ' + stream.height,
 	                    info: stream.versionShortLibelle,
 	                    url: stream.url
 	                }));
