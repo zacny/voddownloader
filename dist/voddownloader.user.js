@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.10.1
+// @version        5.10.2
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -69,21 +69,6 @@
 	            return null;
 	        }
 	        return decodeURIComponent(results[1]) || 0;
-	    };
-	
-	    Tool.numberModeSort = function(formats, reverse){
-	        var sort = formats.sort(function (a, b) {
-	            return b.bitrate - a.bitrate;
-	        });
-	        if(reverse){
-	            sort.reverse();
-	        }
-	    };
-	
-	    Tool.infoModeSort = function(formats){
-	        formats.sort(function (a, b) {
-	            return ('' + a.info).localeCompare(b.info);
-	        }).reverse();
 	    };
 	
 	    Tool.formatConsoleMessage = function(message, params){
@@ -434,14 +419,16 @@
 	            function() {openActionClick(data, w)})
 	        );
 	
-	        var descriptionText = 'Bitrate: ' + data.value.bitrate;
+	        var descriptionHtml = $('<div>').append($('<b>').text('bitrate: ')).append($('<span>').text(data.value.bitrate));
 	        if(data.value.quality) {
-	            descriptionText += ', Jakość: ' + data.value.quality;
+	            descriptionHtml.append($('<span>').text(', ')).append($('<b>').text('rozdzielczość: '))
+	                .append($('<span>').text(data.value.quality));
 	        }
-	        if(data.value.info){
-	            descriptionText +=', ' + data.value.info;
+	        if(data.value.langDesc){
+	            descriptionHtml.append($('<span>').text(', ')).append($('<b>').text('wersja językowa: '))
+	                .append($('<span>').text(data.value.langDesc));
 	        }
-	        var description = $('<td>').text(descriptionText);
+	        var description = $('<td>').html(descriptionHtml);
 	
 	        return $('<tr>').append(actions).append(description);
 	    };
@@ -612,7 +599,9 @@
 	                return "default";
 	            },
 	            formatter: function(data){
-	                Tool.numberModeSort(data.formats);
+	                data.formats.sort(function (a, b) {
+	                    return b.bitrate - a.bitrate;
+	                });
 	            },
 	            onDone: function(data, w) {
 	                DomTamper.createDocument(service, data, w);
@@ -1334,7 +1323,7 @@
 	        asyncChains: {
 	            default: [
 	                AsyncStep.setup({
-	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/pl/#videoId',
+	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
@@ -1345,18 +1334,30 @@
 	            ]
 	        },
 	        formatter: function(data) {
-	            Tool.numberModeSort(data.formats, true);
-	            Tool.infoModeSort(data.formats);
+	            data.formats.sort(function (a, b) {
+	                return  b.bitrate - a.bitrate;
+	            }).reverse();
+	            data.formats.sort(function (a, b) {
+	                return ('' + a.langCode).localeCompare(b.langCode);
+	            }).reverse();
 	        }
 	    });
+	
+	    var detectLanguage = function() {
+	        var language = $('header > div > div > button > span');
+	        return language.length > 0 ? language.text().toLowerCase() : 'pl';
+	    };
 	
 	    var idParser = function() {
 	        try {
 	            var metaUrl = $('meta[property="og:url"]').attr('content');
 	            var url = decodeURIComponent(Tool.getUrlParameter('json_url', metaUrl));
-	            return Tool.deleteParametersFromUrl(url).split('/').pop();
+	            return {
+	                videoId: Tool.deleteParametersFromUrl(url).split('/').pop(),
+	                langCode: detectLanguage()
+	            };
 	        }
-	        catch {
+	        catch(e){
 	            throw new Exception(config.error.id, window.location.href);
 	        }
 	    };
@@ -1372,8 +1373,9 @@
 	                var stream = streams[k];
 	                formats.push(new Format({
 	                    bitrate: stream.bitrate,
-	                    quality: stream.width + ' x ' + stream.height,
-	                    info: stream.versionShortLibelle,
+	                    quality: stream.width + 'x' + stream.height,
+	                    langCode: stream.versionShortLibelle,
+	                    langDesc: stream.versionLibelle,
 	                    url: stream.url
 	                }));
 	            });

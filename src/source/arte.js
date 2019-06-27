@@ -9,7 +9,7 @@ var ARTE = (function(ARTE) {
         asyncChains: {
             default: [
                 AsyncStep.setup({
-                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/pl/#videoId',
+                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
                     beforeStep: function (input) {
                         return idParser();
                     },
@@ -20,16 +20,28 @@ var ARTE = (function(ARTE) {
             ]
         },
         formatter: function(data) {
-            Tool.numberModeSort(data.formats, true);
-            Tool.infoModeSort(data.formats);
+            data.formats.sort(function (a, b) {
+                return  b.bitrate - a.bitrate;
+            }).reverse();
+            data.formats.sort(function (a, b) {
+                return ('' + a.langCode).localeCompare(b.langCode);
+            }).reverse();
         }
     });
+
+    var detectLanguage = function() {
+        var language = $('header > div > div > button > span');
+        return language.length > 0 ? language.text().toLowerCase() : 'pl';
+    };
 
     var idParser = function() {
         try {
             var metaUrl = $('meta[property="og:url"]').attr('content');
             var url = decodeURIComponent(Tool.getUrlParameter('json_url', metaUrl));
-            return Tool.deleteParametersFromUrl(url).split('/').pop();
+            return {
+                videoId: Tool.deleteParametersFromUrl(url).split('/').pop(),
+                langCode: detectLanguage()
+            };
         }
         catch(e){
             throw new Exception(config.error.id, window.location.href);
@@ -48,7 +60,9 @@ var ARTE = (function(ARTE) {
                 console.log(stream);
                 formats.push(new Format({
                     bitrate: stream.bitrate,
-                    info: stream.versionLibelle + " [" + stream.versionShortLibelle + "]",
+                    quality: stream.width + 'x' + stream.height,
+                    langCode: stream.versionShortLibelle,
+                    langDesc: stream.versionLibelle,
                     url: stream.url
                 }));
             });
