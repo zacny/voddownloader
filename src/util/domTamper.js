@@ -149,14 +149,16 @@ var DomTamper = (function(DomTamper){
             function() {openActionClick(data, w)})
         );
 
-        var descriptionText = 'Bitrate: ' + data.value.bitrate;
+        var descriptionHtml = $('<div>').append($('<b>').text('bitrate: ')).append($('<span>').text(data.value.bitrate));
         if(data.value.quality) {
-            descriptionText += ', Jakość: ' + data.value.quality;
+            descriptionHtml.append($('<span>').text(', ')).append($('<b>').text('rozdzielczość: '))
+                .append($('<span>').text(data.value.quality));
         }
-        if(data.value.info){
-            descriptionText +=', ' + data.value.info;
+        if(data.value.langDesc){
+            descriptionHtml.append($('<span>').text(', ')).append($('<b>').text('wersja językowa: '))
+                .append($('<span>').text(data.value.langDesc));
         }
-        var description = $('<td>').text(descriptionText);
+        var description = $('<td>').html(descriptionHtml);
 
         return $('<tr>').append(actions).append(description);
     };

@@ -29,7 +29,9 @@ var Configurator = (function(Configurator){
                 return "default";
             },
             formatter: function(data){
-                Tool.numberModeSort(data.formats);
+                data.formats.sort(function (a, b) {
+                    return b.bitrate - a.bitrate;
+                });
             },
             onDone: function(data, w) {
                 DomTamper.createDocument(service, data, w);
