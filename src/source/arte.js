@@ -22,10 +22,22 @@ var ARTE = (function(ARTE) {
         formatter: function(data) {
             data.formats.sort(function (a, b) {
                 return  b.bitrate - a.bitrate;
-            }).reverse();
+            });
             data.formats.sort(function (a, b) {
-                return ('' + a.langCode).localeCompare(b.langCode);
-            }).reverse();
+                var aLang = a.langCode, bLang = b.langCode;
+                if(aLang !== 'POL' && bLang !== 'POL'){
+                    return ('' + a.langCode).localeCompare(b.langCode);
+                }
+                else if(aLang === 'POL' && bLang !== 'POL'){
+                    return -1;
+                }
+                else if(aLang !== 'POL' && bLang === 'POL'){
+                    return 1;
+                }
+                else {
+                    return 0;
+                }
+            });
         }
     });
 
