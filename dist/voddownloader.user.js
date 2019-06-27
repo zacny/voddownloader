@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.10.2
+// @version        5.10.3
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1336,10 +1336,22 @@
 	        formatter: function(data) {
 	            data.formats.sort(function (a, b) {
 	                return  b.bitrate - a.bitrate;
-	            }).reverse();
+	            });
 	            data.formats.sort(function (a, b) {
-	                return ('' + a.langCode).localeCompare(b.langCode);
-	            }).reverse();
+	                var aLang = a.langCode, bLang = b.langCode;
+	                if(aLang !== 'POL' && bLang !== 'POL'){
+	                    return ('' + a.langCode).localeCompare(b.langCode);
+	                }
+	                else if(aLang === 'POL' && bLang !== 'POL'){
+	                    return -1;
+	                }
+	                else if(aLang !== 'POL' && bLang === 'POL'){
+	                    return 1;
+	                }
+	                else {
+	                    return 0;
+	                }
+	            });
 	        }
 	    });
 	
