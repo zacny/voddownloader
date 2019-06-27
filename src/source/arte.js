@@ -48,7 +48,7 @@ var ARTE = (function(ARTE) {
                 console.log(stream);
                 formats.push(new Format({
                     bitrate: stream.bitrate,
-                    info: stream.versionShortLibelle,
+                    info: stream.versionLibelle + " [" + stream.versionShortLibelle + "]",
                     url: stream.url
                 }));
             });
