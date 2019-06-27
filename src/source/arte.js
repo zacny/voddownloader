@@ -31,7 +31,7 @@ var ARTE = (function(ARTE) {
             var url = decodeURIComponent(Tool.getUrlParameter('json_url', metaUrl));
             return Tool.deleteParametersFromUrl(url).split('/').pop();
         }
-        catch {
+        catch(e){
             throw new Exception(config.error.id, window.location.href);
         }
     };
