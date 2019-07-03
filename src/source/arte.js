@@ -69,7 +69,6 @@ var ARTE = (function(ARTE) {
                 return k.startsWith("HTTPS");
             }).forEach(function(k) {
                 var stream = streams[k];
-                console.log(stream);
                 formats.push(new Format({
                     bitrate: stream.bitrate,
                     quality: stream.width + 'x' + stream.height,
