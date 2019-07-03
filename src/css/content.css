@@ -1,13 +1,13 @@
 /** common **/
 .page-content {
-    margin: 15px;
+    margin: 0.5rem;
     font-size: 14px;
 }
 
 .bug-report-position {
     position: fixed;
-    right: 15px;
-    bottom: 15px;
+    right: 0.5rem;
+    bottom: 0.5rem;
 }
 
 /** loader **/
@@ -19,17 +19,17 @@
 /** results **/
 .notification-container {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    min-height: 8em;
+    top: 0.33rem;
+    right: 0.33rem;
+    min-height: 10rem;
 }
 
 .actions-row {
-    width: 23em;
+    width: 19rem;
 }
 
 .notification {
-    min-width: 23em;
+    min-width: 22rem;
 }
 
 .notification-body {
