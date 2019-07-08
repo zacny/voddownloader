@@ -121,7 +121,7 @@
 	        },
 	        resultWindowScript: {
 	            id: 'result-window-script',
-	            js: 'https://gitcdn.xyz/repo/zacny/voddownloader/dev/lib/js/resultWindowActions.js'
+	            js: 'https://gitcdn.xyz/repo/zacny/voddownloader/dev/src/util/parentDetector.js'
 	        }
 	    },
 	    error: {
@@ -325,7 +325,7 @@
 	        injectStylesheet(w, config.include.mdb);
 	        DomTamper.injectStyle(w, 'content_css');
 	        injectScript(w, config.include.jquery);
-	        injectScript(w, config.include.resultWindowScript);
+	        // injectScript(w, config.include.resultWindowScript);
 	    };
 	
 	    var createBugReportLink = function(w, additionalClass){
@@ -512,14 +512,10 @@
 	        pageContent.append(parentExist);
 	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
 	        pageContent.append(createNotificationContainer());
+	        pageContent.append($('<script>').text('ParentDetector.init(window);'));
 	        prepareBody(w, pageContent, true);
-	        Tool.bindWindowFocus(w, onResultWindowFocus);
+	        // ParentDetector.init(w);
 	    };
-	
-	    var onResultWindowFocus = function(isFocused){
-	        alert('Focus: ' + isFocused);
-	    };
-	
 	    var createNotificationContainer = function(){
 	        return $('<div>').attr('id', 'notification-container')
 	            .attr('aria-live', 'polite').attr('aria-atomic', 'true').addClass('notification-container');
@@ -720,6 +716,44 @@
 	    };
 	    return WrapperDetector;
 	}(WrapperDetector || {}));
+	
+	var ParentDetector = (function(ParentDetector) {
+	    var window;
+	
+	    ParentDetector.init = function(w){
+	        window = w;
+	        bind();
+	    };
+	
+	    var bind = function(){
+	        $(window).on("blur focus", function(e) {
+	            var prevType = $(this).data("prevType");
+	
+	            if (prevType != e.type) {//  reduce double fire issues
+	                switch (e.type) {
+	                    case "blur":
+	                        check(false);
+	                        break;
+	                    case "focus":
+	                        check(true);
+	                        break;
+	                }
+	            }
+	
+	            $(this).data("prevType", e.type);
+	        });
+	    };
+	
+	    var check = function(focus){
+	        window.console.log('focus: ' + focus + '; opener: ' + (window.opener !== null));
+	        if(focus && window.opener === null){
+	            $('#parentExist', window.document.body).addClass('do-not-display');
+	            $('#parentNotExist', window.document.body).removeClass('do-not-display');
+	        }
+	    };
+	
+	    return ParentDetector;
+	}(ParentDetector || {}));
 	
 	var VOD_TVP = (function(VOD_TVP) {
 	    var properties = Configurator.setup({
