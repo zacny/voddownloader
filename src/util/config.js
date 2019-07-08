@@ -15,14 +15,6 @@ const config = {
             id: 'mdb',
             css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
             /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
-        },
-        jquery: {
-            id: 'jquery',
-            js: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js'
-        },
-        resultWindowScript: {
-            id: 'result-window-script',
-            js: 'https://gitcdn.xyz/repo/zacny/voddownloader/dev/src/util/parentDetector.js'
         }
     },
     error: {

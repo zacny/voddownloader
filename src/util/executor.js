@@ -70,7 +70,7 @@ var Executor = (function(Executor){
     Executor.asyncChain = function(service, options, w){
         try {
             if(w === undefined){
-                w = window.open();
+                w = window.open('', 'voddownloader-results');
                 DomTamper.createLoader(w);
             }
 

@@ -19,26 +19,16 @@ var DomTamper = (function(DomTamper){
         }
     };
 
-    var injectScript = function (w, setting) {
-        var head = $(w.document.head);
-        if(!head.find('script[name="' + setting.id + '"]').length){
-            var stylesheet = $('<script>').attr('name', setting.id).attr('type', 'text/javascript')
-                .attr('src', setting.js);
-            head.append(stylesheet);
-        }
-    };
-
     var prepareHead = function(w){
         injectStylesheet(w, config.include.fontawesome);
         injectStylesheet(w, config.include.bootstrap);
         injectStylesheet(w, config.include.mdb);
         DomTamper.injectStyle(w, 'content_css');
-        injectScript(w, config.include.jquery);
-        // injectScript(w, config.include.resultWindowScript);
     };
 
     var createBugReportLink = function(w, additionalClass){
-        var button = $('<button>').attr('type', 'button').addClass('btn btn-sm m-0').addClass(additionalClass)
+        var button = $('<button>').attr('id', 'bug-report-button').attr('type', 'button')
+            .addClass('btn btn-sm m-0').addClass(additionalClass)
             .append($('<i>').addClass('fas fa-bug'));
         button.click(function(){
             w.open('https://github.com/zacny/voddownloader/issues');
@@ -72,17 +62,19 @@ var DomTamper = (function(DomTamper){
 
     DomTamper.handleError = function(exception, w){
         if(w === undefined){
-            w = window.open();
+            w = window.open('', 'voddownloader-results');
         }
 
         prepareHead(w);
+        var errorData = getErrorData(exception);
         var pageContent = $('<div>').addClass('page-content');
-        pageContent.append(createErrorContent(exception));
-        pageContent.append(createBugReportLink(w, type === 'error' ? 'btn-danger' : 'special-color white-text'));
+        pageContent.append(createErrorContent(errorData));
+        pageContent.append(createBugReportLink(w, errorData.type === 'error' ?
+            'btn-danger' : 'special-color white-text'));
         prepareBody(w, pageContent);
     };
 
-    var createErrorContent = function(exception){
+    var getErrorData = function(exception){
         var type = 'error';
         var caption = 'Niespodziewany błąd';
         var message = 'Natrafiono na niespodziewany błąd: ' + exception;
@@ -91,13 +83,22 @@ var DomTamper = (function(DomTamper){
             caption = exception.error.caption;
             type = exception.error.type !== undefined ? exception.error.type : 'error';
         }
-        var typeClass = type === 'error' ? 'bg-danger' : 'bg-dark';
+
+        return {
+            message: message,
+            caption: caption,
+            type: type
+        }
+    };
+
+    var createErrorContent = function(errorData){
+        var typeClass = errorData.type === 'error' ? 'bg-danger' : 'bg-dark';
         var card = $('<div>').addClass('card text-white mb-3').addClass(typeClass);
         var cardHeader = $('<div>').addClass('card-header')
             .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
         var cardBody = $('<div>').addClass('card-body')
-            .append($('<h5>').addClass('card-title').text(caption))
-            .append($('<div>').addClass('card-text text-white mb-3').append(message))
+            .append($('<h5>').addClass('card-title').text(errorData.caption))
+            .append($('<div>').addClass('card-text text-white mb-3').append(errorData.message))
             .append($('<div>').addClass('card-text text-white')
                 .append('Informacje o systemie: ').append(platform.description))
             .append($('<div>').addClass('card-text text-white')
@@ -115,9 +116,29 @@ var DomTamper = (function(DomTamper){
     };
 
     DomTamper.createLoader = function(w){
-        var body = $(w.document.body);
         prepareHead(w);
+        var extraContent = createLoaderContent();
+        var pageContent = createPageContent(extraContent);
+        pageContent.append(createBugReportLink(w, 'special-color white-text'));
+        prepareBody(w, pageContent);
+        ParentUnloader.init();
+    };
+
+    var createPageContent = function(extraContent){
         var pageContent = $('<div>').addClass('page-content');
+        var parentExist = $('<div>').attr('id', 'parent-exist');
+        var parentNotExist = $('<div>').attr('id', 'parent-not-exist').append(
+            createErrorContent(getErrorData(new Exception(config.error.noParent, window.location.href)))
+        ).addClass('do-not-display');
+
+        parentExist.append(extraContent);
+        pageContent.append(parentNotExist);
+        pageContent.append(parentExist);
+
+        return pageContent;
+    };
+
+    var createLoaderContent = function(){
         var card = $('<div>').addClass('card text-white bg-dark');
         var cardHeader = $('<div>').addClass('card-header').text('Poczekaj trwa wczytywanie danych...');
         var cardBody = $('<div>').addClass('card-body');
@@ -126,8 +147,8 @@ var DomTamper = (function(DomTamper){
             .append($('<span>').addClass('sr-only').text('Loading...'));
         cardBody.append(bodyContainer.append(spinner));
         card.append(cardHeader).append(cardBody);
-        pageContent.append(card);
-        prepareBody(w, pageContent);
+
+        return card;
     };
 
     var createAction = function(iconClass, label){
@@ -212,18 +233,12 @@ var DomTamper = (function(DomTamper){
 
         prepareHead(w);
         setWindowTitle(data, w);
-        var pageContent = $('<div>').addClass('page-content');
-        var parentExist = $('<div>').attr('id', 'parentExist').append(createTable(data, w));
-        var parentNotExist = $('<div>').attr('id', 'parentNotExist').append(
-            createErrorContent(new Exception(config.error.noParent, window.location.href))
-        ).addClass('do-not-display');
-        pageContent.append(parentNotExist);
-        pageContent.append(parentExist);
+        var extraContent = createTable(data, w);
+        var pageContent = createPageContent(extraContent);
         pageContent.append(createBugReportLink(w, 'special-color white-text'));
         pageContent.append(createNotificationContainer());
-        pageContent.append($('<script>').text('ParentDetector.init(window);'));
         prepareBody(w, pageContent, true);
-        // ParentDetector.init(w);
+        ParentUnloader.init();
     };
     var createNotificationContainer = function(){
         return $('<div>').attr('id', 'notification-container')
