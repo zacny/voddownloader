@@ -4,6 +4,10 @@
     font-size: 14px;
 }
 
+.do-not-display {
+    display: none;
+}
+
 .bug-report-position {
     position: fixed;
     right: 0.5rem;
@@ -25,7 +29,8 @@
 }
 
 .actions-row {
-    width: 19rem;
+    width: 20rem;
+    text-align: center;
 }
 
 .notification {
