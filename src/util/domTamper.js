@@ -34,7 +34,7 @@ var DomTamper = (function(DomTamper){
         injectStylesheet(w, config.include.mdb);
         DomTamper.injectStyle(w, 'content_css');
         injectScript(w, config.include.jquery);
-        injectScript(w, config.include.resultWindowScript);
+        // injectScript(w, config.include.resultWindowScript);
     };
 
     var createBugReportLink = function(w, additionalClass){
@@ -221,14 +221,10 @@ var DomTamper = (function(DomTamper){
         pageContent.append(parentExist);
         pageContent.append(createBugReportLink(w, 'special-color white-text'));
         pageContent.append(createNotificationContainer());
+        pageContent.append($('<script>').text('ParentDetector.init(window);'));
         prepareBody(w, pageContent, true);
-        Tool.bindWindowFocus(w, onResultWindowFocus);
+        // ParentDetector.init(w);
     };
-
-    var onResultWindowFocus = function(isFocused){
-        alert('Focus: ' + isFocused);
-    };
-
     var createNotificationContainer = function(){
         return $('<div>').attr('id', 'notification-container')
             .attr('aria-live', 'polite').attr('aria-atomic', 'true').addClass('notification-container');

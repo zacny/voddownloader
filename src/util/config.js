@@ -22,7 +22,7 @@ const config = {
         },
         resultWindowScript: {
             id: 'result-window-script',
-            js: 'https://gitcdn.xyz/repo/zacny/voddownloader/dev/lib/js/resultWindowActions.js'
+            js: 'https://gitcdn.xyz/repo/zacny/voddownloader/dev/src/util/parentDetector.js'
         }
     },
     error: {
