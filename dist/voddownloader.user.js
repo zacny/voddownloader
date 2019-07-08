@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name           voddownloader
-// @version        5.10.4-develop
-// @updateURL      http://localhost:5011/dist/voddownloader.meta.js
-// @downloadURL    http://localhost:5011/dist/voddownloader.user.js
+// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @version        5.11.0
+// @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
+// @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -40,8 +40,8 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
 // @require        https://gitcdn.xyz/cdn/zacny/voddownloader/4b17a120f521eaddf476d6e8fe3be152d506f244/lib/js/mdb-with-waves-patch.js
-// @resource       buttons_css http://localhost:5011/lib/css/voddownloader-buttons.css
-// @resource       content_css http://localhost:5011/lib/css/voddownloader-content.css
+// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
+// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($, platform, Waves) {
@@ -113,15 +113,6 @@
 	        mdb: {
 	            id: 'mdb',
 	            css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
-	            /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
-	        },
-	        jquery: {
-	            id: 'jquery',
-	            js: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js'
-	        },
-	        resultWindowScript: {
-	            id: 'result-window-script',
-	            js: 'https://gitcdn.xyz/repo/zacny/voddownloader/dev/src/util/parentDetector.js'
 	        }
 	    },
 	    error: {
@@ -168,9 +159,7 @@
 	    AsyncStep.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
-	            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
 	            beforeStep: function(input){return input},
-	            /** Will be done after async call **/
 	            afterStep: function (output) {return output},
 	            resolveUrl: function (input) {
 	                var url = this.urlTemplate;
@@ -280,7 +269,6 @@
 	        if(downloadMode !== 'browser'){
 	            disableDownload(w);
 	            var value = w.localStorage.getItem(config.storageItem);
-	            console.log('[' + config.storageItem + ']: ' + value);
 	            if(value !== 'true'){
 	                prepareWarningNotification(w);
 	            }
@@ -289,7 +277,6 @@
 	    return PluginSettingsDetector;
 	}(PluginSettingsDetector || {}));
 	
-	/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
 	var DomTamper = (function(DomTamper){
 	
 	    DomTamper.injectStyle = function(w, name){
@@ -310,26 +297,16 @@
 	        }
 	    };
 	
-	    var injectScript = function (w, setting) {
-	        var head = $(w.document.head);
-	        if(!head.find('script[name="' + setting.id + '"]').length){
-	            var stylesheet = $('<script>').attr('name', setting.id).attr('type', 'text/javascript')
-	                .attr('src', setting.js);
-	            head.append(stylesheet);
-	        }
-	    };
-	
 	    var prepareHead = function(w){
 	        injectStylesheet(w, config.include.fontawesome);
 	        injectStylesheet(w, config.include.bootstrap);
 	        injectStylesheet(w, config.include.mdb);
 	        DomTamper.injectStyle(w, 'content_css');
-	        injectScript(w, config.include.jquery);
-	        // injectScript(w, config.include.resultWindowScript);
 	    };
 	
 	    var createBugReportLink = function(w, additionalClass){
-	        var button = $('<button>').attr('type', 'button').addClass('btn btn-sm m-0').addClass(additionalClass)
+	        var button = $('<button>').attr('id', 'bug-report-button').attr('type', 'button')
+	            .addClass('btn btn-sm m-0').addClass(additionalClass)
 	            .append($('<i>').addClass('fas fa-bug'));
 	        button.click(function(){
 	            w.open('https://github.com/zacny/voddownloader/issues');
@@ -363,17 +340,19 @@
 	
 	    DomTamper.handleError = function(exception, w){
 	        if(w === undefined){
-	            w = window.open();
+	            w = window.open('', 'voddownloader-results');
 	        }
 	
 	        prepareHead(w);
+	        var errorData = getErrorData(exception);
 	        var pageContent = $('<div>').addClass('page-content');
-	        pageContent.append(createErrorContent(exception));
-	        pageContent.append(createBugReportLink(w, type === 'error' ? 'btn-danger' : 'special-color white-text'));
+	        pageContent.append(createErrorContent(errorData));
+	        pageContent.append(createBugReportLink(w, errorData.type === 'error' ?
+	            'btn-danger' : 'special-color white-text'));
 	        prepareBody(w, pageContent);
 	    };
 	
-	    var createErrorContent = function(exception){
+	    var getErrorData = function(exception){
 	        var type = 'error';
 	        var caption = 'Niespodziewany błąd';
 	        var message = 'Natrafiono na niespodziewany błąd: ' + exception;
@@ -382,13 +361,22 @@
 	            caption = exception.error.caption;
 	            type = exception.error.type !== undefined ? exception.error.type : 'error';
 	        }
-	        var typeClass = type === 'error' ? 'bg-danger' : 'bg-dark';
+	
+	        return {
+	            message: message,
+	            caption: caption,
+	            type: type
+	        }
+	    };
+	
+	    var createErrorContent = function(errorData){
+	        var typeClass = errorData.type === 'error' ? 'bg-danger' : 'bg-dark';
 	        var card = $('<div>').addClass('card text-white mb-3').addClass(typeClass);
 	        var cardHeader = $('<div>').addClass('card-header')
 	            .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
 	        var cardBody = $('<div>').addClass('card-body')
-	            .append($('<h5>').addClass('card-title').text(caption))
-	            .append($('<div>').addClass('card-text text-white mb-3').append(message))
+	            .append($('<h5>').addClass('card-title').text(errorData.caption))
+	            .append($('<div>').addClass('card-text text-white mb-3').append(errorData.message))
 	            .append($('<div>').addClass('card-text text-white')
 	                .append('Informacje o systemie: ').append(platform.description))
 	            .append($('<div>').addClass('card-text text-white')
@@ -406,9 +394,29 @@
 	    };
 	
 	    DomTamper.createLoader = function(w){
-	        var body = $(w.document.body);
 	        prepareHead(w);
+	        var extraContent = createLoaderContent();
+	        var pageContent = createPageContent(extraContent);
+	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
+	        prepareBody(w, pageContent);
+	        ParentUnloader.init();
+	    };
+	
+	    var createPageContent = function(extraContent){
 	        var pageContent = $('<div>').addClass('page-content');
+	        var parentExist = $('<div>').attr('id', 'parent-exist');
+	        var parentNotExist = $('<div>').attr('id', 'parent-not-exist').append(
+	            createErrorContent(getErrorData(new Exception(config.error.noParent, window.location.href)))
+	        ).addClass('do-not-display');
+	
+	        parentExist.append(extraContent);
+	        pageContent.append(parentNotExist);
+	        pageContent.append(parentExist);
+	
+	        return pageContent;
+	    };
+	
+	    var createLoaderContent = function(){
 	        var card = $('<div>').addClass('card text-white bg-dark');
 	        var cardHeader = $('<div>').addClass('card-header').text('Poczekaj trwa wczytywanie danych...');
 	        var cardBody = $('<div>').addClass('card-body');
@@ -417,8 +425,8 @@
 	            .append($('<span>').addClass('sr-only').text('Loading...'));
 	        cardBody.append(bodyContainer.append(spinner));
 	        card.append(cardHeader).append(cardBody);
-	        pageContent.append(card);
-	        prepareBody(w, pageContent);
+	
+	        return card;
 	    };
 	
 	    var createAction = function(iconClass, label){
@@ -503,18 +511,12 @@
 	
 	        prepareHead(w);
 	        setWindowTitle(data, w);
-	        var pageContent = $('<div>').addClass('page-content');
-	        var parentExist = $('<div>').attr('id', 'parentExist').append(createTable(data, w));
-	        var parentNotExist = $('<div>').attr('id', 'parentNotExist').append(
-	            createErrorContent(new Exception(config.error.noParent, window.location.href))
-	        ).addClass('do-not-display');
-	        pageContent.append(parentNotExist);
-	        pageContent.append(parentExist);
+	        var extraContent = createTable(data, w);
+	        var pageContent = createPageContent(extraContent);
 	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
 	        pageContent.append(createNotificationContainer());
-	        pageContent.append($('<script>').text('ParentDetector.init(window);'));
 	        prepareBody(w, pageContent, true);
-	        // ParentDetector.init(w);
+	        ParentUnloader.init();
 	    };
 	    var createNotificationContainer = function(){
 	        return $('<div>').attr('id', 'notification-container')
@@ -528,7 +530,6 @@
 	    var executeAsync = function(service, options, w){
 	        var exceptionParams = [options.stepIndex, window.location.href];
 	        var resolveUrl = beforeStep(service, options);
-	        console.log('step ' + options.chainName + '[' + options.stepIndex + ']: ' + resolveUrl.url);
 	        var requestParams = {
 	            method: 'GET',
 	            url: resolveUrl.url,
@@ -596,7 +597,7 @@
 	    Executor.asyncChain = function(service, options, w){
 	        try {
 	            if(w === undefined){
-	                w = window.open();
+	                w = window.open('', 'voddownloader-results');
 	                DomTamper.createLoader(w);
 	            }
 	
@@ -659,7 +660,6 @@
 	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
 	        var src = window.location.href;
 	        if(src !== undefined && oldSrc !== src){
-	            console.log("checkVideoChange: " + oldSrc + " -> " + src);
 	            return Promise.resolve().then(videoChangeCallback);
 	        }
 	        else {
@@ -670,7 +670,6 @@
 	    };
 	
 	    ChangeVideoDetector.run = function(videoChangeCallback){
-	        console.log('ChanageVideoDetector start');
 	        var src = window.location.href;
 	        checkVideoChange(src, videoChangeCallback);
 	    };
@@ -717,43 +716,19 @@
 	    return WrapperDetector;
 	}(WrapperDetector || {}));
 	
-	var ParentDetector = (function(ParentDetector) {
-	    var window;
+	var ParentUnloader = (function(ParentUnloader) {
 	
-	    ParentDetector.init = function(w){
-	        window = w;
-	        bind();
-	    };
-	
-	    var bind = function(){
-	        $(window).on("blur focus", function(e) {
-	            var prevType = $(this).data("prevType");
-	
-	            if (prevType != e.type) {//  reduce double fire issues
-	                switch (e.type) {
-	                    case "blur":
-	                        check(false);
-	                        break;
-	                    case "focus":
-	                        check(true);
-	                        break;
-	                }
-	            }
-	
-	            $(this).data("prevType", e.type);
+	    ParentUnloader.init = function(){
+	        $(window).bind('beforeunload', function(){
+	            var w = window.open('', 'voddownloader-results');
+	            $('#parent-exist', w.document.body).addClass('do-not-display');
+	            $('#parent-not-exist', w.document.body).removeClass('do-not-display');
+	            $('#bug-report-button', w.document.body).removeClass('special-color white-text').addClass('btn-danger');
 	        });
 	    };
 	
-	    var check = function(focus){
-	        window.console.log('focus: ' + focus + '; opener: ' + (window.opener !== null));
-	        if(focus && window.opener === null){
-	            $('#parentExist', window.document.body).addClass('do-not-display');
-	            $('#parentNotExist', window.document.body).removeClass('do-not-display');
-	        }
-	    };
-	
-	    return ParentDetector;
-	}(ParentDetector || {}));
+	    return ParentUnloader;
+	}(ParentUnloader || {}));
 	
 	var VOD_TVP = (function(VOD_TVP) {
 	    var properties = Configurator.setup({
@@ -1286,15 +1261,13 @@
 	    });
 	
 	    var clickButton = function(){
-	        var w = window.open();
+	        var w = window.open('', 'voddownloader-results');
 	        try {
 	            var url = $("video.pb-video-player").attr('src');
 	            if(url !== undefined){
-	                /** HTML5 player */
 	                if(!url.match(/blank\.mp4/)){
 	                    prepareResult(url, w);
 	                }
-	                /** Flash pleyar - l is an existing variable on page */
 	                else if(l !== undefined){
 	                    prepareResult(l, w);
 	                }
@@ -1366,7 +1339,7 @@
 	    };
 	
 	    var clickButton = function(){
-	        var w = window.open();
+	        var w = window.open('', 'voddownloader-results');
 	        try {
 	            var videoPlayer = $('#videoPlayer').data('player-setup');
 	            var sources = (videoPlayer || {}).sources || {};
