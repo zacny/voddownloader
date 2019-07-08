@@ -19,11 +19,22 @@ var DomTamper = (function(DomTamper){
         }
     };
 
+    var injectScript = function (w, setting) {
+        var head = $(w.document.head);
+        if(!head.find('script[name="' + setting.id + '"]').length){
+            var stylesheet = $('<script>').attr('name', setting.id).attr('type', 'text/javascript')
+                .attr('src', setting.js);
+            head.append(stylesheet);
+        }
+    };
+
     var prepareHead = function(w){
-        injectStylesheet(w, config.fontawesome);
-        injectStylesheet(w, config.bootstrap);
-        injectStylesheet(w, config.mdb);
+        injectStylesheet(w, config.include.fontawesome);
+        injectStylesheet(w, config.include.bootstrap);
+        injectStylesheet(w, config.include.mdb);
         DomTamper.injectStyle(w, 'content_css');
+        injectScript(w, config.include.jquery);
+        injectScript(w, config.include.resultWindowScript);
     };
 
     var createBugReportLink = function(w, additionalClass){
@@ -65,6 +76,13 @@ var DomTamper = (function(DomTamper){
         }
 
         prepareHead(w);
+        var pageContent = $('<div>').addClass('page-content');
+        pageContent.append(createErrorContent(exception));
+        pageContent.append(createBugReportLink(w, type === 'error' ? 'btn-danger' : 'special-color white-text'));
+        prepareBody(w, pageContent);
+    };
+
+    var createErrorContent = function(exception){
         var type = 'error';
         var caption = 'Niespodziewany błąd';
         var message = 'Natrafiono na niespodziewany błąd: ' + exception;
@@ -74,7 +92,6 @@ var DomTamper = (function(DomTamper){
             type = exception.error.type !== undefined ? exception.error.type : 'error';
         }
         var typeClass = type === 'error' ? 'bg-danger' : 'bg-dark';
-        var pageContent = $('<div>').addClass('page-content');
         var card = $('<div>').addClass('card text-white mb-3').addClass(typeClass);
         var cardHeader = $('<div>').addClass('card-header')
             .text('Niestety natrafiono na problem, który uniemożliwił dalsze działanie');
@@ -85,11 +102,8 @@ var DomTamper = (function(DomTamper){
                 .append('Informacje o systemie: ').append(platform.description))
             .append($('<div>').addClass('card-text text-white')
                 .append('Wersja pluginu: ').append(GM_info.version));
-
-        pageContent.append(card.append(cardHeader).append(cardBody))
-            .append(createBugReportLink(w, type === 'error' ? 'btn-danger' : 'special-color white-text'));
-
-        prepareBody(w, pageContent);
+        card.append(cardHeader).append(cardBody);
+        return card;
     };
 
     DomTamper.createButton = function(properties){
@@ -199,10 +213,20 @@ var DomTamper = (function(DomTamper){
         prepareHead(w);
         setWindowTitle(data, w);
         var pageContent = $('<div>').addClass('page-content');
-        pageContent.append(createTable(data, w));
+        var parentExist = $('<div>').attr('id', 'parentExist').append(createTable(data, w));
+        var parentNotExist = $('<div>').attr('id', 'parentNotExist').append(
+            createErrorContent(new Exception(config.error.noParent, window.location.href))
+        ).addClass('do-not-display');
+        pageContent.append(parentNotExist);
+        pageContent.append(parentExist);
         pageContent.append(createBugReportLink(w, 'special-color white-text'));
         pageContent.append(createNotificationContainer());
         prepareBody(w, pageContent, true);
+        Tool.bindWindowFocus(w, onResultWindowFocus);
+    };
+
+    var onResultWindowFocus = function(isFocused){
+        alert('Focus: ' + isFocused);
     };
 
     var createNotificationContainer = function(){

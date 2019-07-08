@@ -2,18 +2,28 @@ const config = {
     attempts: 10,
     attemptTimeout: 1500,
     storageItem: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
-    fontawesome: {
-        id: 'fontawesome',
-        css: 'https://use.fontawesome.com/releases/v5.8.2/css/all.css'
-    },
-    bootstrap: {
-        id: 'bootstrap',
-        css: 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css'
-    },
-    mdb: {
-        id: 'mdb',
-        css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
-        /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
+    include: {
+        fontawesome: {
+            id: 'fontawesome',
+            css: 'https://use.fontawesome.com/releases/v5.8.2/css/all.css'
+        },
+        bootstrap: {
+            id: 'bootstrap',
+            css: 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css'
+        },
+        mdb: {
+            id: 'mdb',
+            css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
+            /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
+        },
+        jquery: {
+            id: 'jquery',
+            js: 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js'
+        },
+        resultWindowScript: {
+            id: 'result-window-script',
+            js: 'http://localhost:5011/lib/js/resultWindowActions.js'
+        }
     },
     error: {
         id: {
@@ -44,6 +54,12 @@ const config = {
             caption: 'Zbyt długi czas odpowiedzi.',
             template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie "${1}" nie dotarły \
                 informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
+        },
+        noParent: {
+            caption: 'Brak zakładki ze stroną główną.',
+            template: Tool.template`Została zamknięta zakładka ze stroną na której został uruchomiony skrypt. \
+                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n${0}\n
+                    by przywrócić prawidłowe funkcjonowanie skryptu.`
         }
     }
 };
