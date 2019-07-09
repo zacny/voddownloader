@@ -12,7 +12,7 @@ var CDA = (function(CDA) {
     });
 
     var clickButton = function(){
-        var w = window.open('', 'voddownloader-results');
+        var w = window.open();
         try {
             var url = $("video.pb-video-player").attr('src');
             if(url !== undefined){
