@@ -86,7 +86,7 @@ function utilPartAttach() {
         .pipe(order([
             'exception.js', 'format.js', 'tool.js', 'config.js', 'asyncStep.js', 'notification.js',
             'pluginSettingsDetector.js', 'domTamper.js', 'executor.js', 'configurator.js', 'changeVideoDetector.js',
-            'wrapperDetector.js', 'parentUnloader.js'
+            'wrapperDetector.js', 'unloader.js'
         ]))
         .pipe(concat('utils.js'))
         .pipe(gulp.dest(config.tmp_dir));

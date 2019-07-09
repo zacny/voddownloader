@@ -36,7 +36,7 @@ var NINATEKA = (function(NINATEKA) {
     };
 
     var clickButton = function(){
-        var w = window.open('', 'voddownloader-results');
+        var w = window.open();
         try {
             var videoPlayer = $('#videoPlayer').data('player-setup');
             var sources = (videoPlayer || {}).sources || {};

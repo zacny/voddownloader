@@ -62,7 +62,7 @@ var DomTamper = (function(DomTamper){
 
     DomTamper.handleError = function(exception, w){
         if(w === undefined){
-            w = window.open('', 'voddownloader-results');
+            w = window.open();
         }
 
         prepareHead(w);
@@ -117,25 +117,11 @@ var DomTamper = (function(DomTamper){
 
     DomTamper.createLoader = function(w){
         prepareHead(w);
-        var extraContent = createLoaderContent();
-        var pageContent = createPageContent(extraContent);
+        var pageContent = $('<div>').addClass('page-content');
+        pageContent.append(createLoaderContent());
         pageContent.append(createBugReportLink(w, 'special-color white-text'));
         prepareBody(w, pageContent);
-        ParentUnloader.init();
-    };
-
-    var createPageContent = function(extraContent){
-        var pageContent = $('<div>').addClass('page-content');
-        var parentExist = $('<div>').attr('id', 'parent-exist');
-        var parentNotExist = $('<div>').attr('id', 'parent-not-exist').append(
-            createErrorContent(getErrorData(new Exception(config.error.noParent, window.location.href)))
-        ).addClass('do-not-display');
-
-        parentExist.append(extraContent);
-        pageContent.append(parentNotExist);
-        pageContent.append(parentExist);
-
-        return pageContent;
+        Unloader.init(w);
     };
 
     var createLoaderContent = function(){
@@ -233,12 +219,12 @@ var DomTamper = (function(DomTamper){
 
         prepareHead(w);
         setWindowTitle(data, w);
-        var extraContent = createTable(data, w);
-        var pageContent = createPageContent(extraContent);
+        var pageContent = $('<div>').addClass('page-content');
+        pageContent.append(createTable(data, w));
         pageContent.append(createBugReportLink(w, 'special-color white-text'));
         pageContent.append(createNotificationContainer());
         prepareBody(w, pageContent, true);
-        ParentUnloader.init();
+        Unloader.init(w);
     };
     var createNotificationContainer = function(){
         return $('<div>').attr('id', 'notification-container')

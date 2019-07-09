@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.11.0
+// @version        5.11.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -144,12 +144,6 @@
 	            caption: 'Zbyt długi czas odpowiedzi.',
 	            template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie "${1}" nie dotarły \
 	                informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
-	        },
-	        noParent: {
-	            caption: 'Brak zakładki ze stroną główną.',
-	            template: Tool.template`Została zamknięta zakładka ze stroną na której został uruchomiony skrypt. \
-	                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n${0}\n
-	                    by przywrócić prawidłowe funkcjonowanie skryptu.`
 	        }
 	    }
 	};
@@ -340,7 +334,7 @@
 	
 	    DomTamper.handleError = function(exception, w){
 	        if(w === undefined){
-	            w = window.open('', 'voddownloader-results');
+	            w = window.open();
 	        }
 	
 	        prepareHead(w);
@@ -395,25 +389,11 @@
 	
 	    DomTamper.createLoader = function(w){
 	        prepareHead(w);
-	        var extraContent = createLoaderContent();
-	        var pageContent = createPageContent(extraContent);
+	        var pageContent = $('<div>').addClass('page-content');
+	        pageContent.append(createLoaderContent());
 	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
 	        prepareBody(w, pageContent);
-	        ParentUnloader.init();
-	    };
-	
-	    var createPageContent = function(extraContent){
-	        var pageContent = $('<div>').addClass('page-content');
-	        var parentExist = $('<div>').attr('id', 'parent-exist');
-	        var parentNotExist = $('<div>').attr('id', 'parent-not-exist').append(
-	            createErrorContent(getErrorData(new Exception(config.error.noParent, window.location.href)))
-	        ).addClass('do-not-display');
-	
-	        parentExist.append(extraContent);
-	        pageContent.append(parentNotExist);
-	        pageContent.append(parentExist);
-	
-	        return pageContent;
+	        Unloader.init(w);
 	    };
 	
 	    var createLoaderContent = function(){
@@ -511,12 +491,12 @@
 	
 	        prepareHead(w);
 	        setWindowTitle(data, w);
-	        var extraContent = createTable(data, w);
-	        var pageContent = createPageContent(extraContent);
+	        var pageContent = $('<div>').addClass('page-content');
+	        pageContent.append(createTable(data, w));
 	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
 	        pageContent.append(createNotificationContainer());
 	        prepareBody(w, pageContent, true);
-	        ParentUnloader.init();
+	        Unloader.init(w);
 	    };
 	    var createNotificationContainer = function(){
 	        return $('<div>').attr('id', 'notification-container')
@@ -597,7 +577,7 @@
 	    Executor.asyncChain = function(service, options, w){
 	        try {
 	            if(w === undefined){
-	                w = window.open('', 'voddownloader-results');
+	                w = window.open();
 	                DomTamper.createLoader(w);
 	            }
 	
@@ -716,19 +696,20 @@
 	    return WrapperDetector;
 	}(WrapperDetector || {}));
 	
-	var ParentUnloader = (function(ParentUnloader) {
+	var Unloader = (function(Unloader) {
+	    var win;
 	
-	    ParentUnloader.init = function(){
+	    Unloader.init = function(w){
+	        win = w;
 	        $(window).bind('beforeunload', function(){
-	            var w = window.open('', 'voddownloader-results');
-	            $('#parent-exist', w.document.body).addClass('do-not-display');
-	            $('#parent-not-exist', w.document.body).removeClass('do-not-display');
-	            $('#bug-report-button', w.document.body).removeClass('special-color white-text').addClass('btn-danger');
+	            if(!win.closed) {
+	                win.close();
+	            }
 	        });
 	    };
 	
-	    return ParentUnloader;
-	}(ParentUnloader || {}));
+	    return Unloader;
+	}(Unloader || {}));
 	
 	var VOD_TVP = (function(VOD_TVP) {
 	    var properties = Configurator.setup({
@@ -1261,7 +1242,7 @@
 	    });
 	
 	    var clickButton = function(){
-	        var w = window.open('', 'voddownloader-results');
+	        var w = window.open();
 	        try {
 	            var url = $("video.pb-video-player").attr('src');
 	            if(url !== undefined){
@@ -1339,7 +1320,7 @@
 	    };
 	
 	    var clickButton = function(){
-	        var w = window.open('', 'voddownloader-results');
+	        var w = window.open();
 	        try {
 	            var videoPlayer = $('#videoPlayer').data('player-setup');
 	            var sources = (videoPlayer || {}).sources || {};
