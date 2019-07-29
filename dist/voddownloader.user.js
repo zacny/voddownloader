@@ -144,6 +144,12 @@
 	            caption: 'Zbyt długi czas odpowiedzi.',
 	            template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie "${1}" nie dotarły \
 	                informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
+	        },
+	        noParent: {
+	            caption: 'Brak zakładki ze stroną główną.',
+	            template: Tool.template`Została zamknięta zakładka ze stroną na której został uruchomiony skrypt. \
+	                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n${0}\n
+	                    by przywrócić prawidłowe funkcjonowanie skryptu.`
 	        }
 	    }
 	};
@@ -698,12 +704,14 @@
 	
 	var Unloader = (function(Unloader) {
 	    var win;
+	    var url;
 	
 	    Unloader.init = function(w){
 	        win = w;
+	        url = window.location.href;
 	        $(window).bind('beforeunload', function(){
 	            if(!win.closed) {
-	                win.close();
+	                DomTamper.handleError(new Exception(config.error.noParent, url), win);
 	            }
 	        });
 	    };
@@ -812,6 +820,12 @@
 	        var src = $('iframe#JS-TVPlayer').attr('src');
 	        if(src !== undefined) {
 	            return src.split("/").pop();
+	        }
+	        else {
+	            var div = $('div.playerWidget');
+	            if(div !== undefined){
+	                return div.attr('data-video-id');
+	            }
 	        }
 	
 	        throw new Exception(config.error.id, window.location.href);

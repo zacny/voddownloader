@@ -26,6 +26,12 @@ var CYF_TVP = (function(CYF_TVP) {
         if(src !== undefined) {
             return src.split("/").pop();
         }
+        else {
+            var div = $('div.playerWidget');
+            if(div !== undefined){
+                return div.attr('data-video-id');
+            }
+        }
 
         throw new Exception(config.error.id, window.location.href);
     };

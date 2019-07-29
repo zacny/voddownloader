@@ -44,7 +44,7 @@ https://vod.tvp.pl/video/wiadomosci,17052019-1200,42549669
 #VOD
 https://vod.pl/programy-onetu/onet-rano-online-za-darmo/9l14dv6
 https://vod.pl/seriale/upadek/86x3xz5
-#player
+#VOD player
 https://vod.pl/playerpl-promocja/programy-online/automaniak-odcinki,139/odcinek-2,S06E02,16815
 https://vod.pl/playerpl-promocja/programy-online/dzentelmeni-i-wiesniacy-odcinki,10536
 
