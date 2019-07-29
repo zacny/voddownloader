@@ -46,6 +46,12 @@ const config = {
             caption: 'Zbyt długi czas odpowiedzi.',
             template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie "${1}" nie dotarły \
                 informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
+        },
+        noParent: {
+            caption: 'Brak zakładki ze stroną główną.',
+            template: Tool.template`Została zamknięta zakładka ze stroną na której został uruchomiony skrypt. \
+                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n${0}\n
+                    by przywrócić prawidłowe funkcjonowanie skryptu.`
         }
     }
 };

@@ -1,11 +1,13 @@
 var Unloader = (function(Unloader) {
     var win;
+    var url;
 
     Unloader.init = function(w){
         win = w;
+        url = window.location.href;
         $(window).bind('beforeunload', function(){
             if(!win.closed) {
-                win.close();
+                DomTamper.handleError(new Exception(config.error.noParent, url), win);
             }
         });
     };
