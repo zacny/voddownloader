@@ -85,10 +85,17 @@ var DomTamper = (function(DomTamper){
         }
 
         return {
-            message: message,
+            message: linkify(message),
             caption: caption,
             type: type
         }
+    };
+
+    var linkify = function(text) {
+        var linkDetectionRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+        return text.replace(linkDetectionRegex, function(url) {
+            return '<u><a class="text-white" href="' + url + '">' + url + '</a></u>';
+        });
     };
 
     var createErrorContent = function(errorData){
