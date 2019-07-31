@@ -20,19 +20,19 @@ const config = {
     error: {
         id: {
             caption: 'Nie udało się odnaleźć idetyfikatora.',
-            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: "${0}" \
+            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: ${0} \
                 zakończył się niepowodzeniem. Może to oznaczać błąd skryptu.`,
         },
         tvnId: {
             caption: 'Nie udało się odnaleźć idetyfikatora.',
-            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: "${0}" \
+            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: ${0} \
                 zakończył się niepowodzeniem.\nJeżeli jest to główna strona programu oznacza to, \
                 że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka \
                 i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
         },
         call: {
             caption: 'Błąd pobierania informacji o materiale.',
-            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: "${1}"
+            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: ${1} \
                 Zgłoś problem autorom skryptu.`,
         },
         noSource: {
@@ -50,7 +50,7 @@ const config = {
         noParent: {
             caption: 'Brak zakładki ze stroną główną.',
             template: Tool.template`Została zamknięta zakładka ze stroną na której został uruchomiony skrypt. \
-                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n${0}\n
+                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n ${0} \n
                     by przywrócić prawidłowe funkcjonowanie skryptu.`
         }
     }

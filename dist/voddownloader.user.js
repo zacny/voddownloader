@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.11.2
+// @version        5.11.3
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -118,19 +118,19 @@
 	    error: {
 	        id: {
 	            caption: 'Nie udało się odnaleźć idetyfikatora.',
-	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: "${0}" \
+	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: ${0} \
 	                zakończył się niepowodzeniem. Może to oznaczać błąd skryptu.`,
 	        },
 	        tvnId: {
 	            caption: 'Nie udało się odnaleźć idetyfikatora.',
-	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: "${0}" \
+	            template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: ${0} \
 	                zakończył się niepowodzeniem.\nJeżeli jest to główna strona programu oznacza to, \
 	                że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka \
 	                i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
 	        },
 	        call: {
 	            caption: 'Błąd pobierania informacji o materiale.',
-	            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: "${1}"
+	            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: ${1} \
 	                Zgłoś problem autorom skryptu.`,
 	        },
 	        noSource: {
@@ -148,7 +148,7 @@
 	        noParent: {
 	            caption: 'Brak zakładki ze stroną główną.',
 	            template: Tool.template`Została zamknięta zakładka ze stroną na której został uruchomiony skrypt. \
-	                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n${0}\n
+	                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n ${0} \n
 	                    by przywrócić prawidłowe funkcjonowanie skryptu.`
 	        }
 	    }
@@ -363,10 +363,17 @@
 	        }
 	
 	        return {
-	            message: message,
+	            message: linkify(message),
 	            caption: caption,
 	            type: type
 	        }
+	    };
+	
+	    var linkify = function(text) {
+	        var linkDetectionRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+	        return text.replace(linkDetectionRegex, function(url) {
+	            return '<u><a class="text-white" href="' + url + '">' + url + '</a></u>';
+	        });
 	    };
 	
 	    var createErrorContent = function(errorData){
