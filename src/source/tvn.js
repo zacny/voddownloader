@@ -43,7 +43,7 @@ var TVN = (function(TVN) {
     var serialIdParser = function () {
         var match = window.location.href.match(/odcinki,(\d+)/);
         if(match && match[1]){
-            throw new Exception(config.error.tvnId, window.location.href);
+            throw new Exception(config.error.tvnId, Tool.getRealUrl());
         }
 
         return vodIdParser();
@@ -55,7 +55,7 @@ var TVN = (function(TVN) {
             return match[1];
         }
 
-        throw new Exception(config.error.tvnId, window.location.href);
+        throw new Exception(config.error.tvnId, Tool.getRealUrl());
     };
 
     var formatParser = function(data){
@@ -83,11 +83,23 @@ var TVN = (function(TVN) {
                 formats: formats
             }
         }
-        throw new Exception(config.error.noSource, window.location.href);
+        throw new Exception(config.error.noSource, Tool.getRealUrl());
     };
 
     TVN.waitOnWrapper = function(){
-        WrapperDetector.run(properties, TVN.waitOnWrapper);
+        if(Tool.isTopWindow()) {
+            WrapperDetector.run(properties, TVN.waitOnWrapper);
+        }
+        else {
+            var callback = function(data) {
+                window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
+                WrapperDetector.run(properties, TVN.waitOnWrapper);
+            };
+            MessageReceiver.awaitMessage({
+                origin: 'https://vod.pl',
+                windowReference: window.parent
+            }, callback);
+        }
     };
 
     return TVN;

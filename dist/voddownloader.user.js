@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.11.3
+// @version        5.12.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -23,7 +23,7 @@
 // @include        https://video.wp.pl/*
 // @include        https://ninateka.pl/*
 // @include        https://www.arte.tv/player/*
-// @exclude        https://vod.pl/playerpl*
+// @include        https://pulsembed.eu/*
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
@@ -94,13 +94,25 @@
 	        });
 	    };
 	
+	    Tool.getRealUrl = function(){
+	        var topUrl = window.sessionStorage.getItem(config.storage.topWindowLocation);
+	        return topUrl !== null ? topUrl : window.location.href;
+	    };
+	
+	    Tool.isTopWindow = function(){
+	        return window.top === window.self;
+	    };
+	
 	    return Tool;
 	}(Tool || {}));
 	
 	const config = {
 	    attempts: 10,
 	    attemptTimeout: 1500,
-	    storageItem: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
+	    storage: {
+	        doNotWarn: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
+	        topWindowLocation: 'voddownloader.topWindowLocation'
+	    },
 	    include: {
 	        fontawesome: {
 	            id: 'fontawesome',
@@ -251,7 +263,7 @@
 	        return $('<button>').attr('type', 'button').addClass('btn btn-dark btn-sm m-1 pl-3 pr-3')
 	            .append($('<i>').addClass('fas pr-1 fa-window-close')).append('Nie pokazuj więcej').click(function(){
 	                var rootElement = $(w.document.body);
-	                w.localStorage.setItem(config.storageItem, true);
+	                w.localStorage.setItem(config.storage.doNotWarn, true);
 	                $('.toast.special-color', rootElement).toast('hide');
 	                setTimeout(function(){
 	                    $('.toast.special-color', rootElement).remove();
@@ -268,7 +280,7 @@
 	        var downloadMode = GM_info.downloadMode;
 	        if(downloadMode !== 'browser'){
 	            disableDownload(w);
-	            var value = w.localStorage.getItem(config.storageItem);
+	            var value = w.localStorage.getItem(config.storage.doNotWarn);
 	            if(value !== 'true'){
 	                prepareWarningNotification(w);
 	            }
@@ -521,7 +533,7 @@
 	
 	var Executor = (function(Executor){
 	    var executeAsync = function(service, options, w){
-	        var exceptionParams = [options.stepIndex, window.location.href];
+	        var exceptionParams = [options.stepIndex, Tool.getRealUrl()];
 	        var resolveUrl = beforeStep(service, options);
 	        var requestParams = {
 	            method: 'GET',
@@ -670,24 +682,19 @@
 	}(ChangeVideoDetector || {}));
 	
 	var WrapperDetector = (function(WrapperDetector){
-	    var onWrapperExist = function(properties){
-	        if(properties.wrapper.exist()) {
-	            DomTamper.createButton(properties);
-	        }
-	        else {
-	            console.info("Nie mam nic do zrobienia");
-	        }
-	    };
-	
 	    var checkWrapperExist = function(attempt, properties){
 	        logWrapperMessage(properties.wrapper, attempt);
-	        if (properties.wrapper.exist() || attempt == 0) {
-	            return Promise.resolve().then(onWrapperExist(properties));
-	        } else {
-	            attempt = (attempt > 0) ? attempt-1 : attempt;
+	        if (properties.wrapper.exist()) {
+	            return Promise.resolve().then(
+	                DomTamper.createButton(properties)
+	            );
+	        } else if(attempt > 0){
+	            attempt = attempt-1;
 	            return Promise.resolve().then(
 	                setTimeout(checkWrapperExist, config.attemptTimeout, attempt, properties)
 	            );
+	        } else {
+	            console.info("Nie mam nic do zrobienia");
 	        }
 	    };
 	
@@ -709,13 +716,35 @@
 	    return WrapperDetector;
 	}(WrapperDetector || {}));
 	
+	var ElementDetector = (function(ElementDetector) {
+	    var elementSelector;
+	
+	    ElementDetector.detect = function(selector, callback){
+	        elementSelector = selector;
+	        checkElementExist(config.attempts, callback);
+	    };
+	
+	    var checkElementExist = function(attempt, callback){
+	        if ($(elementSelector).length > 0) {
+	            return Promise.resolve().then(callback());
+	        } else if(attempt > 0){
+	            attempt = attempt-1;
+	            return Promise.resolve().then(
+	                setTimeout(checkElementExist, config.attemptTimeout, attempt, callback)
+	            );
+	        }
+	    };
+	
+	    return ElementDetector;
+	}(ElementDetector || {}));
+	
 	var Unloader = (function(Unloader) {
 	    var win;
 	    var url;
 	
 	    Unloader.init = function(w){
 	        win = w;
-	        url = window.location.href;
+	        url = Tool.getRealUrl();
 	        $(window).bind('beforeunload', function(){
 	            if(!win.closed) {
 	                DomTamper.handleError(new Exception(config.error.noParent, url), win);
@@ -725,6 +754,83 @@
 	
 	    return Unloader;
 	}(Unloader || {}));
+	
+	var MessageReceiver = (function(MessageReceiver) {
+	    var win;
+	    var origin;
+	    var callbackFunction;
+	    var alreadyConfirmed = false;
+	    var alreadyPosted = false;
+	
+	    var receiveMessage = function(event, callback){
+	        if (event.origin !== origin) {
+	            return;
+	        }
+	
+	        var data = JSON.parse(event.data);
+	        if(data.confirmation){
+	            alreadyConfirmed = true;
+	        }
+	        else {
+	            data.confirmation = true;
+	            if(!alreadyPosted) {
+	                window.removeEventListener('message', callbackFunction);
+	                alreadyPosted = true;
+	                postMessage(data);
+	                callback(data);
+	            }
+	        }
+	    };
+	
+	    var postMessage = function(data){
+	        data = JSON.stringify(data);
+	        win.postMessage(data, '*');
+	    };
+	
+	    MessageReceiver.awaitMessage = function(object, callback){
+	        initCommunication(object, callback);
+	    };
+	
+	    var initCommunication = function(object, callback){
+	        callbackFunction = function(e){
+	            receiveMessage(e, callback);
+	        };
+	        window.addEventListener('message', callbackFunction);
+	        win = getProperty(object, 'windowReference');
+	        origin = getProperty(object, 'origin');
+	    };
+	
+	    var getProperty = function(object, prop){
+	        if(object.hasOwnProperty(prop)){
+	            return object[prop];
+	        }
+	    };
+	
+	    MessageReceiver.postUntilConfirmed = function(object){
+	        initCommunication(object);
+	        isMessageConfirmed(config.attempts, getProperty(object, 'message'))
+	    };
+	
+	    var isMessageConfirmed = function(attempt, message){
+	        if (alreadyConfirmed || attempt <= 0) {
+	            return Promise.resolve().then(function(){
+	                window.removeEventListener('message', callbackFunction);
+	                alreadyConfirmed = false;
+	                if(attempt <= 0){
+	                    console.warn("Nie udało się przekazać adresu z okna głównego.");
+	                }
+	            });
+	        } else if(attempt > 0){
+	            attempt = attempt-1;
+	            postMessage(message);
+	            return Promise.resolve().then(
+	                setTimeout(isMessageConfirmed, config.attemptTimeout, attempt, message)
+	            );
+	        }
+	    };
+	
+	    return MessageReceiver;
+	}(MessageReceiver || {}));
 	
 	var VOD_TVP = (function(VOD_TVP) {
 	    var properties = Configurator.setup({
@@ -929,7 +1035,7 @@
 	    var serialIdParser = function () {
 	        var match = window.location.href.match(/odcinki,(\d+)/);
 	        if(match && match[1]){
-	            throw new Exception(config.error.tvnId, window.location.href);
+	            throw new Exception(config.error.tvnId, Tool.getRealUrl());
 	        }
 	
 	        return vodIdParser();
@@ -941,7 +1047,7 @@
 	            return match[1];
 	        }
 	
-	        throw new Exception(config.error.tvnId, window.location.href);
+	        throw new Exception(config.error.tvnId, Tool.getRealUrl());
 	    };
 	
 	    var formatParser = function(data){
@@ -969,11 +1075,23 @@
 	                formats: formats
 	            }
 	        }
-	        throw new Exception(config.error.noSource, window.location.href);
+	        throw new Exception(config.error.noSource, Tool.getRealUrl());
 	    };
 	
 	    TVN.waitOnWrapper = function(){
-	        WrapperDetector.run(properties, TVN.waitOnWrapper);
+	        if(Tool.isTopWindow()) {
+	            WrapperDetector.run(properties, TVN.waitOnWrapper);
+	        }
+	        else {
+	            var callback = function(data) {
+	                window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
+	                WrapperDetector.run(properties, TVN.waitOnWrapper);
+	            };
+	            MessageReceiver.awaitMessage({
+	                origin: 'https://vod.pl',
+	                windowReference: window.parent
+	            }, callback);
+	        }
 	    };
 	
 	    return TVN;
@@ -1103,7 +1221,7 @@
 	            }
 	        }
 	
-	        throw new Exception(config.error.id, window.location.href);
+	        throw new Exception(config.error.id, Tool.getRealUrl());
 	    };
 	
 	    var formatParser = function (data) {
@@ -1125,20 +1243,45 @@
 	                formats: formats
 	            }
 	        }
-	        throw new Exception(config.error.noSource, window.location.href);
+	        throw new Exception(config.error.noSource, Tool.getRealUrl());
 	    };
 	
-	    var isTopWindow = function(){
-	        return window.top === window.self;
-	    };
-	
-	    var iplaSectionDetected = function(){
+	    var iplaDetected = function(){
 	        return $('#v_videoPlayer div.pulsembed_embed').length > 0;
 	    };
 	
+	    var playerDetected = function(){
+	        return $('div[id=v_body][style$="100vh;"]').length > 0;
+	    };
+	
+	    var getFrameSrc = function(){
+	        if(playerDetected()){
+	            return 'https://player.pl';
+	        }
+	        else if(iplaDetected()){
+	            return 'https://pulsembed.eu';
+	        }
+	    };
+	
 	    VOD.waitOnWrapper = function(){
-	        if(isTopWindow() && !iplaSectionDetected()){
-	            WrapperDetector.run(properties);
+	        if(Tool.isTopWindow()){
+	            if(playerDetected() || iplaDetected()) {
+	                var src = getFrameSrc();
+	                var frameSelector = 'iframe[src^="' + src + '"]';
+	
+	                ElementDetector.detect(frameSelector, function () {
+	                    MessageReceiver.postUntilConfirmed({
+	                        windowReference: $(frameSelector).get(0).contentWindow,
+	                        origin: src,
+	                        message: {
+	                            location: window.location.href
+	                        }
+	                    });
+	                });
+	            }
+	            else {
+	                WrapperDetector.run(properties);
+	            }
 	        }
 	    };
 	
@@ -1176,12 +1319,19 @@
 	            return JSON.parse(jsonObject[0].media).result.mediaItem.id;
 	        }
 	        catch(e){
-	            throw new Exception(config.error.id, window.location.href);//incorrect page url
+	            throw new Exception(config.error.id, Tool.getRealUrl());
 	        }
 	    };
 	
 	    VOD_IPLA.waitOnWrapper = function(){
-	        WrapperDetector.run(properties);
+	        var callback = function(data) {
+	            window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
+	            WrapperDetector.run(properties);
+	        };
+	        MessageReceiver.awaitMessage({
+	            origin: 'https://pulsembed.eu',
+	            windowReference: window.parent
+	        }, callback);
 	    };
 	
 	    return VOD_IPLA;
@@ -1465,6 +1615,32 @@
 	    return ARTE;
 	}(ARTE || {}));
 	
+	var VOD_FRAME = (function(VOD_FRAME) {
+	    VOD_FRAME.setup = function(){
+	        var callback = function(data) {
+	            var src = 'https://redir.atmcdn.pl';
+	            var frameSelector = 'iframe[src^="' + src + '"]'
+	
+	            ElementDetector.detect(frameSelector, function () {
+	                MessageReceiver.postUntilConfirmed({
+	                    windowReference: $(frameSelector).get(0).contentWindow,
+	                    origin: src,
+	                    message: {
+	                        location: data.location
+	                    }
+	                });
+	            });
+	        };
+	
+	        MessageReceiver.awaitMessage({
+	            origin: 'https://vod.pl',
+	            windowReference: window.parent
+	        }, callback);
+	    };
+	
+	    return VOD_FRAME;
+	}(VOD_FRAME || {}));
+	
 	var Starter = (function(Starter) {
 	    var tvZones = [
 	        'bialystok', 'katowice', 'lodz', 'rzeszow', 'bydgoszcz', 'kielce', 'olsztyn', 'szczecin',
@@ -1482,7 +1658,8 @@
 	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
 	        {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//},
 	        {action: NINATEKA.waitOnWrapper, pattern: /^https:\/\/ninateka.pl\//},
-	        {action: ARTE.waitOnWrapper, pattern: /^https:\/\/www.arte.tv\/player\//}
+	        {action: ARTE.waitOnWrapper, pattern: /^https:\/\/www.arte.tv\/player\//},
+	        {action: VOD_FRAME.setup, pattern: /^https:\/\/pulsembed\.eu\//}
 	    ];
 	
 	    Starter.start = function() {

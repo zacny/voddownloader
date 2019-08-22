@@ -1,6 +1,6 @@
 var Executor = (function(Executor){
     var executeAsync = function(service, options, w){
-        var exceptionParams = [options.stepIndex, window.location.href];
+        var exceptionParams = [options.stepIndex, Tool.getRealUrl()];
         var resolveUrl = beforeStep(service, options);
         console.log('step ' + options.chainName + '[' + options.stepIndex + ']: ' + resolveUrl.url);
         var requestParams = {

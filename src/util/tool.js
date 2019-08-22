@@ -34,5 +34,14 @@ var Tool = (function(Tool) {
         });
     };
 
+    Tool.getRealUrl = function(){
+        var topUrl = window.sessionStorage.getItem(config.storage.topWindowLocation);
+        return topUrl !== null ? topUrl : window.location.href;
+    };
+
+    Tool.isTopWindow = function(){
+        return window.top === window.self;
+    };
+
     return Tool;
 }(Tool || {}));

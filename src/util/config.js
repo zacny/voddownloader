@@ -1,7 +1,10 @@
 const config = {
     attempts: 10,
     attemptTimeout: 1500,
-    storageItem: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
+    storage: {
+        doNotWarn: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
+        topWindowLocation: 'voddownloader.topWindowLocation'
+    },
     include: {
         fontawesome: {
             id: 'fontawesome',
