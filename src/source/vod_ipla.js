@@ -29,12 +29,19 @@ var VOD_IPLA = (function(VOD_IPLA) {
             return JSON.parse(jsonObject[0].media).result.mediaItem.id;
         }
         catch(e){
-            throw new Exception(config.error.id, window.location.href);//incorrect page url
+            throw new Exception(config.error.id, Tool.getRealUrl());
         }
     };
 
     VOD_IPLA.waitOnWrapper = function(){
-        WrapperDetector.run(properties);
+        var callback = function(data) {
+            window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
+            WrapperDetector.run(properties);
+        };
+        MessageReceiver.awaitMessage({
+            origin: 'https://pulsembed.eu',
+            windowReference: window.parent
+        }, callback);
     };
 
     return VOD_IPLA;

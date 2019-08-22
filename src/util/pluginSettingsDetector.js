@@ -18,7 +18,7 @@ var PluginSettingsDetector = (function(PluginSettingsDetector){
         return $('<button>').attr('type', 'button').addClass('btn btn-dark btn-sm m-1 pl-3 pr-3')
             .append($('<i>').addClass('fas pr-1 fa-window-close')).append('Nie pokazuj więcej').click(function(){
                 var rootElement = $(w.document.body);
-                w.localStorage.setItem(config.storageItem, true);
+                w.localStorage.setItem(config.storage.doNotWarn, true);
                 $('.toast.special-color', rootElement).toast('hide');
                 setTimeout(function(){
                     $('.toast.special-color', rootElement).remove();
@@ -35,7 +35,7 @@ var PluginSettingsDetector = (function(PluginSettingsDetector){
         var downloadMode = GM_info.downloadMode;
         if(downloadMode !== 'browser'){
             disableDownload(w);
-            var value = w.localStorage.getItem(config.storageItem);
+            var value = w.localStorage.getItem(config.storage.doNotWarn);
             console.log('[' + config.storageItem + ']: ' + value);
             if(value !== 'true'){
                 prepareWarningNotification(w);

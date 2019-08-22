@@ -4,7 +4,7 @@ var Unloader = (function(Unloader) {
 
     Unloader.init = function(w){
         win = w;
-        url = window.location.href;
+        url = Tool.getRealUrl();
         $(window).bind('beforeunload', function(){
             if(!win.closed) {
                 DomTamper.handleError(new Exception(config.error.noParent, url), win);

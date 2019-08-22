@@ -42,7 +42,7 @@ var VOD = (function(VOD) {
             }
         }
 
-        throw new Exception(config.error.id, window.location.href);
+        throw new Exception(config.error.id, Tool.getRealUrl());
     };
 
     var formatParser = function (data) {
@@ -64,20 +64,45 @@ var VOD = (function(VOD) {
                 formats: formats
             }
         }
-        throw new Exception(config.error.noSource, window.location.href);
+        throw new Exception(config.error.noSource, Tool.getRealUrl());
     };
 
-    var isTopWindow = function(){
-        return window.top === window.self;
-    };
-
-    var iplaSectionDetected = function(){
+    var iplaDetected = function(){
         return $('#v_videoPlayer div.pulsembed_embed').length > 0;
     };
 
+    var playerDetected = function(){
+        return $('div[id=v_body][style$="100vh;"]').length > 0;
+    };
+
+    var getFrameSrc = function(){
+        if(playerDetected()){
+            return 'https://player.pl';
+        }
+        else if(iplaDetected()){
+            return 'https://pulsembed.eu';
+        }
+    };
+
     VOD.waitOnWrapper = function(){
-        if(isTopWindow() && !iplaSectionDetected()){
-            WrapperDetector.run(properties);
+        if(Tool.isTopWindow()){
+            if(playerDetected() || iplaDetected()) {
+                var src = getFrameSrc();
+                var frameSelector = 'iframe[src^="' + src + '"]';
+
+                ElementDetector.detect(frameSelector, function () {
+                    MessageReceiver.postUntilConfirmed({
+                        windowReference: $(frameSelector).get(0).contentWindow,
+                        origin: src,
+                        message: {
+                            location: window.location.href
+                        }
+                    });
+                });
+            }
+            else {
+                WrapperDetector.run(properties);
+            }
         }
     };
 

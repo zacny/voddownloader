@@ -1,22 +1,17 @@
 var WrapperDetector = (function(WrapperDetector){
-    var onWrapperExist = function(properties){
-        if(properties.wrapper.exist()) {
-            DomTamper.createButton(properties);
-        }
-        else {
-            console.info("Nie mam nic do zrobienia");
-        }
-    };
-
     var checkWrapperExist = function(attempt, properties){
         logWrapperMessage(properties.wrapper, attempt);
-        if (properties.wrapper.exist() || attempt == 0) {
-            return Promise.resolve().then(onWrapperExist(properties));
-        } else {
-            attempt = (attempt > 0) ? attempt-1 : attempt;
+        if (properties.wrapper.exist()) {
+            return Promise.resolve().then(
+                DomTamper.createButton(properties)
+            );
+        } else if(attempt > 0){
+            attempt = attempt-1;
             return Promise.resolve().then(
                 setTimeout(checkWrapperExist, config.attemptTimeout, attempt, properties)
             );
+        } else {
+            console.info("Nie mam nic do zrobienia");
         }
     };
 
