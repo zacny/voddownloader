@@ -5,16 +5,17 @@ Creates a button in top right corner of video, that you can use to download a co
 
 #### currently supported vod services
 - [vod.tvp.pl](https://vod.tvp.pl/)
-- [cyfrowa.tvp.pl](https://cyfrowa.tvp.pl)
-- [ninateka.pl](http://ninateka.pl)
-- [polish local tv](https://regiony.tvp.pl/)
+- [ipla.tv](https://www.ipla.tv)
 - [player.pl](https://player.pl/)
-- [cda.pl](https://www.cda.pl)
 - [vod.pl](https://vod.pl/)
 - [vod.pl - ipla bridge](https://vod.pl/cyfrowy-polsat-iplatv)
-- [ipla.tv](https://www.ipla.tv)
-- [video.wp.pl](https://video.wp.pl)
+- [vod.pl - player bridge](https://vod.pl/playerpl-promocja)
+- [polish regional tv](https://regiony.tvp.pl/)
+- [cyfrowa.tvp.pl](https://cyfrowa.tvp.pl)
 - [arte.tv](https://www.arte.tv)
+- [ninateka.pl](http://ninateka.pl)
+- [video.wp.pl](https://video.wp.pl)
+- [cda.pl](https://www.cda.pl)
 
 ## Installation
 
