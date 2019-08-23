@@ -15,7 +15,7 @@ var Starter = (function(Starter) {
         {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
         {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//},
         {action: NINATEKA.waitOnWrapper, pattern: /^https:\/\/ninateka.pl\//},
-        {action: ARTE.waitOnWrapper, pattern: /^https:\/\/www.arte.tv\/player\//},
+        {action: ARTE.waitOnWrapper, pattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
         {action: VOD_FRAME.setup, pattern: /^https:\/\/pulsembed\.eu\//}
     ];
 

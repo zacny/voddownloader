@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.12.0",
+  "version": "5.12.1",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -74,7 +74,7 @@
         "https://*.redcdn.pl/file/o2/redefine/partner/*",
         "https://video.wp.pl/*",
         "https://ninateka.pl/*",
-        "https://www.arte.tv/player/*",
+        "https://www.arte.tv/*/videos/*",
         "https://pulsembed.eu/*"
       ],
       "exclude": [
