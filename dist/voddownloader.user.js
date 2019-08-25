@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.12.1
+// @version        5.12.2
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -162,6 +162,11 @@
 	            template: Tool.template`Została zamknięta zakładka ze stroną na której został uruchomiony skrypt. \
 	                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n ${0} \n
 	                    by przywrócić prawidłowe funkcjonowanie skryptu.`
+	        },
+	        langCode: {
+	            caption: 'Nie udało się wykryć ustawień językowych.',
+	            template: Tool.template`Algorytm rozpoznawania ustawień językowych na stronie: ${0} \
+	                zakończył się niepowodzeniem. Może to oznaczać błąd skryptu.`,
 	        }
 	    }
 	};
@@ -1565,16 +1570,24 @@
 	    });
 	
 	    var detectLanguage = function() {
-	        var language = $('header > div > div > button > span');
-	        return language.length > 0 ? language.text().toLowerCase() : 'pl';
+	        try {
+	            var pageURL = window.location.href;
+	            var regexp = new RegExp('https:\/\/www.arte.tv\/(\\w{2})\/');
+	            var match = regexp.exec(pageURL);
+	            return match[1];
+	        }
+	        catch(e){
+	            throw new Exception(config.error.langCode, window.location.href);
+	        }
 	    };
 	
 	    var idParser = function() {
 	        try {
-	            var metaUrl = $('meta[property="og:url"]').attr('content');
-	            var url = decodeURIComponent(Tool.getUrlParameter('json_url', metaUrl));
+	            var pageURL = window.location.href;
+	            var regexp = new RegExp('https:\/\/www.arte.tv\/\\w{2}\/videos\/([\\w-]+)\/');
+	            var match = regexp.exec(pageURL);
 	            return {
-	                videoId: Tool.deleteParametersFromUrl(url).split('/').pop(),
+	                videoId: match[1],
 	                langCode: detectLanguage()
 	            };
 	        }
