@@ -71,38 +71,27 @@ var VOD = (function(VOD) {
         return $('#v_videoPlayer div.pulsembed_embed').length > 0;
     };
 
-    var playerDetected = function(){
-        return $('div[id=v_body][style$="100vh;"]').length > 0;
-    };
+    var workWithSubService = function(){
+        var src = 'https://pulsembed.eu';
+        var frameSelector = 'iframe[src^="' + src + '"]';
 
-    var getFrameSrc = function(){
-        if(playerDetected()){
-            return 'https://player.pl';
-        }
-        else if(iplaDetected()){
-            return 'https://pulsembed.eu';
-        }
+        ElementDetector.detect(frameSelector, function () {
+            MessageReceiver.postUntilConfirmed({
+                windowReference: $(frameSelector).get(0).contentWindow,
+                origin: src,
+                message: {
+                    location: window.location.href
+                }
+            });
+        });
     };
 
     VOD.waitOnWrapper = function(){
-        if(Tool.isTopWindow()){
-            if(playerDetected() || iplaDetected()) {
-                var src = getFrameSrc();
-                var frameSelector = 'iframe[src^="' + src + '"]';
-
-                ElementDetector.detect(frameSelector, function () {
-                    MessageReceiver.postUntilConfirmed({
-                        windowReference: $(frameSelector).get(0).contentWindow,
-                        origin: src,
-                        message: {
-                            location: window.location.href
-                        }
-                    });
-                });
-            }
-            else {
-                WrapperDetector.run(properties);
-            }
+        if(iplaDetected()) {
+            workWithSubService();
+        }
+        else {
+            WrapperDetector.run(properties);
         }
     };
 

@@ -42,13 +42,13 @@ var ARTE = (function(ARTE) {
     });
 
     var detectLanguage = function() {
-        var regexp = new RegExp('https:\/\/www.arte.tv\/(\\w{2})\/');
+        var regexp = new RegExp('https:\/\/www.arte\.tv\/(\\w{2})\/');
         var match = regexp.exec(window.location.href);
         return match[1];
     };
 
     var detectVideoId = function(){
-        var regexp = new RegExp('https:\/\/www.arte.tv\/\\w{2}\/videos\/([\\w-]+)\/');
+        var regexp = new RegExp('https:\/\/www.arte\.tv\/\\w{2}\/videos\/([\\w-]+)\/');
         var match = regexp.exec(window.location.href);
         return match[1];
     };
