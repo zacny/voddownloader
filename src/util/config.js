@@ -55,11 +55,6 @@ const config = {
             template: Tool.template`Została zamknięta zakładka ze stroną na której został uruchomiony skrypt. \
                     Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n ${0} \n
                     by przywrócić prawidłowe funkcjonowanie skryptu.`
-        },
-        langCode: {
-            caption: 'Nie udało się wykryć ustawień językowych.',
-            template: Tool.template`Algorytm rozpoznawania ustawień językowych na stronie: ${0} \
-                zakończył się niepowodzeniem. Może to oznaczać błąd skryptu.`,
         }
     }
 };

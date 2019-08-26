@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.12.2
+// @version        5.12.3
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -162,11 +162,6 @@
 	            template: Tool.template`Została zamknięta zakładka ze stroną na której został uruchomiony skrypt. \
 	                    Ta zakładka nie może przez to działać poprawnie. Otwórz ponownie stronę główną: \n ${0} \n
 	                    by przywrócić prawidłowe funkcjonowanie skryptu.`
-	        },
-	        langCode: {
-	            caption: 'Nie udało się wykryć ustawień językowych.',
-	            template: Tool.template`Algorytm rozpoznawania ustawień językowych na stronie: ${0} \
-	                zakończył się niepowodzeniem. Może to oznaczać błąd skryptu.`,
 	        }
 	    }
 	};
@@ -1570,24 +1565,21 @@
 	    });
 	
 	    var detectLanguage = function() {
-	        try {
-	            var pageURL = window.location.href;
-	            var regexp = new RegExp('https:\/\/www.arte.tv\/(\\w{2})\/');
-	            var match = regexp.exec(pageURL);
-	            return match[1];
-	        }
-	        catch(e){
-	            throw new Exception(config.error.langCode, window.location.href);
-	        }
+	        var regexp = new RegExp('https:\/\/www.arte.tv\/(\\w{2})\/');
+	        var match = regexp.exec(window.location.href);
+	        return match[1];
+	    };
+	
+	    var detectVideoId = function(){
+	        var regexp = new RegExp('https:\/\/www.arte.tv\/\\w{2}\/videos\/([\\w-]+)\/');
+	        var match = regexp.exec(window.location.href);
+	        return match[1];
 	    };
 	
 	    var idParser = function() {
 	        try {
-	            var pageURL = window.location.href;
-	            var regexp = new RegExp('https:\/\/www.arte.tv\/\\w{2}\/videos\/([\\w-]+)\/');
-	            var match = regexp.exec(pageURL);
 	            return {
-	                videoId: match[1],
+	                videoId: detectVideoId(),
 	                langCode: detectLanguage()
 	            };
 	        }
