@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.12.3
+// @version        5.12.4
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1078,20 +1078,20 @@
 	        throw new Exception(config.error.noSource, Tool.getRealUrl());
 	    };
 	
+	    var inVodFrame = function(){
+	        var regexp = new RegExp('https:\/\/player\.pl(.*)');
+	        var match = regexp.exec(window.location.href);
+	        if(match[1]) {
+	            window.sessionStorage.setItem(config.storage.topWindowLocation, 'https://vod.pl' + match[1]);
+	        }
+	    };
+	
 	    TVN.waitOnWrapper = function(){
-	        if(Tool.isTopWindow()) {
-	            WrapperDetector.run(properties, TVN.waitOnWrapper);
+	        if(!Tool.isTopWindow()) {
+	            inVodFrame();
 	        }
-	        else {
-	            var callback = function(data) {
-	                window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
-	                WrapperDetector.run(properties, TVN.waitOnWrapper);
-	            };
-	            MessageReceiver.awaitMessage({
-	                origin: 'https://vod.pl',
-	                windowReference: window.parent
-	            }, callback);
-	        }
+	
+	        WrapperDetector.run(properties, TVN.waitOnWrapper);
 	    };
 	
 	    return TVN;
@@ -1250,38 +1250,27 @@
 	        return $('#v_videoPlayer div.pulsembed_embed').length > 0;
 	    };
 	
-	    var playerDetected = function(){
-	        return $('div[id=v_body][style$="100vh;"]').length > 0;
-	    };
+	    var workWithSubService = function(){
+	        var src = 'https://pulsembed.eu';
+	        var frameSelector = 'iframe[src^="' + src + '"]';
 	
-	    var getFrameSrc = function(){
-	        if(playerDetected()){
-	            return 'https://player.pl';
-	        }
-	        else if(iplaDetected()){
-	            return 'https://pulsembed.eu';
-	        }
+	        ElementDetector.detect(frameSelector, function () {
+	            MessageReceiver.postUntilConfirmed({
+	                windowReference: $(frameSelector).get(0).contentWindow,
+	                origin: src,
+	                message: {
+	                    location: window.location.href
+	                }
+	            });
+	        });
 	    };
 	
 	    VOD.waitOnWrapper = function(){
-	        if(Tool.isTopWindow()){
-	            if(playerDetected() || iplaDetected()) {
-	                var src = getFrameSrc();
-	                var frameSelector = 'iframe[src^="' + src + '"]';
-	
-	                ElementDetector.detect(frameSelector, function () {
-	                    MessageReceiver.postUntilConfirmed({
-	                        windowReference: $(frameSelector).get(0).contentWindow,
-	                        origin: src,
-	                        message: {
-	                            location: window.location.href
-	                        }
-	                    });
-	                });
-	            }
-	            else {
-	                WrapperDetector.run(properties);
-	            }
+	        if(iplaDetected()) {
+	            workWithSubService();
+	        }
+	        else {
+	            WrapperDetector.run(properties);
 	        }
 	    };
 	
@@ -1565,13 +1554,13 @@
 	    });
 	
 	    var detectLanguage = function() {
-	        var regexp = new RegExp('https:\/\/www.arte.tv\/(\\w{2})\/');
+	        var regexp = new RegExp('https:\/\/www.arte\.tv\/(\\w{2})\/');
 	        var match = regexp.exec(window.location.href);
 	        return match[1];
 	    };
 	
 	    var detectVideoId = function(){
-	        var regexp = new RegExp('https:\/\/www.arte.tv\/\\w{2}\/videos\/([\\w-]+)\/');
+	        var regexp = new RegExp('https:\/\/www.arte\.tv\/\\w{2}\/videos\/([\\w-]+)\/');
 	        var match = regexp.exec(window.location.href);
 	        return match[1];
 	    };
@@ -1636,7 +1625,6 @@
 	                });
 	            });
 	        };
-	
 	        MessageReceiver.awaitMessage({
 	            origin: 'https://vod.pl',
 	            windowReference: window.parent

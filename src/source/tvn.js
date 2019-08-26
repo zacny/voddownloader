@@ -86,20 +86,20 @@ var TVN = (function(TVN) {
         throw new Exception(config.error.noSource, Tool.getRealUrl());
     };
 
+    var inVodFrame = function(){
+        var regexp = new RegExp('https:\/\/player\.pl(.*)');
+        var match = regexp.exec(window.location.href);
+        if(match[1]) {
+            window.sessionStorage.setItem(config.storage.topWindowLocation, 'https://vod.pl' + match[1]);
+        }
+    };
+
     TVN.waitOnWrapper = function(){
-        if(Tool.isTopWindow()) {
-            WrapperDetector.run(properties, TVN.waitOnWrapper);
+        if(!Tool.isTopWindow()) {
+            inVodFrame();
         }
-        else {
-            var callback = function(data) {
-                window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
-                WrapperDetector.run(properties, TVN.waitOnWrapper);
-            };
-            MessageReceiver.awaitMessage({
-                origin: 'https://vod.pl',
-                windowReference: window.parent
-            }, callback);
-        }
+
+        WrapperDetector.run(properties, TVN.waitOnWrapper);
     };
 
     return TVN;

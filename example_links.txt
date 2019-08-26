@@ -11,7 +11,7 @@ https://www.ipla.tv/wideo/film/Asteriks-i-Obeliks-Tajemnica-magicznego-wywaru/77
 #TVN
 https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114/odcinek-1,S01E01,1979
 https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114
-https://player.pl/filmy-online/podejrzani,68000
+https://player.pl/filmy-online/smoking,70856
 https://player.pl/programy-online/w-dobrym-stylu-odcinki,4667/odcinek-8,S03E08,82113
 
 #TVP_CYF
@@ -61,5 +61,4 @@ https://ninateka.pl/kolekcja-teatralna/material/dzis-sa-moje-urodziny-tadeusz-ka
 https://ninateka.pl/film/makbet
 
 #ARTE
-https://www.arte.tv/pl/videos/079474-057-A/re-zestarzec-sie-w-domu/
 https://www.arte.tv/pl/videos/049509-000-A/jharia-kraina-ognia/

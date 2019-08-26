@@ -14,7 +14,6 @@ var VOD_FRAME = (function(VOD_FRAME) {
                 });
             });
         };
-
         MessageReceiver.awaitMessage({
             origin: 'https://vod.pl',
             windowReference: window.parent
