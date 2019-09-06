@@ -1,20 +1,20 @@
 var WP = (function(WP) {
     var properties = Configurator.setup({
         wrapper: {
-            selector: '#mainPlayer'
+            selector: '#Player0 > div'
         },
         button: {
-            class: 'material__category wp_download_button'
+            class: 'wp_download_button material__category'
         },
         asyncChains: {
-            default: [
-                AsyncStep.setup({
+            videos: [
+                Step.setup({
                     urlTemplate: 'https://video.wp.pl/player/mid,#videoId,embed.json',
                     beforeStep: function (input) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return grabVideoFormats(output);
+                        return grabVideoData(output);
                     }
                 })
             ]
@@ -23,34 +23,33 @@ var WP = (function(WP) {
 
     var idParser = function () {
         try {
-            var pageURL = window.location.href;
-            var regexp = new RegExp('mid,(\\d+),cid');
-            var match = regexp.exec(pageURL);
-            return match[1];
+            return $('.identifier').attr('data-id');
         }
         catch(e){
             throw new Exception(config.error.id, window.location.href);
         }
     };
 
-    var grabVideoFormats = function(data){
-        var formats = [];
+    var grabVideoData = function(data){
+        var items = [];
         var urls = (data.clip || {}).url || {};
         if(urls && urls.length > 0){
             $.each(urls, function( index, value ) {
                 if(value.type === 'mp4@avc'){
-                    formats.push(new Format({
+                    items.push(new Format({
                         bitrate: value.quality,
-                        url: 'http:' + value.url,
+                        url: value.url,
                         quality: value.resolution
                     }));
                 }
             });
+
+            return {
+                title: data.clip.title,
+                cards: {videos: {items: items}}
+            }
         }
-        return {
-            title: data.clip.title,
-            formats: formats
-        }
+        throw new Exception(config.error.noSource, window.location.href);
     };
 
     WP.waitOnWrapper = function(){

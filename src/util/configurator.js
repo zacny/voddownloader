@@ -15,26 +15,69 @@ var Configurator = (function(Configurator){
                 style: '',
                 class: '',
                 click: function(){
-                    var chainName = service.chainSelector();
-                    Executor.asyncChain(service, {
+                    var chainNames = service.chainSelector();
+                    Executor.chain(service, {
                         stepIndex: 0,
-                        chainName: chainName
+                        chainIndex: 0,
+                        chainNames: chainNames
                     });
                 }
             },
+            cardsData: {
+                title: '',
+                cards: {
+                    videos: {
+                        icon: 'fa-video', label: 'Video', collapse: true, items: [],
+                        info: [
+                            {name: 'bitrate', desc: 'bitrate'},
+                            {name: 'quality', desc: 'rozdzielczość'},
+                            {name: 'langDesc', desc: 'wersja językowa'}
+                        ],
+                        actions: [
+                            {label: 'Pobierz', icon: 'fa-download'},
+                            {label: 'Kopiuj', icon: 'fa-clone'},
+                            {label: 'Otwórz', icon: 'fa-film'}
+                        ]
+                    },
+                    subtitles: {
+                        icon: 'fa-file-alt', label: 'Napisy', collapse: false, items: [],
+                        info: [
+                            {name: 'description', desc: 'opis'},
+                            {name: 'format', desc: 'format'},
+                        ],
+                        actions: [
+                            {label: 'Pobierz', icon: 'fa-download'}
+                        ]
+                    }
+                }
+            },
             asyncChains: {
-                default: []
+                videos: []
             },
             chainSelector: function(){
-                return "default";
+                return ['videos'];
             },
             formatter: function(data){
-                data.formats.sort(function (a, b) {
+                data.cards['videos'].items.sort(function (a, b) {
                     return b.bitrate - a.bitrate;
                 });
+                data.cards['subtitles'].items.sort(function (a, b) {
+                    return ('' + a.format).localeCompare(b.format);
+                });
+            },
+            aggregate: function(data){
+                var aggregatedData = {};
+                $.extend(true, aggregatedData, service.cardsData);
+                var chains = service.chainSelector();
+                chains.forEach(function(chain){
+                     $.extend(true, aggregatedData, data[chain]);
+                });
+                return aggregatedData;
             },
             onDone: function(data, w) {
-                DomTamper.createDocument(service, data, w);
+                var aggregatedData = service.aggregate(data);
+                service.formatter(aggregatedData);
+                DomTamper.createDocument(aggregatedData, w);
             }
         };
 

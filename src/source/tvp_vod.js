@@ -7,20 +7,20 @@ var VOD_TVP = (function(VOD_TVP) {
             class: 'video-block__btn tvp_vod_downlaod_button',
         },
         asyncChains: {
-            default: [
-                AsyncStep.setup({
+            videos: [
+                Step.setup({
                     urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
                     beforeStep: function (input) {
                         return idParser();
                     }
                 }),
-                AsyncStep.setup({
+                Step.setup({
                     urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
                     beforeStep: function (json) {
                         return getRealVideoId(json);
                     },
                     afterStep: function (output) {
-                        return VOD_TVP.grabVideoFormats(output);
+                        return VOD_TVP.grabVideoData(output);
                     }
                 })
             ]
@@ -46,12 +46,12 @@ var VOD_TVP = (function(VOD_TVP) {
         };
     };
 
-    VOD_TVP.grabVideoFormats = function(data){
-        var formats = [];
+    VOD_TVP.grabVideoData = function(data){
+        var items = [];
         if(data.status == 'OK' && data.formats !== undefined){
             $.each(data.formats, function( index, value ) {
                 if(value.adaptive == false){
-                    formats.push(new Format({
+                    items.push(new Format({
                         bitrate: value.totalBitrate,
                         url: value.url
                     }));
@@ -59,8 +59,8 @@ var VOD_TVP = (function(VOD_TVP) {
             });
             return {
                 title: data.title,
-                formats: formats
-            };
+                cards: {videos: {items: items}}
+            }
         }
         throw new Exception(config.error.noSource, window.location.href);
     };

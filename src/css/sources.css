@@ -128,11 +128,12 @@
 }
 
 .wp_download_button {
+    z-index: 3;
+    top: 0px;
+    left: 0px;
     position: absolute;
-    z-index: 2;
     border: 0px;
-    padding: 5px 15px;
-    font-family: Poppins,sans-serif;
+    font-family: Poppins, sans-serif;
 }
 
 .ninateka_download_button {

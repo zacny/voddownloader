@@ -28,8 +28,13 @@
     min-height: 10rem;
 }
 
-.actions-row {
+.action-row-3 {
     width: 20rem;
+    text-align: center;
+}
+
+.action-row-1 {
+    width: 9rem;
     text-align: center;
 }
 
@@ -39,4 +44,8 @@
 
 .notification-body {
     word-wrap: break-word;
+}
+
+.cursor-normal {
+    cursor: default !important;
 }

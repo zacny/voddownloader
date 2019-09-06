@@ -7,14 +7,14 @@ var CYF_TVP = (function(CYF_TVP) {
             class: 'video-block__btn tvp_cyf_downlaod_button'
         },
         asyncChains: {
-            default: [
-                AsyncStep.setup({
+            videos: [
+                Step.setup({
                     urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
                     beforeStep: function (input) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return VOD_TVP.grabVideoFormats(output);
+                        return VOD_TVP.grabVideoData(output);
                     }
                 })
             ]

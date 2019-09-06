@@ -13,15 +13,14 @@ var NINATEKA = (function(NINATEKA) {
 
     var prepareResult = function(url, w) {
         var title = $('meta[name="title"]');
-        var data = {
-            title: title.length > 0 ? title.attr('content').trim() : 'brak danych',
-            formats: [new Format({
-                url: url,
-                quality: undefined
-            })]
-        };
+        var cardsData = properties.cardsData;
+        cardsData.title = title.length > 0 ? title.attr('content').trim() : 'brak danych';
+        cardsData.cards['videos'].items = [new Format({
+            url: url,
+            quality: undefined
+        })];
 
-        DomTamper.createDocument(properties, data, w);
+        DomTamper.createDocument(cardsData, w);
     };
 
     var getMp4Source = function(w, sources){

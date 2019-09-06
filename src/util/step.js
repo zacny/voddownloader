@@ -1,11 +1,12 @@
-var AsyncStep = (function(AsyncStep){
-    AsyncStep.setup = function(properties){
+var Step = (function(Step){
+    Step.setup = function(properties){
         var step = {
             urlTemplate: '',
-            /** Will be done before async call. It should return an object ready to use by resolveUrl function. **/
+            /** Will be done before call. It should return an object ready to use by resolveUrl function. **/
             beforeStep: function(input){return input},
-            /** Will be done after async call **/
+            /** Will be done after call **/
             afterStep: function (output) {return output},
+            /** Processing parameters of url before step */
             resolveUrl: function (input) {
                 var url = this.urlTemplate;
                 var urlParams = {};
@@ -18,10 +19,18 @@ var AsyncStep = (function(AsyncStep){
                     url: url,
                     urlParams: urlParams
                 };
-            }
+            },
+            /** Is this step async? */
+            isAsync: function(){
+                return step.urlTemplate;
+            },
+            /** Method of async step */
+            method: 'GET',
+            /** Method parameters function of async step */
+            methodParam: function(){return {}}
         };
 
         return $.extend(true, step, properties);
     };
-    return AsyncStep;
-}(AsyncStep || {}));
+    return Step;
+}(Step || {}));
