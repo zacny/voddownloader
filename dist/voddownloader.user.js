@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        5.12.4
+// @version        6.0.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -35,6 +35,7 @@
 // @connect        getmedia.redefine.pl
 // @connect        player-api.dreamlab.pl
 // @connect        api.arte.tv
+// @connect        b2c.redefine.pl
 // @run-at         document-end
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
@@ -53,7 +54,8 @@
 	}
 	
 	function Format(data) {
-	    this.bitrate = 'brak danych';
+	    this.bitrate = null;
+	    this.format = null;
 	    this.playable = true;
 	    $.extend(true, this, data);
 	}
@@ -142,7 +144,7 @@
 	        },
 	        call: {
 	            caption: 'Błąd pobierania informacji o materiale.',
-	            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: ${1} \
+	            template: Tool.template`Wystąpił błąd w wykonaniu skryptu w kroku: ${0} na stronie: ${1} \
 	                Zgłoś problem autorom skryptu.`,
 	        },
 	        noSource: {
@@ -154,7 +156,7 @@
 	        },
 	        timeout: {
 	            caption: 'Zbyt długi czas odpowiedzi.',
-	            template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie "${1}" nie dotarły \
+	            template: Tool.template`Dla kroku: ${0} na stronie "${1}" nie dotarły \
 	                informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
 	        },
 	        noParent: {
@@ -167,8 +169,8 @@
 	};
 	
 	
-	var AsyncStep = (function(AsyncStep){
-	    AsyncStep.setup = function(properties){
+	var Step = (function(Step){
+	    Step.setup = function(properties){
 	        var step = {
 	            urlTemplate: '',
 	            beforeStep: function(input){return input},
@@ -185,13 +187,18 @@
 	                    url: url,
 	                    urlParams: urlParams
 	                };
-	            }
+	            },
+	            isAsync: function(){
+	                return step.urlTemplate;
+	            },
+	            method: 'GET',
+	            methodParam: function(){return {}}
 	        };
 	
 	        return $.extend(true, step, properties);
 	    };
-	    return AsyncStep;
-	}(AsyncStep || {}));
+	    return Step;
+	}(Step || {}));
 	
 	var Notification = (function(Notification) {
 	    var create = function(title, bodyContent, special) {
@@ -434,72 +441,6 @@
 	        return card;
 	    };
 	
-	    var createAction = function(iconClass, label){
-	        return $('<button>').attr('type', 'button').addClass('btn btn-dark btn-sm m-1 pl-3 pr-3')
-	            .append($('<i>').addClass('fas pr-1').addClass(iconClass)).append(label);
-	    };
-	
-	    var downloadActionClick = function (data, w) {
-	        var options = {title: 'Rozpoczęto pobieranie pliku', content: data.title};
-	        Tool.downloadFile(data.value.url, data.title);
-	        Notification.show(options, w);
-	    };
-	
-	    var copyActionClick = function (data, w) {
-	        GM_setClipboard(data.value.url);
-	        var options = {title: 'Kopiowanie', content: 'Skopiowano do schowka'};
-	        Notification.show(options, w);
-	    };
-	
-	    var openActionClick = function (data, w) {
-	        w.open(data.value.url);
-	    };
-	
-	    var createRow = function(data, rowClass, w){
-	        var actions = $('<td>').attr('scope', 'row').addClass('actions-row');
-	        actions.append(createAction('fa-save', 'Zapisz').click(
-	            function(){downloadActionClick(data, w)})
-	        );
-	        actions.append(createAction('fa-clone', 'Kopiuj').click(
-	            function() {copyActionClick(data, w)})
-	        );
-	        actions.append(createAction('fa-film', 'Otwórz').click(
-	            function() {openActionClick(data, w)})
-	        );
-	
-	        var descriptionHtml = $('<div>').append($('<b>').text('bitrate: ')).append($('<span>').text(data.value.bitrate));
-	        if(data.value.quality) {
-	            descriptionHtml.append($('<span>').text(', ')).append($('<b>').text('rozdzielczość: '))
-	                .append($('<span>').text(data.value.quality));
-	        }
-	        if(data.value.langDesc){
-	            descriptionHtml.append($('<span>').text(', ')).append($('<b>').text('wersja językowa: '))
-	                .append($('<span>').text(data.value.langDesc));
-	        }
-	        var description = $('<td>').html(descriptionHtml);
-	
-	        return $('<tr>').append(actions).append(description);
-	    };
-	
-	    var createTable = function(data, w){
-	        var table = $('<table>').addClass('table table-bordered table-striped btn-table')
-	            .append($('<thead>').addClass('black white-text')
-	                .append($('<tr>').append($('<th>').attr('scope', 'col').attr('colspan', 2).text(data.title)))
-	            );
-	        var tbody = $('<tbody>');
-	        table.append(tbody);
-	        $.each(data.formats, function(index, value) {
-	            var rowClass = index === 0 ? 'best-quality' : '';
-	            var params = {
-	                value: value,
-	                title: data.title
-	            };
-	            tbody.append(createRow(params, rowClass, w));
-	        });
-	
-	        return table;
-	    };
-	
 	    var setWindowTitle = function(data, w){
 	        var head = $(w.document.head);
 	        var title = head.find('title');
@@ -511,18 +452,18 @@
 	        }
 	    };
 	
-	    DomTamper.createDocument = function(service, data, w){
-	        service.formatter(data);
-	
+	    DomTamper.createDocument = function(data, w){
 	        prepareHead(w);
 	        setWindowTitle(data, w);
 	        var pageContent = $('<div>').addClass('page-content');
-	        pageContent.append(createTable(data, w));
+	        pageContent.append(Accordion.create(w, data));
 	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
 	        pageContent.append(createNotificationContainer());
 	        prepareBody(w, pageContent, true);
 	        Unloader.init(w);
+	        Accordion.bindActions(w, data);
 	    };
+	
 	    var createNotificationContainer = function(){
 	        return $('<div>').attr('id', 'notification-container')
 	            .attr('aria-live', 'polite').attr('aria-atomic', 'true').addClass('notification-container');
@@ -531,17 +472,202 @@
 	    return DomTamper;
 	}(DomTamper || {}));
 	
+	var Accordion = (function(Accordion) {
+	    Accordion.create = function(w, data){
+	        var mainCardTitle = $('<div>').addClass('card-header').text(data.title);
+	
+	        var accordion = $('<div>').addClass('accordion md-accordion').attr('id', 'accordion')
+	            .attr('role', 'tablist').attr('aria-multiselectable', 'true');
+	
+	        createCards(accordion, data);
+	
+	        var mainCardBody = $('<div>').addClass('card-body p-0').append(accordion);
+	        return $('<div>').addClass('card').append(mainCardTitle).append(mainCardBody);
+	    };
+	
+	    var createCards = function(accordion, data) {
+	        for(var key in data.cards) {
+	            var card = createCard({
+	                card: data.cards[key],
+	                key: key,
+	                title: data.title
+	            });
+	            accordion.append(card);
+	        }
+	    };
+	
+	    var createCard = function(data){
+	        var accordionCard = $('<div>').addClass('border border-top-0');
+	        var content = $('<div>').addClass('card-body pt-0');
+	
+	        var badgeClass = 'badge-light';
+	        var textMuted = 'text-muted';
+	        if(data.card.items.length > 0){
+	            badgeClass = 'badge-danger';
+	            textMuted = 'text-dark';
+	            content.append(createCardContent(data));
+	        }
+	
+	        var icon = $('<i>').addClass('fas').addClass(data.card.icon).addClass('pr-2');
+	        var badge = $('<span>').addClass('badge mr-3 float-right').addClass(badgeClass)
+	            .text(data.card.items.length);
+	        var cardTitle = $('<h6>').addClass('mb-0').addClass(textMuted).append(icon).append(badge)
+	            .append($('<span>').text(data.card.label));
+	        var link = $('<a>').append(cardTitle);
+	        var cardHeader = $('<div>').addClass('ml-3 p-2').attr('role', 'tab').attr('id', data.key).append(link);
+	
+	        var cardBody = $('<div>').addClass('collapse').attr('role', 'tabpanel')
+	            .attr('aria-labelledby', data.key).append(content);
+	        if(data.card.collapse){
+	            cardBody.addClass('show');
+	        }
+	
+	        accordionCard.append(cardHeader);
+	        accordionCard.append(cardBody);
+	        return accordionCard;
+	    };
+	
+	    var createCardContent = function(data){
+	        var table = $('<table>').addClass('table table-bordered table-striped btn-table');
+	        var tbody = $('<tbody>');
+	        table.append(tbody);
+	        createRows(tbody, data);
+	
+	        return table;
+	    };
+	
+	    var createRows = function(tableBody, data){
+	        data.card.items.forEach(function(item) {
+	            tableBody.append(createRow({
+	                item: item,
+	                info: data.card.info,
+	                title: data.title,
+	                actions: data.card.actions
+	            }));
+	        });
+	    };
+	
+	    var createRow = function(data){
+	        var actions = $('<td>').attr('scope', 'row').addClass('action-row-' + data.actions.length);
+	        data.actions.forEach(function(action){
+	            actions.append(createButton(action, data));
+	        });
+	
+	        var description = $('<td>').html(createDescriptionHtml(data));
+	        return $('<tr>').append(actions).append(description);
+	    };
+	
+	    var createDescriptionHtml = function(data){
+	        var descriptionHtml = $('<div>');
+	
+	        createDescription(data).forEach(function(item, idx, array){
+	            descriptionHtml.append($('<b>').text(item.desc + ': '))
+	                .append($('<span>').text(item.value));
+	            if(idx !== array.length - 1) {//not last
+	                descriptionHtml.append($('<span>').text(', '));
+	            }
+	        });
+	        return descriptionHtml;
+	    };
+	
+	    var itemExist = function(data, info){
+	        return data.item.hasOwnProperty(info.name) && data.item[info.name] != null
+	    };
+	
+	    var createDescription = function(data){
+	        var description = [];
+	        data.info.forEach(function(info){
+	            if (itemExist(data, info)) {
+	                description.push({
+	                    desc: info.desc,
+	                    value: data.item[info.name]
+	                });
+	            }
+	        });
+	        return description;
+	    };
+	
+	    var createButton = function(action, data){
+	        return $('<button>').attr('type', 'button').attr('data-url', data.item.url).attr('data-title', data.title)
+	            .addClass('btn btn-dark btn-sm m-1 pl-3 pr-3')
+	            .append($('<i>').addClass('fas pr-1').addClass(action.icon)).append(action.label);
+	    };
+	
+	    Accordion.bindActions = function(w, data){
+	        cardActions(w, data);
+	        buttonActions(w);
+	    };
+	
+	    var cardActions = function(w, data){
+	        for(var key in data.cards) {
+	            var cardHeader = $(w.document.body).find('#' + key);
+	            var disabled = cardHeader.find('h6.text-muted');
+	            if(disabled.length){
+	                disabled.addClass('cursor-normal');
+	                return;
+	            }
+	
+	            $(w.document.body).find('#' + key).click(function() {
+	                var id = $(this).attr('id');
+	                $(w.document.body).find('div[aria-labelledby="' + id + '"]').toggle();
+	            });
+	        }
+	    };
+	
+	    var buttonActions = function(w){
+	        getButton(w, '.fa-clone').click(function(){ copyActionClick($(this), w) });
+	        getButton(w, '.fa-film').click(function(){ openActionClick($(this), w) });
+	        getButton(w, '.fa-download').click(function(){ downloadActionClick($(this), w) });
+	    };
+	
+	    var getButton = function(w, iconClass){
+	        return $(w.document.body).find(iconClass).parent();
+	    };
+	
+	    var downloadActionClick = function (element, w) {
+	        var options = {title: 'Rozpoczęto pobieranie pliku', content: element.attr('data-title')};
+	        Tool.downloadFile(element.attr('data-url'), element.attr('data-title'));
+	        Notification.show(options, w);
+	    };
+	
+	    var copyActionClick = function (element, w) {
+	        GM_setClipboard(element.attr('data-url'));
+	        var options = {title: 'Kopiowanie', content: 'Skopiowano do schowka'};
+	        Notification.show(options, w);
+	    };
+	
+	    var openActionClick = function (element, w) {
+	        w.open(element.attr('data-url'));
+	    };
+	
+	    return Accordion;
+	}(Accordion || {}));
+	
 	var Executor = (function(Executor){
-	    var executeAsync = function(service, options, w){
-	        var exceptionParams = [options.stepIndex, Tool.getRealUrl()];
-	        var resolveUrl = beforeStep(service, options);
+	    var execute = function(service, options, w){
+	        var setup = setupStep(service, options);
+	        logStepInfo(options, setup);
+	        if(setup.isAsync){
+	             executeAsync(service, setup, options, w);
+	        }
+	        else {
+	            options.temporaryData = {};
+	            callback(service, options, w);
+	        }
+	    };
+	
+	    var executeAsync = function(service, setup, options, w){
+	        var chain = options.chainNames[options.chainIndex];
+	        var chainStep = chain + '[' + options.stepIndex + ']';
+	        var exceptionParams = [chainStep, Tool.getRealUrl()];
 	        var requestParams = {
-	            method: 'GET',
-	            url: resolveUrl.url,
+	            method: setup.method,
+	            url: setup.resolveUrl.url,
+	            data: JSON.stringify(setup.methodParam),
 	            responseType: 'json',
 	            onload: function(data) {
-	                options.data = data.response || {};
-	                asyncCallback(service, options, w);
+	                options.temporaryData = data.response || {};
+	                callback(service, options, w);
 	            },
 	            onerror: function(){
 	                DomTamper.handleError(new Exception(config.error.call, exceptionParams), w);
@@ -553,10 +679,20 @@
 	        GM_xmlhttpRequest(requestParams);
 	    };
 	
-	    var beforeStep = function(service, options){
-	        var steps = service.asyncChains[options.chainName];
-	        var currentStep = steps[options.stepIndex];
-	        var result = currentStep.beforeStep(options.data);
+	    var logStepInfo = function(options, setup){
+	        var chain = options.chainNames[options.chainIndex];
+	        var step = chain + '[' + options.stepIndex + ']';
+	        var stepParams = $.isEmptyObject(setup.methodParam) ? '' : JSON.stringify(setup.methodParam);
+	        var params = [
+	            'color:blue', step,  'color:red', setup.method, 'color:black;font-weight: bold',
+	            setup.resolveUrl.url, 'color:magenta', stepParams
+	        ];
+	        Tool.formatConsoleMessage('%c%s%c %s %c %s %c%s', params);
+	    };
+	
+	    var setupStep = function(service, options){
+	        var currentStep = getCurrentStep(service, options);
+	        var result = currentStep.beforeStep(options.temporaryData);
 	        if(typeof result === 'string' || typeof result == 'number'){
 	            result = {
 	                videoId: result
@@ -568,29 +704,76 @@
 	        else {
 	            options.urlParams = result;
 	        }
-	        return currentStep.resolveUrl(options.urlParams);
+	
+	        return {
+	            resolveUrl: currentStep.resolveUrl(options.urlParams),
+	            method: currentStep.method,
+	            methodParam: currentStep.methodParam(),
+	            isAsync: currentStep.isAsync()
+	        };
 	    };
 	
-	    var afterStep = function(service, options) {
-	        var steps = service.asyncChains[options.chainName];
-	        var currentStep = steps[options.stepIndex];
-	        var output = currentStep.afterStep(options.data);
-	        options.data = output;
-	        options.stepIndex += 1;
+	    var getCurrentStep = function(service, options){
+	        var chain = options.chainNames[options.chainIndex];
+	        var steps = service.asyncChains[chain];
 	        return steps[options.stepIndex];
 	    };
 	
-	    var asyncCallback = function(service, options, w){
+	    var hasNextStep = function(service, options){
+	        var chain = options.chainNames[options.chainIndex];
+	        var steps = service.asyncChains[chain];
+	        return steps.length - 1 > options.stepIndex;
+	    };
+	
+	    var hasNextChain = function(service, options){
+	        return options.chainNames.length - 1 > options.chainIndex;
+	    };
+	
+	    var setChainResult = function(options){
+	        var chain = options.chainNames[options.chainIndex];
+	        if(!options.hasOwnProperty('results')){
+	            options.results = {};
+	        }
+	        var chainResult = options.results;
+	        chainResult[chain] = options.temporaryData;
+	        options.temporaryData = {};
+	    };
+	
+	    var pushChain = function(service, options){
+	        setChainResult(options);
+	        if(hasNextChain(service, options)){
+	            options.chainIndex += 1;
+	            options.stepIndex = 0;
+	            return true;
+	        }
+	        return false;
+	    };
+	
+	    var pushStep = function(service, options) {
+	        if(hasNextStep(service, options)){
+	            options.stepIndex += 1;
+	            return true;
+	        }
+	        return false;
+	    };
+	
+	    var afterStep = function(service, options) {
+	        var currentStep = getCurrentStep(service, options);
+	        var output = currentStep.afterStep(options.temporaryData);
+	        options.temporaryData = output;
+	    };
+	
+	    var callback = function(service, options, w){
 	        try {
-	            var nextStep = afterStep(service, options);
-	            if(nextStep !== undefined) {
+	            afterStep(service, options);
+	            if(pushStep(service, options) || pushChain(service, options)) {
 	                return Promise.resolve().then(
-	                    Executor.asyncChain(service, options, w)
+	                    Executor.chain(service, options, w)
 	                );
 	            }
 	            else {
 	                return Promise.resolve().then(
-	                    service.onDone(options.data, w)
+	                    service.onDone(options.results, w)
 	                );
 	            }
 	        }
@@ -599,14 +782,14 @@
 	        }
 	    };
 	
-	    Executor.asyncChain = function(service, options, w){
+	    Executor.chain = function(service, options, w){
 	        try {
 	            if(w === undefined){
 	                w = window.open();
 	                DomTamper.createLoader(w);
 	            }
 	
-	            executeAsync(service, options, w);
+	            execute(service, options, w);
 	        }
 	        catch(e){
 	            DomTamper.handleError(e, w);
@@ -633,26 +816,69 @@
 	                style: '',
 	                class: '',
 	                click: function(){
-	                    var chainName = service.chainSelector();
-	                    Executor.asyncChain(service, {
+	                    var chainNames = service.chainSelector();
+	                    Executor.chain(service, {
 	                        stepIndex: 0,
-	                        chainName: chainName
+	                        chainIndex: 0,
+	                        chainNames: chainNames
 	                    });
 	                }
 	            },
+	            cardsData: {
+	                title: '',
+	                cards: {
+	                    videos: {
+	                        icon: 'fa-video', label: 'Video', collapse: true, items: [],
+	                        info: [
+	                            {name: 'bitrate', desc: 'bitrate'},
+	                            {name: 'quality', desc: 'rozdzielczość'},
+	                            {name: 'langDesc', desc: 'wersja językowa'}
+	                        ],
+	                        actions: [
+	                            {label: 'Pobierz', icon: 'fa-download'},
+	                            {label: 'Kopiuj', icon: 'fa-clone'},
+	                            {label: 'Otwórz', icon: 'fa-film'}
+	                        ]
+	                    },
+	                    subtitles: {
+	                        icon: 'fa-file-alt', label: 'Napisy', collapse: false, items: [],
+	                        info: [
+	                            {name: 'description', desc: 'opis'},
+	                            {name: 'format', desc: 'format'},
+	                        ],
+	                        actions: [
+	                            {label: 'Pobierz', icon: 'fa-download'}
+	                        ]
+	                    }
+	                }
+	            },
 	            asyncChains: {
-	                default: []
+	                videos: []
 	            },
 	            chainSelector: function(){
-	                return "default";
+	                return ['videos'];
 	            },
 	            formatter: function(data){
-	                data.formats.sort(function (a, b) {
+	                data.cards['videos'].items.sort(function (a, b) {
 	                    return b.bitrate - a.bitrate;
 	                });
+	                data.cards['subtitles'].items.sort(function (a, b) {
+	                    return ('' + a.format).localeCompare(b.format);
+	                });
+	            },
+	            aggregate: function(data){
+	                var aggregatedData = {};
+	                $.extend(true, aggregatedData, service.cardsData);
+	                var chains = service.chainSelector();
+	                chains.forEach(function(chain){
+	                     $.extend(true, aggregatedData, data[chain]);
+	                });
+	                return aggregatedData;
 	            },
 	            onDone: function(data, w) {
-	                DomTamper.createDocument(service, data, w);
+	                var aggregatedData = service.aggregate(data);
+	                service.formatter(aggregatedData);
+	                DomTamper.createDocument(aggregatedData, w);
 	            }
 	        };
 	
@@ -704,7 +930,7 @@
 	                existColor, wrapper.selector, 'color:gray',
 	                'color:black;font-weight: bold', attempt, 'color:gray'
 	            ];
-	        Tool.formatConsoleMessage('check for: "%c%s%c" [%c%s%c]', params);
+	        Tool.formatConsoleMessage('wrapper: %c%s%c [%c%s%c]', params);
 	    };
 	
 	    WrapperDetector.run = function(properties, videoChangeCallback) {
@@ -841,20 +1067,20 @@
 	            class: 'video-block__btn tvp_vod_downlaod_button',
 	        },
 	        asyncChains: {
-	            default: [
-	                AsyncStep.setup({
+	            videos: [
+	                Step.setup({
 	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    }
 	                }),
-	                AsyncStep.setup({
+	                Step.setup({
 	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
 	                    beforeStep: function (json) {
 	                        return getRealVideoId(json);
 	                    },
 	                    afterStep: function (output) {
-	                        return VOD_TVP.grabVideoFormats(output);
+	                        return VOD_TVP.grabVideoData(output);
 	                    }
 	                })
 	            ]
@@ -880,12 +1106,12 @@
 	        };
 	    };
 	
-	    VOD_TVP.grabVideoFormats = function(data){
-	        var formats = [];
+	    VOD_TVP.grabVideoData = function(data){
+	        var items = [];
 	        if(data.status == 'OK' && data.formats !== undefined){
 	            $.each(data.formats, function( index, value ) {
 	                if(value.adaptive == false){
-	                    formats.push(new Format({
+	                    items.push(new Format({
 	                        bitrate: value.totalBitrate,
 	                        url: value.url
 	                    }));
@@ -893,8 +1119,8 @@
 	            });
 	            return {
 	                title: data.title,
-	                formats: formats
-	            };
+	                cards: {videos: {items: items}}
+	            }
 	        }
 	        throw new Exception(config.error.noSource, window.location.href);
 	    };
@@ -915,14 +1141,14 @@
 	            class: 'video-block__btn tvp_cyf_downlaod_button'
 	        },
 	        asyncChains: {
-	            default: [
-	                AsyncStep.setup({
+	            videos: [
+	                Step.setup({
 	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return VOD_TVP.grabVideoFormats(output);
+	                        return VOD_TVP.grabVideoData(output);
 	                    }
 	                })
 	            ]
@@ -960,14 +1186,14 @@
 	            class: 'tvp_reg_download_button'
 	        },
 	        asyncChains: {
-	            default: [
-	                AsyncStep.setup({
+	            videos: [
+	                Step.setup({
 	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return VOD_TVP.grabVideoFormats(output);
+	                        return VOD_TVP.grabVideoData(output);
 	                    }
 	                })
 	            ]
@@ -999,18 +1225,33 @@
 	            class: 'btn btn-primary tvn_download_button'
 	        },
 	        asyncChains: {
-	            default: [
-	                AsyncStep.setup({
+	            videos: [
+	                Step.setup({
 	                    urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
 	                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
 	                    beforeStep: function(input){
 	                        return idParser();
 	                    },
 	                    afterStep: function(output) {
-	                        return formatParser(output);
+	                        return grabVideoData(output);
 	                    }
 	                })
 	            ]
+	        },
+	        formatter: function(data){
+	            var sortingOrder = {
+	                'HD': 7,
+	                'Bardzo wysoka': 6,
+	                'Wysoka': 5,
+	                'Standard': 4,
+	                'Średnia': 3,
+	                'Niska': 2,
+	                'Bardzo niska': 1
+	            };
+	
+	            data.cards['videos'].items.sort(function (a, b) {
+	                return sortingOrder[b.quality] - sortingOrder[a.quality];
+	            });
 	        }
 	    });
 	
@@ -1050,32 +1291,32 @@
 	        throw new Exception(config.error.tvnId, Tool.getRealUrl());
 	    };
 	
-	    var formatParser = function(data){
-	        var formats = [];
-	        var title;
+	    var grabVideoData = function(data){
+	        var items = [];
 	        var video_content = (((data.item || {}).videos || {}).main || {}).video_content || {};
 	        if(video_content && video_content.length > 0){
 	            $.each(video_content, function( index, value ) {
-	                var lastPartOfUrl = Tool.deleteParametersFromUrl(value.url).split("/").pop();
-	                var bitrate = lastPartOfUrl.match(/\d{2,}/g);
-	                formats.push(new Format({
+	                items.push(new Format({
 	                    quality: value.profile_name,
-	                    bitrate: bitrate,
 	                    url: value.url
 	                }));
 	            });
-	            title = data.item.episode != null ? 'E'+data.item.episode : '';
-	            title = data.item.season != null ? 'S'+data.item.season + title : title;
-	            if(data.item.serie_title != null){
-	                title = data.item.serie_title + (title != '' ? ' - ' + title : '');
-	            }
 	
 	            return {
-	                title: title,
-	                formats: formats
+	                title: getTitle(data),
+	                cards: {videos: {items: items}}
 	            }
 	        }
 	        throw new Exception(config.error.noSource, Tool.getRealUrl());
+	    };
+	
+	    var getTitle = function(data){
+	        var title = data.item.episode != null ? 'E'+data.item.episode : '';
+	        title = data.item.season != null ? 'S'+data.item.season + title : title;
+	        if(data.item.serie_title != null){
+	            title = data.item.serie_title + (title != '' ? ' - ' + title : '');
+	        }
+	        return title;
 	    };
 	
 	    var inVodFrame = function(){
@@ -1106,21 +1347,53 @@
 	        button: {
 	            class: 'ipla_download_button'
 	        },
+	        chainSelector: function(){
+	            return ['videos', 'subtitles'];
+	        },
 	        asyncChains: {
-	            default: [
-	                AsyncStep.setup({
+	            videos: [
+	                Step.setup({
 	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
 	                        '&ua=www_iplatv_html5/12345&media_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return IPLA.grabVideoFormats(output);
+	                        return IPLA.grabVideoData(output);
+	                    }
+	                })
+	            ],
+	            subtitles: [
+	                Step.setup({
+	                    urlTemplate: 'https://b2c.redefine.pl/rpc/navigation/',
+	                    method: 'POST',
+	                    methodParam: function(){
+	                        return getParamsForSubtitles();
+	                    },
+	                    afterStep: function (output) {
+	                        return IPLA.grabSubtitlesData(output);
 	                    }
 	                })
 	            ]
 	        }
 	    });
+	
+	    var getParamsForSubtitles = function(){
+	        var mediaId = idParser();
+	        return {
+	            jsonrpc: "2.0",
+	            id: 1,
+	            method: "prePlayData",
+	            params: {
+	                userAgentData: {
+	                    application: "firefox",
+	                    portal: "ipla"
+	                },
+	                cpid: 1,
+	                mediaId: mediaId
+	            }
+	        }
+	    };
 	
 	    var idParser = function(){
 	        var match = location.href.match(/[\a-z\d]{32}/);
@@ -1135,23 +1408,38 @@
 	        WrapperDetector.run(properties, IPLA.waitOnWrapper);
 	    };
 	
-	    IPLA.grabVideoFormats = function(data){
-	        var formats = [];
+	    IPLA.grabSubtitlesData = function(data){
+	        var items = [];
+	        var subtitles = (((data.result || {}).mediaItem || {}).displayInfo || {}).subtitles || [];
+	        subtitles.forEach(function(subtitle) {
+	            items.push(new Format({
+	                url: subtitle.src,
+	                description: subtitle.name,
+	                format: subtitle.format
+	            }))
+	        });
+	        return {
+	            cards: {subtitles: {items: items}}
+	        };
+	    };
+	
+	    IPLA.grabVideoData = function(data){
+	        var items = [];
 	        var vod = data.vod || {};
 	        if(vod.copies && vod.copies.length > 0){
 	            $.each(vod.copies, function( index, value ) {
-	                formats.push(new Format({
+	                items.push(new Format({
 	                    bitrate: value.bitrate,
 	                    url: value.url,
 	                    quality: value.quality_p
-	                }));
+	                }))
 	            });
 	            return {
 	                title: vod.title,
-	                formats: formats
+	                cards: {videos: {items: items}}
 	            }
 	        }
-	        throw new Exception(config.error.noSource, window.location.href);
+	        throw new Exception(config.error.noSource, Tool.getRealUrl());
 	    };
 	
 	    var grabVideoIdFromWatchingNowElement = function(){
@@ -1171,7 +1459,7 @@
 	            return Tool.getUrlParameter('vid', frameSrc);
 	        }
 	
-	        throw new Exception(config.error.id, window.location.href);
+	        throw new Exception(config.error.id, Tool.getRealUrl());
 	    };
 	
 	    return IPLA;
@@ -1186,8 +1474,8 @@
 	            class: 'vod_download_button'
 	        },
 	        asyncChains: {
-	            default: [
-	                AsyncStep.setup({
+	            videos: [
+	                Step.setup({
 	                    urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
 	                        '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
 	                        '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +
@@ -1196,7 +1484,7 @@
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return formatParser(output);
+	                        return grabVideoData(output);
 	                    }
 	                })
 	            ]
@@ -1224,14 +1512,14 @@
 	        throw new Exception(config.error.id, Tool.getRealUrl());
 	    };
 	
-	    var formatParser = function (data) {
-	        var formats = [];
+	    var grabVideoData = function (data) {
+	        var items = [];
 	        var video = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
 	        var meta = ((data.result || new Array())[0] || {}).meta || {};
 	        var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
 	        if(videoData && videoData.length > 0){
 	            $.each(videoData, function( index, value ) {
-	                formats.push(new Format({
+	                items.push(new Format({
 	                    quality: value.vertical_resolution,
 	                    bitrate: value.video_bitrate,
 	                    url: value.url
@@ -1240,7 +1528,7 @@
 	
 	            return {
 	                title: meta.title,
-	                formats: formats
+	                cards: {videos: {items: items}}
 	            }
 	        }
 	        throw new Exception(config.error.noSource, Tool.getRealUrl());
@@ -1285,31 +1573,49 @@
 	        button: {
 	            class: 'vod_ipla_downlaod_button'
 	        },
+	        chainSelector: function(){
+	            return ['videos', 'subtitles'];
+	        },
 	        asyncChains: {
-	            default: [
-	                AsyncStep.setup({
+	            videos: [
+	                Step.setup({
 	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345' +
 	                        '&media_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return IPLA.grabVideoFormats(output);
+	                        return IPLA.grabVideoData(output);
+	                    }
+	                })
+	            ],
+	            subtitles: [
+	                Step.setup({
+	                    afterStep: function (output) {
+	                        return parseSubtitleData();
 	                    }
 	                })
 	            ]
 	        }
 	    });
 	
+	    var getJson = function(){
+	        var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
+	        var jsonObject = JSON.parse(match[2]);
+	        return JSON.parse(jsonObject[0].media);
+	    };
+	
 	    var idParser = function(){
 	        try {
-	            var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
-	            var jsonObject = JSON.parse(match[2]);
-	            return JSON.parse(jsonObject[0].media).result.mediaItem.id;
+	            return (((getJson() || {}).result || {}).mediaItem || {}).id;
 	        }
 	        catch(e){
 	            throw new Exception(config.error.id, Tool.getRealUrl());
 	        }
+	    };
+	
+	    var parseSubtitleData = function(){
+	        return IPLA.grabSubtitlesData(getJson());
 	    };
 	
 	    VOD_IPLA.waitOnWrapper = function(){
@@ -1329,20 +1635,20 @@
 	var WP = (function(WP) {
 	    var properties = Configurator.setup({
 	        wrapper: {
-	            selector: '#mainPlayer'
+	            selector: '#Player0 > div'
 	        },
 	        button: {
-	            class: 'material__category wp_download_button'
+	            class: 'wp_download_button material__category'
 	        },
 	        asyncChains: {
-	            default: [
-	                AsyncStep.setup({
+	            videos: [
+	                Step.setup({
 	                    urlTemplate: 'https://video.wp.pl/player/mid,#videoId,embed.json',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return grabVideoFormats(output);
+	                        return grabVideoData(output);
 	                    }
 	                })
 	            ]
@@ -1351,34 +1657,33 @@
 	
 	    var idParser = function () {
 	        try {
-	            var pageURL = window.location.href;
-	            var regexp = new RegExp('mid,(\\d+),cid');
-	            var match = regexp.exec(pageURL);
-	            return match[1];
+	            return $('.identifier').attr('data-id');
 	        }
 	        catch(e){
 	            throw new Exception(config.error.id, window.location.href);
 	        }
 	    };
 	
-	    var grabVideoFormats = function(data){
-	        var formats = [];
+	    var grabVideoData = function(data){
+	        var items = [];
 	        var urls = (data.clip || {}).url || {};
 	        if(urls && urls.length > 0){
 	            $.each(urls, function( index, value ) {
 	                if(value.type === 'mp4@avc'){
-	                    formats.push(new Format({
+	                    items.push(new Format({
 	                        bitrate: value.quality,
-	                        url: 'http:' + value.url,
+	                        url: value.url,
 	                        quality: value.resolution
 	                    }));
 	                }
 	            });
+	
+	            return {
+	                title: data.clip.title,
+	                cards: {videos: {items: items}}
+	            }
 	        }
-	        return {
-	            title: data.clip.title,
-	            formats: formats
-	        }
+	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
 	    WP.waitOnWrapper = function(){
@@ -1422,17 +1727,16 @@
 	    };
 	
 	    var prepareResult = function(url, w) {
+	        var cardsData = properties.cardsData;
 	        var title = $('meta[property="og:title"]');
 	        var quality = $('.quality-btn-active');
-	        var data = {
-	            title: title.length > 0 ? title.attr('content').trim() : 'brak danych',
-	            formats: [new Format({
-	                url: url,
-	                quality: quality.length > 0 ? quality.text() : undefined
-	            })]
-	        };
+	        cardsData.title = title.length > 0 ? title.attr('content').trim() : 'brak danych';
+	        cardsData.cards['videos'].items = [new Format({
+	            url: url,
+	            quality: quality.length > 0 ? quality.text() : undefined
+	        })];
 	
-	        DomTamper.createDocument(properties, data, w);
+	        DomTamper.createDocument(cardsData, w);
 	    };
 	
 	    CDA.waitOnWrapper = function(){
@@ -1457,15 +1761,14 @@
 	
 	    var prepareResult = function(url, w) {
 	        var title = $('meta[name="title"]');
-	        var data = {
-	            title: title.length > 0 ? title.attr('content').trim() : 'brak danych',
-	            formats: [new Format({
-	                url: url,
-	                quality: undefined
-	            })]
-	        };
+	        var cardsData = properties.cardsData;
+	        cardsData.title = title.length > 0 ? title.attr('content').trim() : 'brak danych';
+	        cardsData.cards['videos'].items = [new Format({
+	            url: url,
+	            quality: undefined
+	        })];
 	
-	        DomTamper.createDocument(properties, data, w);
+	        DomTamper.createDocument(cardsData, w);
 	    };
 	
 	    var getMp4Source = function(w, sources){
@@ -1519,23 +1822,23 @@
 	            class: 'arte_download_button',
 	        },
 	        asyncChains: {
-	            default: [
-	                AsyncStep.setup({
+	            videos: [
+	                Step.setup({
 	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return grabVideoFormats(output);
+	                        return grabVideoData(output);
 	                    }
 	                })
 	            ]
 	        },
 	        formatter: function(data) {
-	            data.formats.sort(function (a, b) {
+	            data.cards['videos'].items.sort(function (a, b) {
 	                return  b.bitrate - a.bitrate;
 	            });
-	            data.formats.sort(function (a, b) {
+	            data.cards['videos'].items.sort(function (a, b) {
 	                var aLang = a.langCode, bLang = b.langCode;
 	                if(aLang !== 'POL' && bLang !== 'POL'){
 	                    return ('' + a.langCode).localeCompare(b.langCode);
@@ -1577,8 +1880,8 @@
 	        }
 	    };
 	
-	    var grabVideoFormats = function(data){
-	        var formats = [];
+	    var grabVideoData = function(data){
+	        var items = [];
 	        var title = (((data || {}).videoJsonPlayer || {}).eStat || {}).streamName || '';
 	        var streams = ((data || {}).videoJsonPlayer || {}).VSR || {};
 	        if(streams){
@@ -1586,7 +1889,7 @@
 	                return k.startsWith("HTTPS");
 	            }).forEach(function(k) {
 	                var stream = streams[k];
-	                formats.push(new Format({
+	                items.push(new Format({
 	                    bitrate: stream.bitrate,
 	                    quality: stream.width + 'x' + stream.height,
 	                    langCode: stream.versionShortLibelle,
@@ -1596,8 +1899,8 @@
 	            });
 	            return {
 	                title: title,
-	                formats: formats
-	            };
+	                cards: {videos: {items: items}}
+	            }
 	        }
 	        throw new Exception(config.error.noSource, window.location.href);
 	    };

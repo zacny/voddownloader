@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "5.12.4",
+  "version": "6.0.0",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -92,7 +92,8 @@
         "tvp.pl",
         "getmedia.redefine.pl",
         "player-api.dreamlab.pl",
-        "api.arte.tv"
+        "api.arte.tv",
+        "b2c.redefine.pl"
       ],
       "run-at": "document-end",
       "require": [

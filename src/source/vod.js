@@ -7,8 +7,8 @@ var VOD = (function(VOD) {
             class: 'vod_download_button'
         },
         asyncChains: {
-            default: [
-                AsyncStep.setup({
+            videos: [
+                Step.setup({
                     urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
                         '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
                         '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +
@@ -17,7 +17,7 @@ var VOD = (function(VOD) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return formatParser(output);
+                        return grabVideoData(output);
                     }
                 })
             ]
@@ -45,14 +45,14 @@ var VOD = (function(VOD) {
         throw new Exception(config.error.id, Tool.getRealUrl());
     };
 
-    var formatParser = function (data) {
-        var formats = [];
+    var grabVideoData = function (data) {
+        var items = [];
         var video = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
         var meta = ((data.result || new Array())[0] || {}).meta || {};
         var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
         if(videoData && videoData.length > 0){
             $.each(videoData, function( index, value ) {
-                formats.push(new Format({
+                items.push(new Format({
                     quality: value.vertical_resolution,
                     bitrate: value.video_bitrate,
                     url: value.url
@@ -61,7 +61,7 @@ var VOD = (function(VOD) {
 
             return {
                 title: meta.title,
-                formats: formats
+                cards: {videos: {items: items}}
             }
         }
         throw new Exception(config.error.noSource, Tool.getRealUrl());

@@ -7,18 +7,33 @@ var TVN = (function(TVN) {
             class: 'btn btn-primary tvn_download_button'
         },
         asyncChains: {
-            default: [
-                AsyncStep.setup({
+            videos: [
+                Step.setup({
                     urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
                         '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
                     beforeStep: function(input){
                         return idParser();
                     },
                     afterStep: function(output) {
-                        return formatParser(output);
+                        return grabVideoData(output);
                     }
                 })
             ]
+        },
+        formatter: function(data){
+            var sortingOrder = {
+                'HD': 7,
+                'Bardzo wysoka': 6,
+                'Wysoka': 5,
+                'Standard': 4,
+                'Średnia': 3,
+                'Niska': 2,
+                'Bardzo niska': 1
+            };
+
+            data.cards['videos'].items.sort(function (a, b) {
+                return sortingOrder[b.quality] - sortingOrder[a.quality];
+            });
         }
     });
 
@@ -58,32 +73,32 @@ var TVN = (function(TVN) {
         throw new Exception(config.error.tvnId, Tool.getRealUrl());
     };
 
-    var formatParser = function(data){
-        var formats = [];
-        var title;
+    var grabVideoData = function(data){
+        var items = [];
         var video_content = (((data.item || {}).videos || {}).main || {}).video_content || {};
         if(video_content && video_content.length > 0){
             $.each(video_content, function( index, value ) {
-                var lastPartOfUrl = Tool.deleteParametersFromUrl(value.url).split("/").pop();
-                var bitrate = lastPartOfUrl.match(/\d{2,}/g);
-                formats.push(new Format({
+                items.push(new Format({
                     quality: value.profile_name,
-                    bitrate: bitrate,
                     url: value.url
                 }));
             });
-            title = data.item.episode != null ? 'E'+data.item.episode : '';
-            title = data.item.season != null ? 'S'+data.item.season + title : title;
-            if(data.item.serie_title != null){
-                title = data.item.serie_title + (title != '' ? ' - ' + title : '');
-            }
 
             return {
-                title: title,
-                formats: formats
+                title: getTitle(data),
+                cards: {videos: {items: items}}
             }
         }
         throw new Exception(config.error.noSource, Tool.getRealUrl());
+    };
+
+    var getTitle = function(data){
+        var title = data.item.episode != null ? 'E'+data.item.episode : '';
+        title = data.item.season != null ? 'S'+data.item.season + title : title;
+        if(data.item.serie_title != null){
+            title = data.item.serie_title + (title != '' ? ' - ' + title : '');
+        }
+        return title;
     };
 
     var inVodFrame = function(){

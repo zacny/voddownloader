@@ -7,23 +7,23 @@ var ARTE = (function(ARTE) {
             class: 'arte_download_button',
         },
         asyncChains: {
-            default: [
-                AsyncStep.setup({
+            videos: [
+                Step.setup({
                     urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
                     beforeStep: function (input) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return grabVideoFormats(output);
+                        return grabVideoData(output);
                     }
                 })
             ]
         },
         formatter: function(data) {
-            data.formats.sort(function (a, b) {
+            data.cards['videos'].items.sort(function (a, b) {
                 return  b.bitrate - a.bitrate;
             });
-            data.formats.sort(function (a, b) {
+            data.cards['videos'].items.sort(function (a, b) {
                 var aLang = a.langCode, bLang = b.langCode;
                 if(aLang !== 'POL' && bLang !== 'POL'){
                     return ('' + a.langCode).localeCompare(b.langCode);
@@ -65,8 +65,8 @@ var ARTE = (function(ARTE) {
         }
     };
 
-    var grabVideoFormats = function(data){
-        var formats = [];
+    var grabVideoData = function(data){
+        var items = [];
         var title = (((data || {}).videoJsonPlayer || {}).eStat || {}).streamName || '';
         var streams = ((data || {}).videoJsonPlayer || {}).VSR || {};
         if(streams){
@@ -74,7 +74,7 @@ var ARTE = (function(ARTE) {
                 return k.startsWith("HTTPS");
             }).forEach(function(k) {
                 var stream = streams[k];
-                formats.push(new Format({
+                items.push(new Format({
                     bitrate: stream.bitrate,
                     quality: stream.width + 'x' + stream.height,
                     langCode: stream.versionShortLibelle,
@@ -84,8 +84,8 @@ var ARTE = (function(ARTE) {
             });
             return {
                 title: title,
-                formats: formats
-            };
+                cards: {videos: {items: items}}
+            }
         }
         throw new Exception(config.error.noSource, window.location.href);
     };

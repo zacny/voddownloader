@@ -21,7 +21,7 @@ var WrapperDetector = (function(WrapperDetector){
                 existColor, wrapper.selector, 'color:gray',
                 'color:black;font-weight: bold', attempt, 'color:gray'
             ];
-        Tool.formatConsoleMessage('check for: "%c%s%c" [%c%s%c]', params);
+        Tool.formatConsoleMessage('wrapper: %c%s%c [%c%s%c]', params);
     };
 
     WrapperDetector.run = function(properties, videoChangeCallback) {

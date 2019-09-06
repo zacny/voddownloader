@@ -35,7 +35,7 @@ const config = {
         },
         call: {
             caption: 'Błąd pobierania informacji o materiale.',
-            template: Tool.template`Błąd w wykonaniu kroku asynchronicznego z indeksem: ${0} na stronie: ${1} \
+            template: Tool.template`Wystąpił błąd w wykonaniu skryptu w kroku: ${0} na stronie: ${1} \
                 Zgłoś problem autorom skryptu.`,
         },
         noSource: {
@@ -47,7 +47,7 @@ const config = {
         },
         timeout: {
             caption: 'Zbyt długi czas odpowiedzi.',
-            template: Tool.template`Dla kroku asychronicznego z indeksem: ${0} na stronie "${1}" nie dotarły \
+            template: Tool.template`Dla kroku: ${0} na stronie "${1}" nie dotarły \
                 informacje zwrotne.\nPrzypuszczalnie jest to problem sieciowy. Spróbuj ponownie za jakiś czas.`
         },
         noParent: {

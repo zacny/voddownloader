@@ -7,21 +7,53 @@ var IPLA = (function(IPLA) {
         button: {
             class: 'ipla_download_button'
         },
+        chainSelector: function(){
+            return ['videos', 'subtitles'];
+        },
         asyncChains: {
-            default: [
-                AsyncStep.setup({
+            videos: [
+                Step.setup({
                     urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
                         '&ua=www_iplatv_html5/12345&media_id=#videoId',
                     beforeStep: function (input) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return IPLA.grabVideoFormats(output);
+                        return IPLA.grabVideoData(output);
+                    }
+                })
+            ],
+            subtitles: [
+                Step.setup({
+                    urlTemplate: 'https://b2c.redefine.pl/rpc/navigation/',
+                    method: 'POST',
+                    methodParam: function(){
+                        return getParamsForSubtitles();
+                    },
+                    afterStep: function (output) {
+                        return IPLA.grabSubtitlesData(output);
                     }
                 })
             ]
         }
     });
+
+    var getParamsForSubtitles = function(){
+        var mediaId = idParser();
+        return {
+            jsonrpc: "2.0",
+            id: 1,
+            method: "prePlayData",
+            params: {
+                userAgentData: {
+                    application: "firefox",
+                    portal: "ipla"
+                },
+                cpid: 1,
+                mediaId: mediaId
+            }
+        }
+    };
 
     var idParser = function(){
         var match = location.href.match(/[\a-z\d]{32}/);
@@ -36,23 +68,38 @@ var IPLA = (function(IPLA) {
         WrapperDetector.run(properties, IPLA.waitOnWrapper);
     };
 
-    IPLA.grabVideoFormats = function(data){
-        var formats = [];
+    IPLA.grabSubtitlesData = function(data){
+        var items = [];
+        var subtitles = (((data.result || {}).mediaItem || {}).displayInfo || {}).subtitles || [];
+        subtitles.forEach(function(subtitle) {
+            items.push(new Format({
+                url: subtitle.src,
+                description: subtitle.name,
+                format: subtitle.format
+            }))
+        });
+        return {
+            cards: {subtitles: {items: items}}
+        };
+    };
+
+    IPLA.grabVideoData = function(data){
+        var items = [];
         var vod = data.vod || {};
         if(vod.copies && vod.copies.length > 0){
             $.each(vod.copies, function( index, value ) {
-                formats.push(new Format({
+                items.push(new Format({
                     bitrate: value.bitrate,
                     url: value.url,
                     quality: value.quality_p
-                }));
+                }))
             });
             return {
                 title: vod.title,
-                formats: formats
+                cards: {videos: {items: items}}
             }
         }
-        throw new Exception(config.error.noSource, window.location.href);
+        throw new Exception(config.error.noSource, Tool.getRealUrl());
     };
 
     var grabVideoIdFromWatchingNowElement = function(){
@@ -72,7 +119,7 @@ var IPLA = (function(IPLA) {
             return Tool.getUrlParameter('vid', frameSrc);
         }
 
-        throw new Exception(config.error.id, window.location.href);
+        throw new Exception(config.error.id, Tool.getRealUrl());
     };
 
     return IPLA;

@@ -7,14 +7,14 @@ var TVP_REG = (function(TVP_REG) {
             class: 'tvp_reg_download_button'
         },
         asyncChains: {
-            default: [
-                AsyncStep.setup({
+            videos: [
+                Step.setup({
                     urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
                     beforeStep: function (input) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return VOD_TVP.grabVideoFormats(output);
+                        return VOD_TVP.grabVideoData(output);
                     }
                 })
             ]

@@ -144,72 +144,6 @@ var DomTamper = (function(DomTamper){
         return card;
     };
 
-    var createAction = function(iconClass, label){
-        return $('<button>').attr('type', 'button').addClass('btn btn-dark btn-sm m-1 pl-3 pr-3')
-            .append($('<i>').addClass('fas pr-1').addClass(iconClass)).append(label);
-    };
-
-    var downloadActionClick = function (data, w) {
-        var options = {title: 'Rozpoczęto pobieranie pliku', content: data.title};
-        Tool.downloadFile(data.value.url, data.title);
-        Notification.show(options, w);
-    };
-
-    var copyActionClick = function (data, w) {
-        GM_setClipboard(data.value.url);
-        var options = {title: 'Kopiowanie', content: 'Skopiowano do schowka'};
-        Notification.show(options, w);
-    };
-
-    var openActionClick = function (data, w) {
-        w.open(data.value.url);
-    };
-
-    var createRow = function(data, rowClass, w){
-        var actions = $('<td>').attr('scope', 'row').addClass('actions-row');
-        actions.append(createAction('fa-save', 'Zapisz').click(
-            function(){downloadActionClick(data, w)})
-        );
-        actions.append(createAction('fa-clone', 'Kopiuj').click(
-            function() {copyActionClick(data, w)})
-        );
-        actions.append(createAction('fa-film', 'Otwórz').click(
-            function() {openActionClick(data, w)})
-        );
-
-        var descriptionHtml = $('<div>').append($('<b>').text('bitrate: ')).append($('<span>').text(data.value.bitrate));
-        if(data.value.quality) {
-            descriptionHtml.append($('<span>').text(', ')).append($('<b>').text('rozdzielczość: '))
-                .append($('<span>').text(data.value.quality));
-        }
-        if(data.value.langDesc){
-            descriptionHtml.append($('<span>').text(', ')).append($('<b>').text('wersja językowa: '))
-                .append($('<span>').text(data.value.langDesc));
-        }
-        var description = $('<td>').html(descriptionHtml);
-
-        return $('<tr>').append(actions).append(description);
-    };
-
-    var createTable = function(data, w){
-        var table = $('<table>').addClass('table table-bordered table-striped btn-table')
-            .append($('<thead>').addClass('black white-text')
-                .append($('<tr>').append($('<th>').attr('scope', 'col').attr('colspan', 2).text(data.title)))
-            );
-        var tbody = $('<tbody>');
-        table.append(tbody);
-        $.each(data.formats, function(index, value) {
-            var rowClass = index === 0 ? 'best-quality' : '';
-            var params = {
-                value: value,
-                title: data.title
-            };
-            tbody.append(createRow(params, rowClass, w));
-        });
-
-        return table;
-    };
-
     var setWindowTitle = function(data, w){
         var head = $(w.document.head);
         var title = head.find('title');
@@ -221,18 +155,18 @@ var DomTamper = (function(DomTamper){
         }
     };
 
-    DomTamper.createDocument = function(service, data, w){
-        service.formatter(data);
-
+    DomTamper.createDocument = function(data, w){
         prepareHead(w);
         setWindowTitle(data, w);
         var pageContent = $('<div>').addClass('page-content');
-        pageContent.append(createTable(data, w));
+        pageContent.append(Accordion.create(w, data));
         pageContent.append(createBugReportLink(w, 'special-color white-text'));
         pageContent.append(createNotificationContainer());
         prepareBody(w, pageContent, true);
         Unloader.init(w);
+        Accordion.bindActions(w, data);
     };
+
     var createNotificationContainer = function(){
         return $('<div>').attr('id', 'notification-container')
             .attr('aria-live', 'polite').attr('aria-atomic', 'true').addClass('notification-container');

@@ -34,17 +34,16 @@ var CDA = (function(CDA) {
     };
 
     var prepareResult = function(url, w) {
+        var cardsData = properties.cardsData;
         var title = $('meta[property="og:title"]');
         var quality = $('.quality-btn-active');
-        var data = {
-            title: title.length > 0 ? title.attr('content').trim() : 'brak danych',
-            formats: [new Format({
-                url: url,
-                quality: quality.length > 0 ? quality.text() : undefined
-            })]
-        };
+        cardsData.title = title.length > 0 ? title.attr('content').trim() : 'brak danych';
+        cardsData.cards['videos'].items = [new Format({
+            url: url,
+            quality: quality.length > 0 ? quality.text() : undefined
+        })];
 
-        DomTamper.createDocument(properties, data, w);
+        DomTamper.createDocument(cardsData, w);
     };
 
     CDA.waitOnWrapper = function(){
