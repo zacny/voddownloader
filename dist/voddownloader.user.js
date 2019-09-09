@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.0.0
+// @version        6.1.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1514,21 +1514,33 @@
 	
 	    var grabVideoData = function (data) {
 	        var items = [];
+	        var subtitlesItems = [];
 	        var video = (((data.result || new Array())[0] || {}).formats || {}).wideo || {};
 	        var meta = ((data.result || new Array())[0] || {}).meta || {};
+	        var subtitles = meta.subtitles || [];
 	        var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
 	        if(videoData && videoData.length > 0){
-	            $.each(videoData, function( index, value ) {
+	            videoData.forEach(function(value) {
 	                items.push(new Format({
 	                    quality: value.vertical_resolution,
 	                    bitrate: value.video_bitrate,
 	                    url: value.url
-	                }));
+	                }))
+	            });
+	
+	            subtitles.forEach(function(subtitle) {
+	                subtitlesItems.push(new Format({
+	                    url: subtitle.url,
+	                    description: subtitle.name
+	                }))
 	            });
 	
 	            return {
 	                title: meta.title,
-	                cards: {videos: {items: items}}
+	                cards: {
+	                    videos: {items: items},
+	                    subtitles: {items: subtitlesItems}
+	                }
 	            }
 	        }
 	        throw new Exception(config.error.noSource, Tool.getRealUrl());
