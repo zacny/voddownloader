@@ -1,5 +1,5 @@
 var ARTE = (function(ARTE) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: 'div.avp-player'
         },
@@ -8,7 +8,7 @@ var ARTE = (function(ARTE) {
         },
         asyncChains: {
             videos: [
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
                     beforeStep: function (input) {
                         return idParser();

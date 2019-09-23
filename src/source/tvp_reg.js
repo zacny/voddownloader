@@ -1,5 +1,5 @@
 var TVP_REG = (function(TVP_REG) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: 'div.js-video'
         },
@@ -8,7 +8,7 @@ var TVP_REG = (function(TVP_REG) {
         },
         asyncChains: {
             videos: [
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
                     beforeStep: function (input) {
                         return idParser();

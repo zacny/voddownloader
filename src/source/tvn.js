@@ -1,5 +1,5 @@
 var TVN = (function(TVN) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: '#player-container'
         },
@@ -8,7 +8,7 @@ var TVN = (function(TVN) {
         },
         asyncChains: {
             videos: [
-                Step.setup({
+                new Step({
                     urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
                         '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
                     beforeStep: function(input){
@@ -80,7 +80,7 @@ var TVN = (function(TVN) {
             $.each(video_content, function( index, value ) {
                 items.push(new Format({
                     quality: value.profile_name,
-                    url: value.url
+                    url: value.src !== undefined ? value.src : value.url
                 }));
             });
 

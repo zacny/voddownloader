@@ -1,21 +1,15 @@
 var ChangeVideoDetector = (function(ChangeVideoDetector){
-    var checkVideoChange = function(oldSrc, videoChangeCallback) {
-        var src = window.location.href;
-        if(src !== undefined && oldSrc !== src){
-            console.log("checkVideoChange: " + oldSrc + " -> " + src);
-            return Promise.resolve().then(videoChangeCallback);
-        }
-        else {
-            return Promise.resolve().then(
-                setTimeout(checkVideoChange, config.attemptTimeout, oldSrc, videoChangeCallback)
-            );
-        }
-    };
-
-    ChangeVideoDetector.run = function(videoChangeCallback){
-        console.log('ChanageVideoDetector start');
-        var src = window.location.href;
-        checkVideoChange(src, videoChangeCallback);
+    ChangeVideoDetector.run = function(videoChangeCallback) {
+        var detector = new Detector({
+            unlimited: true,
+            previousLocation: window.location.href,
+            target: 'video-change',
+            success: function(){
+                return this.previousLocation !== window.location.href
+            },
+            successCallback: videoChangeCallback
+        });
+        detector.detect();
     };
     return ChangeVideoDetector;
 }(ChangeVideoDetector || {}));

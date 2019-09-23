@@ -1,5 +1,5 @@
 var IPLA = (function(IPLA) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child,' +
                 ' div.player-error-presentation:visible:first-child'
@@ -12,7 +12,7 @@ var IPLA = (function(IPLA) {
         },
         asyncChains: {
             videos: [
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
                         '&ua=www_iplatv_html5/12345&media_id=#videoId',
                     beforeStep: function (input) {
@@ -24,7 +24,7 @@ var IPLA = (function(IPLA) {
                 })
             ],
             subtitles: [
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://b2c.redefine.pl/rpc/navigation/',
                     method: 'POST',
                     methodParam: function(){

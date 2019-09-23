@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.1.0
-// @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
-// @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
+// @name           voddownloader
+// @version        6.2.0-develop
+// @updateURL      http://localhost:5011/dist/voddownloader.meta.js
+// @downloadURL    http://localhost:5011/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -41,8 +41,8 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
 // @require        https://gitcdn.xyz/cdn/zacny/voddownloader/4b17a120f521eaddf476d6e8fe3be152d506f244/lib/js/mdb-with-waves-patch.js
-// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
-// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
+// @resource       buttons_css http://localhost:5011/lib/css/voddownloader-buttons.css
+// @resource       content_css http://localhost:5011/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($, platform, Waves) {
@@ -56,7 +56,6 @@
 	function Format(data) {
 	    this.bitrate = null;
 	    this.format = null;
-	    this.playable = true;
 	    $.extend(true, this, data);
 	}
 	
@@ -127,6 +126,7 @@
 	        mdb: {
 	            id: 'mdb',
 	            css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
+	            /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
 	        }
 	    },
 	    error: {
@@ -169,36 +169,39 @@
 	};
 	
 	
-	var Step = (function(Step){
-	    Step.setup = function(properties){
-	        var step = {
-	            urlTemplate: '',
-	            beforeStep: function(input){return input},
-	            afterStep: function (output) {return output},
-	            resolveUrl: function (input) {
-	                var url = this.urlTemplate;
-	                var urlParams = {};
-	                $.each(input, function (key, value) {
-	                    url = url.replace(new RegExp('#'+key,'g'), value);
-	                    urlParams[key] = value;
-	                });
+	function Step(properties){
+	    var step = {
+	        urlTemplate: '',
+	        /** Will be done before call. It should return an object ready to use by resolveUrl function. **/
+	        beforeStep: function(input){return input},
+	        /** Will be done after call **/
+	        afterStep: function (output) {return output},
+	        /** Processing parameters of url before step */
+	        resolveUrl: function (input) {
+	            var url = this.urlTemplate;
+	            var urlParams = {};
+	            $.each(input, function (key, value) {
+	                url = url.replace(new RegExp('#'+key,'g'), value);
+	                urlParams[key] = value;
+	            });
 	
-	                return {
-	                    url: url,
-	                    urlParams: urlParams
-	                };
-	            },
-	            isAsync: function(){
-	                return step.urlTemplate;
-	            },
-	            method: 'GET',
-	            methodParam: function(){return {}}
-	        };
-	
-	        return $.extend(true, step, properties);
+	            return {
+	                url: url,
+	                urlParams: urlParams
+	            };
+	        },
+	        /** Is this step async? */
+	        isAsync: function(){
+	            return step.urlTemplate;
+	        },
+	        /** Method of async step */
+	        method: 'GET',
+	        /** Method parameters function of async step */
+	        methodParam: function(){return {}}
 	    };
-	    return Step;
-	}(Step || {}));
+	
+	    return $.extend(true, step, properties);
+	}
 	
 	var Notification = (function(Notification) {
 	    var create = function(title, bodyContent, special) {
@@ -288,6 +291,7 @@
 	        if(downloadMode !== 'browser'){
 	            disableDownload(w);
 	            var value = w.localStorage.getItem(config.storage.doNotWarn);
+	            console.log('[' + config.storageItem + ']: ' + value);
 	            if(value !== 'true'){
 	                prepareWarningNotification(w);
 	            }
@@ -296,6 +300,7 @@
 	    return PluginSettingsDetector;
 	}(PluginSettingsDetector || {}));
 	
+	/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
 	var DomTamper = (function(DomTamper){
 	
 	    DomTamper.injectStyle = function(w, name){
@@ -799,142 +804,159 @@
 	    return Executor;
 	}(Executor || {}));
 	
-	var Configurator = (function(Configurator){
-	    Configurator.setup = function(properties){
-	        var service = {
-	            wrapper: {
-	                selector: '',
-	                get: function(){
-	                    return $(service.wrapper.selector);
-	                },
-	                exist: function(){
-	                    return $(service.wrapper.selector).length > 0;
-	                }
+	function Configurator(properties){
+	    var service = {
+	        wrapper: {
+	            selector: '',
+	            get: function(){
+	                return $(service.wrapper.selector);
 	            },
-	            button: {
-	                id: 'direct-download',
-	                style: '',
-	                class: '',
-	                click: function(){
-	                    var chainNames = service.chainSelector();
-	                    Executor.chain(service, {
-	                        stepIndex: 0,
-	                        chainIndex: 0,
-	                        chainNames: chainNames
-	                    });
-	                }
-	            },
-	            cardsData: {
-	                title: '',
-	                cards: {
-	                    videos: {
-	                        icon: 'fa-video', label: 'Video', collapse: true, items: [],
-	                        info: [
-	                            {name: 'bitrate', desc: 'bitrate'},
-	                            {name: 'quality', desc: 'rozdzielczość'},
-	                            {name: 'langDesc', desc: 'wersja językowa'}
-	                        ],
-	                        actions: [
-	                            {label: 'Pobierz', icon: 'fa-download'},
-	                            {label: 'Kopiuj', icon: 'fa-clone'},
-	                            {label: 'Otwórz', icon: 'fa-film'}
-	                        ]
-	                    },
-	                    subtitles: {
-	                        icon: 'fa-file-alt', label: 'Napisy', collapse: false, items: [],
-	                        info: [
-	                            {name: 'description', desc: 'opis'},
-	                            {name: 'format', desc: 'format'},
-	                        ],
-	                        actions: [
-	                            {label: 'Pobierz', icon: 'fa-download'}
-	                        ]
-	                    }
-	                }
-	            },
-	            asyncChains: {
-	                videos: []
-	            },
-	            chainSelector: function(){
-	                return ['videos'];
-	            },
-	            formatter: function(data){
-	                data.cards['videos'].items.sort(function (a, b) {
-	                    return b.bitrate - a.bitrate;
-	                });
-	                data.cards['subtitles'].items.sort(function (a, b) {
-	                    return ('' + a.format).localeCompare(b.format);
-	                });
-	            },
-	            aggregate: function(data){
-	                var aggregatedData = {};
-	                $.extend(true, aggregatedData, service.cardsData);
-	                var chains = service.chainSelector();
-	                chains.forEach(function(chain){
-	                     $.extend(true, aggregatedData, data[chain]);
-	                });
-	                return aggregatedData;
-	            },
-	            onDone: function(data, w) {
-	                var aggregatedData = service.aggregate(data);
-	                service.formatter(aggregatedData);
-	                DomTamper.createDocument(aggregatedData, w);
+	            exist: function(){
+	                return $(service.wrapper.selector).length > 0;
 	            }
-	        };
-	
-	        return $.extend(true, service, properties);
+	        },
+	        button: {
+	            id: 'direct-download',
+	            style: '',
+	            class: '',
+	            click: function(){
+	                var chainNames = service.chainSelector();
+	                Executor.chain(service, {
+	                    stepIndex: 0,
+	                    chainIndex: 0,
+	                    chainNames: chainNames
+	                });
+	            }
+	        },
+	        cardsData: {
+	            title: '',
+	            cards: {
+	                videos: {
+	                    icon: 'fa-video', label: 'Video', collapse: true, items: [],
+	                    info: [
+	                        {name: 'bitrate', desc: 'bitrate'},
+	                        {name: 'quality', desc: 'rozdzielczość'},
+	                        {name: 'langDesc', desc: 'wersja językowa'}
+	                    ],
+	                    actions: [
+	                        {label: 'Pobierz', icon: 'fa-download'},
+	                        {label: 'Kopiuj', icon: 'fa-clone'},
+	                        {label: 'Otwórz', icon: 'fa-film'}
+	                    ]
+	                },
+	                subtitles: {
+	                    icon: 'fa-file-alt', label: 'Napisy', collapse: false, items: [],
+	                    info: [
+	                        {name: 'description', desc: 'opis'},
+	                        {name: 'format', desc: 'format'},
+	                    ],
+	                    actions: [
+	                        {label: 'Pobierz', icon: 'fa-download'}
+	                    ]
+	                }
+	            }
+	        },
+	        asyncChains: {
+	            videos: []
+	        },
+	        chainSelector: function(){
+	            return ['videos'];
+	        },
+	        formatter: function(data){
+	            data.cards['videos'].items.sort(function (a, b) {
+	                return b.bitrate - a.bitrate;
+	            });
+	            data.cards['subtitles'].items.sort(function (a, b) {
+	                return ('' + a.format).localeCompare(b.format);
+	            });
+	        },
+	        aggregate: function(data){
+	            var aggregatedData = {};
+	            $.extend(true, aggregatedData, service.cardsData);
+	            var chains = service.chainSelector();
+	            chains.forEach(function(chain){
+	                 $.extend(true, aggregatedData, data[chain]);
+	            });
+	            return aggregatedData;
+	        },
+	        onDone: function(data, w) {
+	            var aggregatedData = service.aggregate(data);
+	            service.formatter(aggregatedData);
+	            DomTamper.createDocument(aggregatedData, w);
+	        }
 	    };
-	    return Configurator;
-	}(Configurator || {}));
 	
-	var ChangeVideoDetector = (function(ChangeVideoDetector){
-	    var checkVideoChange = function(oldSrc, videoChangeCallback) {
-	        var src = window.location.href;
-	        if(src !== undefined && oldSrc !== src){
-	            return Promise.resolve().then(videoChangeCallback);
+	    return $.extend(true, service, properties);
+	}
+	
+	function Detector(conf) {
+	    var configuration = conf;
+	
+	    var logMessage = function(attempt){
+	        var color = configuration.logStyle || 'color:black;font-weight:bold';
+	        var existColor = configuration.success() ? 'color:green' : 'color:red';
+	        if(configuration.unlimited){
+	            var params = [
+	                existColor, configuration.target, 'color:black'
+	            ];
+	            Tool.formatConsoleMessage('[%c%s%c]', params);
 	        }
 	        else {
+	            var params = [
+	                'color:black', color, configuration.target, 'color:black',
+	                existColor + ';font-weight:bold', attempt, 'color:black'
+	            ];
+	            Tool.formatConsoleMessage('%c[%c%s%c] [%c%s%c]', params);
+	        }
+	    };
+	
+	    var check = function(attempt){
+	        logMessage(attempt);
+	        if (configuration.success()) {
 	            return Promise.resolve().then(
-	                setTimeout(checkVideoChange, config.attemptTimeout, oldSrc, videoChangeCallback)
+	                configuration.successCallback()
+	            );
+	        } else if(configuration.unlimited || attempt > 0){
+	            attempt = attempt-1;
+	            return Promise.resolve().then(
+	                setTimeout(check, config.attemptTimeout, attempt)
 	            );
 	        }
 	    };
 	
-	    ChangeVideoDetector.run = function(videoChangeCallback){
-	        var src = window.location.href;
-	        checkVideoChange(src, videoChangeCallback);
+	    this.detect = function() {
+	        check(config.attempts);
+	    };
+	}
+	
+	var ChangeVideoDetector = (function(ChangeVideoDetector){
+	    ChangeVideoDetector.run = function(videoChangeCallback) {
+	        var detector = new Detector({
+	            unlimited: true,
+	            previousLocation: window.location.href,
+	            target: 'video-change',
+	            success: function(){
+	                return this.previousLocation !== window.location.href
+	            },
+	            successCallback: videoChangeCallback
+	        });
+	        detector.detect();
 	    };
 	    return ChangeVideoDetector;
 	}(ChangeVideoDetector || {}));
 	
 	var WrapperDetector = (function(WrapperDetector){
-	    var checkWrapperExist = function(attempt, properties){
-	        logWrapperMessage(properties.wrapper, attempt);
-	        if (properties.wrapper.exist()) {
-	            return Promise.resolve().then(
-	                DomTamper.createButton(properties)
-	            );
-	        } else if(attempt > 0){
-	            attempt = attempt-1;
-	            return Promise.resolve().then(
-	                setTimeout(checkWrapperExist, config.attemptTimeout, attempt, properties)
-	            );
-	        } else {
-	            console.info("Nie mam nic do zrobienia");
-	        }
-	    };
-	
-	    var logWrapperMessage = function(wrapper, attempt){
-	        var existColor = wrapper.exist() ? 'color:green' : 'color:red';
-	        var params = [
-	                existColor, wrapper.selector, 'color:gray',
-	                'color:black;font-weight: bold', attempt, 'color:gray'
-	            ];
-	        Tool.formatConsoleMessage('wrapper: %c%s%c [%c%s%c]', params);
-	    };
-	
 	    WrapperDetector.run = function(properties, videoChangeCallback) {
-	        checkWrapperExist(config.attempts, properties);
+	        var detector = new Detector({
+	            logStyle: 'color:orange',
+	            target: properties.wrapper.selector,
+	            success: properties.wrapper.exist,
+	            successCallback: function(){
+	                DomTamper.createButton(properties);
+	            }
+	        });
+	        detector.detect();
+	
 	        if(typeof videoChangeCallback === "function"){
 	            ChangeVideoDetector.run(videoChangeCallback);
 	        }
@@ -942,23 +964,17 @@
 	    return WrapperDetector;
 	}(WrapperDetector || {}));
 	
-	var ElementDetector = (function(ElementDetector) {
-	    var elementSelector;
-	
+	var ElementDetector = (function(ElementDetector){
 	    ElementDetector.detect = function(selector, callback){
-	        elementSelector = selector;
-	        checkElementExist(config.attempts, callback);
-	    };
-	
-	    var checkElementExist = function(attempt, callback){
-	        if ($(elementSelector).length > 0) {
-	            return Promise.resolve().then(callback());
-	        } else if(attempt > 0){
-	            attempt = attempt-1;
-	            return Promise.resolve().then(
-	                setTimeout(checkElementExist, config.attemptTimeout, attempt, callback)
-	            );
-	        }
+	        var detector = new Detector({
+	            logStyle: 'color:dodgerblue',
+	            target: selector,
+	            success: function(){
+	                return $(this.target).length > 0;
+	            },
+	            successCallback: callback
+	        });
+	        detector.detect();
 	    };
 	
 	    return ElementDetector;
@@ -994,9 +1010,11 @@
 	        }
 	
 	        var data = JSON.parse(event.data);
+	        /** confirmation for the sender */
 	        if(data.confirmation){
 	            alreadyConfirmed = true;
 	        }
+	        /** message for the recipient */
 	        else {
 	            data.confirmation = true;
 	            if(!alreadyPosted) {
@@ -1059,7 +1077,7 @@
 	}(MessageReceiver || {}));
 	
 	var VOD_TVP = (function(VOD_TVP) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.playerContainerWrapper'
 	        },
@@ -1068,13 +1086,13 @@
 	        },
 	        asyncChains: {
 	            videos: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    }
 	                }),
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
 	                    beforeStep: function (json) {
 	                        return getRealVideoId(json);
@@ -1133,16 +1151,16 @@
 	}(VOD_TVP || {}));
 	
 	var CYF_TVP = (function(CYF_TVP) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.playerContainerWrapper'
 	        },
 	        button: {
-	            class: 'video-block__btn tvp_cyf_downlaod_button'
+	            class: 'tvp_cyf_downlaod_button'
 	        },
 	        asyncChains: {
 	            videos: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
@@ -1178,7 +1196,7 @@
 	}(CYF_TVP || {}));
 	
 	var TVP_REG = (function(TVP_REG) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.js-video'
 	        },
@@ -1187,7 +1205,7 @@
 	        },
 	        asyncChains: {
 	            videos: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
@@ -1217,7 +1235,7 @@
 	}(TVP_REG || {}));
 	
 	var TVN = (function(TVN) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#player-container'
 	        },
@@ -1226,7 +1244,7 @@
 	        },
 	        asyncChains: {
 	            videos: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
 	                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
 	                    beforeStep: function(input){
@@ -1298,7 +1316,7 @@
 	            $.each(video_content, function( index, value ) {
 	                items.push(new Format({
 	                    quality: value.profile_name,
-	                    url: value.url
+	                    url: value.src !== undefined ? value.src : value.url
 	                }));
 	            });
 	
@@ -1339,7 +1357,7 @@
 	}(TVN || {}));
 	
 	var IPLA = (function(IPLA) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child,' +
 	                ' div.player-error-presentation:visible:first-child'
@@ -1352,7 +1370,7 @@
 	        },
 	        asyncChains: {
 	            videos: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
 	                        '&ua=www_iplatv_html5/12345&media_id=#videoId',
 	                    beforeStep: function (input) {
@@ -1364,7 +1382,7 @@
 	                })
 	            ],
 	            subtitles: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://b2c.redefine.pl/rpc/navigation/',
 	                    method: 'POST',
 	                    methodParam: function(){
@@ -1466,7 +1484,7 @@
 	}(IPLA || {}));
 	
 	var VOD = (function(VOD) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#v_videoPlayer'
 	        },
@@ -1475,7 +1493,7 @@
 	        },
 	        asyncChains: {
 	            videos: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
 	                        '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
 	                        '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +
@@ -1578,7 +1596,7 @@
 	}(VOD || {}));
 	
 	var VOD_IPLA = (function(VOD_IPLA) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#player-wrapper'
 	        },
@@ -1590,7 +1608,7 @@
 	        },
 	        asyncChains: {
 	            videos: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345' +
 	                        '&media_id=#videoId',
 	                    beforeStep: function (input) {
@@ -1602,7 +1620,7 @@
 	                })
 	            ],
 	            subtitles: [
-	                Step.setup({
+	                new Step({
 	                    afterStep: function (output) {
 	                        return parseSubtitleData();
 	                    }
@@ -1645,7 +1663,7 @@
 	}(VOD_IPLA || {}));
 	
 	var WP = (function(WP) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#Player0 > div'
 	        },
@@ -1654,7 +1672,7 @@
 	        },
 	        asyncChains: {
 	            videos: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://video.wp.pl/player/mid,#videoId,embed.json',
 	                    beforeStep: function (input) {
 	                        return idParser();
@@ -1706,7 +1724,7 @@
 	}(WP || {}));
 	
 	var CDA = (function(CDA) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '.pb-video-player-wrap'
 	        },
@@ -1723,9 +1741,11 @@
 	        try {
 	            var url = $("video.pb-video-player").attr('src');
 	            if(url !== undefined){
+	                /** HTML5 player */
 	                if(!url.match(/blank\.mp4/)){
 	                    prepareResult(url, w);
 	                }
+	                /** Flash pleyar - l is an existing variable on page */
 	                else if(l !== undefined){
 	                    prepareResult(l, w);
 	                }
@@ -1759,7 +1779,7 @@
 	}(CDA || {}));
 	
 	var NINATEKA = (function(NINATEKA) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#videoPlayer, #player'
 	        },
@@ -1826,7 +1846,7 @@
 	}(NINATEKA || {}));
 	
 	var ARTE = (function(ARTE) {
-	    var properties = Configurator.setup({
+	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.avp-player'
 	        },
@@ -1835,7 +1855,7 @@
 	        },
 	        asyncChains: {
 	            videos: [
-	                Step.setup({
+	                new Step({
 	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
@@ -1928,7 +1948,7 @@
 	    VOD_FRAME.setup = function(){
 	        var callback = function(data) {
 	            var src = 'https://redir.atmcdn.pl';
-	            var frameSelector = 'iframe[src^="' + src + '"]'
+	            var frameSelector = 'iframe[src^="' + src + '"]';
 	
 	            ElementDetector.detect(frameSelector, function () {
 	                MessageReceiver.postUntilConfirmed({
@@ -1955,7 +1975,7 @@
 	        'gdansk', 'krakow', 'opole', 'warszawa', 'gorzow', 'lublin', 'poznan', 'wroclaw'
 	    ];
 	
-	    var matcher = [
+	    var sources = [
 	        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\/video\//},
 	        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
 	        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/(' + tvZones.join('|') + ')\.tvp\.pl\/\\d{6,}\/')},
@@ -1971,9 +1991,9 @@
 	    ];
 	
 	    Starter.start = function() {
-	        matcher.some(function(item){
-	            if(location.href.match(item.pattern)){
-	                item.action();
+	        sources.some(function(source){
+	            if(location.href.match(source.pattern)){
+	                source.action();
 	                return true;
 	            }
 	        });
