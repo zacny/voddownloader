@@ -1,5 +1,5 @@
 var VOD = (function(VOD) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: '#v_videoPlayer'
         },
@@ -8,7 +8,7 @@ var VOD = (function(VOD) {
         },
         asyncChains: {
             videos: [
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
                         '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
                         '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +

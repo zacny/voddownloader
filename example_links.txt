@@ -39,7 +39,7 @@ https://wroclaw.tvp.pl/39862039/01102018
 
 #VOD_TVP
 #same id
-https://vod.tvp.pl/video/bolek-i-lolek,tropiciele,34720180
+https://vod.tvp.pl/video/stacyjkowo,przewodnik-hektor-odc-123,42273849
 #different id
 https://vod.tvp.pl/video/wiadomosci,17052019-1200,42549669
 

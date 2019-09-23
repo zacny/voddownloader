@@ -1,5 +1,5 @@
 var VOD_IPLA = (function(VOD_IPLA) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: '#player-wrapper'
         },
@@ -11,7 +11,7 @@ var VOD_IPLA = (function(VOD_IPLA) {
         },
         asyncChains: {
             videos: [
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345' +
                         '&media_id=#videoId',
                     beforeStep: function (input) {
@@ -23,7 +23,7 @@ var VOD_IPLA = (function(VOD_IPLA) {
                 })
             ],
             subtitles: [
-                Step.setup({
+                new Step({
                     afterStep: function (output) {
                         return parseSubtitleData();
                     }

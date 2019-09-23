@@ -1,14 +1,14 @@
 var CYF_TVP = (function(CYF_TVP) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: 'div.playerContainerWrapper'
         },
         button: {
-            class: 'video-block__btn tvp_cyf_downlaod_button'
+            class: 'tvp_cyf_downlaod_button'
         },
         asyncChains: {
             videos: [
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
                     beforeStep: function (input) {
                         return idParser();

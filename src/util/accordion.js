@@ -151,21 +151,18 @@ var Accordion = (function(Accordion) {
     };
 
     var downloadActionClick = function (element, w) {
-        console.log('download click');
         var options = {title: 'Rozpoczęto pobieranie pliku', content: element.attr('data-title')};
         Tool.downloadFile(element.attr('data-url'), element.attr('data-title'));
         Notification.show(options, w);
     };
 
     var copyActionClick = function (element, w) {
-        console.log('copy click');
         GM_setClipboard(element.attr('data-url'));
         var options = {title: 'Kopiowanie', content: 'Skopiowano do schowka'};
         Notification.show(options, w);
     };
 
     var openActionClick = function (element, w) {
-        console.log('open click');
         w.open(element.attr('data-url'));
     };
 

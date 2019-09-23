@@ -1,5 +1,5 @@
 var NINATEKA = (function(NINATEKA) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: '#videoPlayer, #player'
         },

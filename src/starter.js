@@ -4,7 +4,7 @@ var Starter = (function(Starter) {
         'gdansk', 'krakow', 'opole', 'warszawa', 'gorzow', 'lublin', 'poznan', 'wroclaw'
     ];
 
-    var matcher = [
+    var sources = [
         {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\/video\//},
         {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
         {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/(' + tvZones.join('|') + ')\.tvp\.pl\/\\d{6,}\/')},
@@ -20,9 +20,9 @@ var Starter = (function(Starter) {
     ];
 
     Starter.start = function() {
-        matcher.some(function(item){
-            if(location.href.match(item.pattern)){
-                item.action();
+        sources.some(function(source){
+            if(location.href.match(source.pattern)){
+                source.action();
                 return true;
             }
         });

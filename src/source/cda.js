@@ -1,5 +1,5 @@
 var CDA = (function(CDA) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: '.pb-video-player-wrap'
         },

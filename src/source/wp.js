@@ -1,5 +1,5 @@
 var WP = (function(WP) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: '#Player0 > div'
         },
@@ -8,7 +8,7 @@ var WP = (function(WP) {
         },
         asyncChains: {
             videos: [
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://video.wp.pl/player/mid,#videoId,embed.json',
                     beforeStep: function (input) {
                         return idParser();

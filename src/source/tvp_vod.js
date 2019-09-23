@@ -1,5 +1,5 @@
 var VOD_TVP = (function(VOD_TVP) {
-    var properties = Configurator.setup({
+    var properties = new Configurator({
         wrapper: {
             selector: 'div.playerContainerWrapper'
         },
@@ -8,13 +8,13 @@ var VOD_TVP = (function(VOD_TVP) {
         },
         asyncChains: {
             videos: [
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
                     beforeStep: function (input) {
                         return idParser();
                     }
                 }),
-                Step.setup({
+                new Step({
                     urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
                     beforeStep: function (json) {
                         return getRealVideoId(json);
