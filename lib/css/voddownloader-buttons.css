@@ -134,7 +134,11 @@
     left: 0px;
     position: absolute;
     border: 0px;
-    font-family: Poppins, sans-serif;
+    font-family: Roboto, sans-serif;
+    color: #fff;
+    background-color: #575757;
+    padding: 3px 10px;
+    text-transform: uppercase;
 }
 
 .ninateka_download_button {
@@ -143,7 +147,7 @@
     left: 0px;
     z-index: 100;
     border: 0px;
-    padding: 3px 10px;
+    padding: 6px 10px;
     background-color: #ea1b2b;
     color: #fff;
     text-transform: uppercase;

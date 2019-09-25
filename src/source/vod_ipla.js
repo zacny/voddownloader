@@ -1,4 +1,4 @@
-var VOD_IPLA = (function(VOD_IPLA) {
+var VOD_IPLA = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: '#player-wrapper'
@@ -18,7 +18,7 @@ var VOD_IPLA = (function(VOD_IPLA) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return IPLA.grabVideoData(output);
+                        return COMMON_SOURCE.grabIplaVideoData(output);
                     }
                 })
             ],
@@ -48,10 +48,10 @@ var VOD_IPLA = (function(VOD_IPLA) {
     };
 
     var parseSubtitleData = function(){
-        return IPLA.grabSubtitlesData(getJson());
+        return COMMON_SOURCE.grabIplaSubtitlesData(getJson());
     };
 
-    VOD_IPLA.waitOnWrapper = function(){
+    this.setup = function(){
         var callback = function(data) {
             window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
             WrapperDetector.run(properties);
@@ -61,6 +61,4 @@ var VOD_IPLA = (function(VOD_IPLA) {
             windowReference: window.parent
         }, callback);
     };
-
-    return VOD_IPLA;
-}(VOD_IPLA || {}));
+});

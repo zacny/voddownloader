@@ -1,4 +1,4 @@
-var ARTE = (function(ARTE) {
+var ARTE = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: 'div.avp-player'
@@ -90,9 +90,8 @@ var ARTE = (function(ARTE) {
         throw new Exception(config.error.noSource, window.location.href);
     };
 
-    ARTE.waitOnWrapper = function(){
+    this.setup = function(){
         WrapperDetector.run(properties);
     };
 
-    return ARTE;
-}(ARTE || {}));
+});

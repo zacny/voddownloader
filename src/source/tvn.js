@@ -1,4 +1,4 @@
-var TVN = (function(TVN) {
+var TVN = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: '#player-container'
@@ -80,7 +80,7 @@ var TVN = (function(TVN) {
             $.each(video_content, function( index, value ) {
                 items.push(new Format({
                     quality: value.profile_name,
-                    url: value.src !== undefined ? value.src : value.url
+                    url: value.url !== undefined ? value.url : value.src
                 }));
             });
 
@@ -109,13 +109,11 @@ var TVN = (function(TVN) {
         }
     };
 
-    TVN.waitOnWrapper = function(){
+    this.setup = function(){
         if(!Tool.isTopWindow()) {
             inVodFrame();
         }
 
-        WrapperDetector.run(properties, TVN.waitOnWrapper);
+        WrapperDetector.run(properties, this.setup);
     };
-
-    return TVN;
-}(TVN || {}));
+});

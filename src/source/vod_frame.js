@@ -1,5 +1,5 @@
-var VOD_FRAME = (function(VOD_FRAME) {
-    VOD_FRAME.setup = function(){
+var VOD_FRAME = (function() {
+    this.setup = function(){
         var callback = function(data) {
             var src = 'https://redir.atmcdn.pl';
             var frameSelector = 'iframe[src^="' + src + '"]';
@@ -19,6 +19,4 @@ var VOD_FRAME = (function(VOD_FRAME) {
             windowReference: window.parent
         }, callback);
     };
-
-    return VOD_FRAME;
-}(VOD_FRAME || {}));
+});

@@ -1,4 +1,4 @@
-var WP = (function(WP) {
+var WP = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: '#Player0 > div'
@@ -52,9 +52,7 @@ var WP = (function(WP) {
         throw new Exception(config.error.noSource, window.location.href);
     };
 
-    WP.waitOnWrapper = function(){
-        WrapperDetector.run(properties, WP.waitOnWrapper);
+    this.setup = function(){
+        WrapperDetector.run(properties, this.setup);
     };
-
-    return WP;
-}(WP || {}));
+});

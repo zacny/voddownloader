@@ -1,4 +1,4 @@
-var CYF_TVP = (function(CYF_TVP) {
+var CYF_TVP = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: 'div.playerContainerWrapper'
@@ -14,7 +14,7 @@ var CYF_TVP = (function(CYF_TVP) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return VOD_TVP.grabVideoData(output);
+                        return COMMON_SOURCE.grabTvpVideoData(output);
                     }
                 })
             ]
@@ -36,9 +36,7 @@ var CYF_TVP = (function(CYF_TVP) {
         throw new Exception(config.error.id, window.location.href);
     };
 
-    CYF_TVP.waitOnWrapper = function(){
+    this.setup = function(){
         WrapperDetector.run(properties);
     };
-
-    return CYF_TVP;
-}(CYF_TVP || {}));
+});

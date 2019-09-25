@@ -1,4 +1,4 @@
-var TVP_REG = (function(TVP_REG) {
+var TVP_REG = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: 'div.js-video'
@@ -14,7 +14,7 @@ var TVP_REG = (function(TVP_REG) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return VOD_TVP.grabVideoData(output);
+                        return COMMON_SOURCE.grabTvpVideoData(output);
                     }
                 })
             ]
@@ -30,9 +30,7 @@ var TVP_REG = (function(TVP_REG) {
         throw new Exception(config.error.id, window.location.href);
     };
 
-    TVP_REG.waitOnWrapper = function(){
+    this.setup = function(){
         WrapperDetector.run(properties);
     };
-
-    return TVP_REG;
-}(TVP_REG || {}));
+});

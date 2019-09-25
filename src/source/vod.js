@@ -1,4 +1,4 @@
-var VOD = (function(VOD) {
+var VOD = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: '#v_videoPlayer'
@@ -98,7 +98,7 @@ var VOD = (function(VOD) {
         });
     };
 
-    VOD.waitOnWrapper = function(){
+    this.setup = function(){
         if(iplaDetected()) {
             workWithSubService();
         }
@@ -106,6 +106,4 @@ var VOD = (function(VOD) {
             WrapperDetector.run(properties);
         }
     };
-
-    return VOD;
-}(VOD || {}));
+});
