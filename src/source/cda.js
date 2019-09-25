@@ -1,4 +1,4 @@
-var CDA = (function(CDA) {
+var CDA = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: '.pb-video-player-wrap'
@@ -46,9 +46,7 @@ var CDA = (function(CDA) {
         DomTamper.createDocument(cardsData, w);
     };
 
-    CDA.waitOnWrapper = function(){
+    this.setup = function(){
         WrapperDetector.run(properties);
     };
-
-    return CDA;
-}(CDA || {}));
+});

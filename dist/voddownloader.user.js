@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.2.1
+// @version        6.3.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -48,16 +48,16 @@
 (function vodDownloader($, platform, Waves) {
     'use strict';
 
-    function Exception(error, templateParams) {
+    var Exception = (function(error, templateParams) {
 	    this.error = error;
 	    this.templateParams = Array.isArray(templateParams) ? templateParams : [templateParams];
-	}
+	});
 	
-	function Format(data) {
+	var Format = (function(data) {
 	    this.bitrate = null;
 	    this.format = null;
 	    $.extend(true, this, data);
-	}
+	});
 	
 	var Tool = (function(Tool) {
 	    Tool.deleteParametersFromUrl = function(url){
@@ -168,7 +168,7 @@
 	};
 	
 	
-	function Step(properties){
+	var Step = (function(properties){
 	    var step = {
 	        urlTemplate: '',
 	        beforeStep: function(input){return input},
@@ -194,7 +194,7 @@
 	    };
 	
 	    return $.extend(true, step, properties);
-	}
+	});
 	
 	var Notification = (function(Notification) {
 	    var create = function(title, bodyContent, special) {
@@ -880,7 +880,7 @@
 	    return $.extend(true, service, properties);
 	}
 	
-	function Detector(conf) {
+	var Detector = (function(conf) {
 	    var configuration = conf;
 	
 	    var logMessage = function(attempt){
@@ -918,7 +918,7 @@
 	    this.detect = function() {
 	        check(config.attempts);
 	    };
-	}
+	});
 	
 	var ChangeVideoDetector = (function(ChangeVideoDetector){
 	    ChangeVideoDetector.run = function(videoChangeCallback) {
@@ -1065,7 +1065,63 @@
 	    return MessageReceiver;
 	}(MessageReceiver || {}));
 	
-	var VOD_TVP = (function(VOD_TVP) {
+	var COMMON_SOURCE = (function(COMMON_SOURCE) {
+	    COMMON_SOURCE.grabIplaSubtitlesData = function(data){
+	        var items = [];
+	        var subtitles = (((data.result || {}).mediaItem || {}).displayInfo || {}).subtitles || [];
+	        subtitles.forEach(function(subtitle) {
+	            items.push(new Format({
+	                url: subtitle.src,
+	                description: subtitle.name,
+	                format: subtitle.format
+	            }))
+	        });
+	        return {
+	            cards: {subtitles: {items: items}}
+	        };
+	    };
+	
+	    COMMON_SOURCE.grabIplaVideoData = function(data){
+	        var items = [];
+	        var vod = data.vod || {};
+	        if(vod.copies && vod.copies.length > 0){
+	            $.each(vod.copies, function( index, value ) {
+	                items.push(new Format({
+	                    bitrate: value.bitrate,
+	                    url: value.url,
+	                    quality: value.quality_p
+	                }))
+	            });
+	            return {
+	                title: vod.title,
+	                cards: {videos: {items: items}}
+	            }
+	        }
+	        throw new Exception(config.error.noSource, Tool.getRealUrl());
+	    };
+	
+	    COMMON_SOURCE.grabTvpVideoData = function(data){
+	        var items = [];
+	        if(data.status == 'OK' && data.formats !== undefined){
+	            $.each(data.formats, function( index, value ) {
+	                if(value.adaptive == false){
+	                    items.push(new Format({
+	                        bitrate: value.totalBitrate,
+	                        url: value.url
+	                    }));
+	                }
+	            });
+	            return {
+	                title: data.title,
+	                cards: {videos: {items: items}}
+	            }
+	        }
+	        throw new Exception(config.error.noSource, window.location.href);
+	    };
+	
+	    return COMMON_SOURCE;
+	}(COMMON_SOURCE || {}));
+	var VOD_TVP = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.playerContainerWrapper'
@@ -1087,7 +1143,7 @@
 	                        return getRealVideoId(json);
 	                    },
 	                    afterStep: function (output) {
-	                        return VOD_TVP.grabVideoData(output);
+	                        return COMMON_SOURCE.grabTvpVideoData(output);
 	                    }
 	                })
 	            ]
@@ -1113,33 +1169,12 @@
 	        };
 	    };
 	
-	    VOD_TVP.grabVideoData = function(data){
-	        var items = [];
-	        if(data.status == 'OK' && data.formats !== undefined){
-	            $.each(data.formats, function( index, value ) {
-	                if(value.adaptive == false){
-	                    items.push(new Format({
-	                        bitrate: value.totalBitrate,
-	                        url: value.url
-	                    }));
-	                }
-	            });
-	            return {
-	                title: data.title,
-	                cards: {videos: {items: items}}
-	            }
-	        }
-	        throw new Exception(config.error.noSource, window.location.href);
-	    };
-	
-	    VOD_TVP.waitOnWrapper = function(){
+	    this.setup = function(){
 	        WrapperDetector.run(properties);
 	    };
+	});
 	
-	    return VOD_TVP;
-	}(VOD_TVP || {}));
-	
-	var CYF_TVP = (function(CYF_TVP) {
+	var CYF_TVP = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.playerContainerWrapper'
@@ -1155,7 +1190,7 @@
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return VOD_TVP.grabVideoData(output);
+	                        return COMMON_SOURCE.grabTvpVideoData(output);
 	                    }
 	                })
 	            ]
@@ -1177,14 +1212,12 @@
 	        throw new Exception(config.error.id, window.location.href);
 	    };
 	
-	    CYF_TVP.waitOnWrapper = function(){
+	    this.setup = function(){
 	        WrapperDetector.run(properties);
 	    };
+	});
 	
-	    return CYF_TVP;
-	}(CYF_TVP || {}));
-	
-	var TVP_REG = (function(TVP_REG) {
+	var TVP_REG = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.js-video'
@@ -1200,7 +1233,7 @@
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return VOD_TVP.grabVideoData(output);
+	                        return COMMON_SOURCE.grabTvpVideoData(output);
 	                    }
 	                })
 	            ]
@@ -1216,14 +1249,12 @@
 	        throw new Exception(config.error.id, window.location.href);
 	    };
 	
-	    TVP_REG.waitOnWrapper = function(){
+	    this.setup = function(){
 	        WrapperDetector.run(properties);
 	    };
+	});
 	
-	    return TVP_REG;
-	}(TVP_REG || {}));
-	
-	var TVN = (function(TVN) {
+	var TVN = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#player-container'
@@ -1305,7 +1336,7 @@
 	            $.each(video_content, function( index, value ) {
 	                items.push(new Format({
 	                    quality: value.profile_name,
-	                    url: value.src !== undefined ? value.src : value.url
+	                    url: value.url !== undefined ? value.url : value.src
 	                }));
 	            });
 	
@@ -1334,18 +1365,16 @@
 	        }
 	    };
 	
-	    TVN.waitOnWrapper = function(){
+	    this.setup = function(){
 	        if(!Tool.isTopWindow()) {
 	            inVodFrame();
 	        }
 	
-	        WrapperDetector.run(properties, TVN.waitOnWrapper);
+	        WrapperDetector.run(properties, this.setup);
 	    };
+	});
 	
-	    return TVN;
-	}(TVN || {}));
-	
-	var IPLA = (function(IPLA) {
+	var IPLA = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child,' +
@@ -1366,7 +1395,7 @@
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return IPLA.grabVideoData(output);
+	                        return COMMON_SOURCE.grabIplaVideoData(output);
 	                    }
 	                })
 	            ],
@@ -1378,7 +1407,7 @@
 	                        return getParamsForSubtitles();
 	                    },
 	                    afterStep: function (output) {
-	                        return IPLA.grabSubtitlesData(output);
+	                        return COMMON_SOURCE.grabIplaSubtitlesData(output);
 	                    }
 	                })
 	            ]
@@ -1411,42 +1440,8 @@
 	        return grabVideoIdFromWatchingNowElement();
 	    };
 	
-	    IPLA.waitOnWrapper = function(){
-	        WrapperDetector.run(properties, IPLA.waitOnWrapper);
-	    };
-	
-	    IPLA.grabSubtitlesData = function(data){
-	        var items = [];
-	        var subtitles = (((data.result || {}).mediaItem || {}).displayInfo || {}).subtitles || [];
-	        subtitles.forEach(function(subtitle) {
-	            items.push(new Format({
-	                url: subtitle.src,
-	                description: subtitle.name,
-	                format: subtitle.format
-	            }))
-	        });
-	        return {
-	            cards: {subtitles: {items: items}}
-	        };
-	    };
-	
-	    IPLA.grabVideoData = function(data){
-	        var items = [];
-	        var vod = data.vod || {};
-	        if(vod.copies && vod.copies.length > 0){
-	            $.each(vod.copies, function( index, value ) {
-	                items.push(new Format({
-	                    bitrate: value.bitrate,
-	                    url: value.url,
-	                    quality: value.quality_p
-	                }))
-	            });
-	            return {
-	                title: vod.title,
-	                cards: {videos: {items: items}}
-	            }
-	        }
-	        throw new Exception(config.error.noSource, Tool.getRealUrl());
+	    this.setup = function(){
+	        WrapperDetector.run(properties, this.setup);
 	    };
 	
 	    var grabVideoIdFromWatchingNowElement = function(){
@@ -1468,11 +1463,9 @@
 	
 	        throw new Exception(config.error.id, Tool.getRealUrl());
 	    };
+	});
 	
-	    return IPLA;
-	}(IPLA || {}));
-	
-	var VOD = (function(VOD) {
+	var VOD = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#v_videoPlayer'
@@ -1572,7 +1565,7 @@
 	        });
 	    };
 	
-	    VOD.waitOnWrapper = function(){
+	    this.setup = function(){
 	        if(iplaDetected()) {
 	            workWithSubService();
 	        }
@@ -1580,11 +1573,9 @@
 	            WrapperDetector.run(properties);
 	        }
 	    };
+	});
 	
-	    return VOD;
-	}(VOD || {}));
-	
-	var VOD_IPLA = (function(VOD_IPLA) {
+	var VOD_IPLA = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#player-wrapper'
@@ -1604,7 +1595,7 @@
 	                        return idParser();
 	                    },
 	                    afterStep: function (output) {
-	                        return IPLA.grabVideoData(output);
+	                        return COMMON_SOURCE.grabIplaVideoData(output);
 	                    }
 	                })
 	            ],
@@ -1634,10 +1625,10 @@
 	    };
 	
 	    var parseSubtitleData = function(){
-	        return IPLA.grabSubtitlesData(getJson());
+	        return COMMON_SOURCE.grabIplaSubtitlesData(getJson());
 	    };
 	
-	    VOD_IPLA.waitOnWrapper = function(){
+	    this.setup = function(){
 	        var callback = function(data) {
 	            window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
 	            WrapperDetector.run(properties);
@@ -1647,11 +1638,9 @@
 	            windowReference: window.parent
 	        }, callback);
 	    };
+	});
 	
-	    return VOD_IPLA;
-	}(VOD_IPLA || {}));
-	
-	var WP = (function(WP) {
+	var WP = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#Player0 > div'
@@ -1705,14 +1694,12 @@
 	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
-	    WP.waitOnWrapper = function(){
-	        WrapperDetector.run(properties, WP.waitOnWrapper);
+	    this.setup = function(){
+	        WrapperDetector.run(properties, this.setup);
 	    };
+	});
 	
-	    return WP;
-	}(WP || {}));
-	
-	var CDA = (function(CDA) {
+	var CDA = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '.pb-video-player-wrap'
@@ -1758,14 +1745,12 @@
 	        DomTamper.createDocument(cardsData, w);
 	    };
 	
-	    CDA.waitOnWrapper = function(){
+	    this.setup = function(){
 	        WrapperDetector.run(properties);
 	    };
+	});
 	
-	    return CDA;
-	}(CDA || {}));
-	
-	var NINATEKA = (function(NINATEKA) {
+	var NINATEKA = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: '#videoPlayer, #player'
@@ -1825,14 +1810,12 @@
 	        }
 	    };
 	
-	    NINATEKA.waitOnWrapper = function(){
+	    this.setup = function(){
 	        WrapperDetector.run(properties);
 	    };
+	});
 	
-	    return NINATEKA;
-	}(NINATEKA || {}));
-	
-	var ARTE = (function(ARTE) {
+	var ARTE = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
 	            selector: 'div.avp-player'
@@ -1924,15 +1907,14 @@
 	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
-	    ARTE.waitOnWrapper = function(){
+	    this.setup = function(){
 	        WrapperDetector.run(properties);
 	    };
 	
-	    return ARTE;
-	}(ARTE || {}));
+	});
 	
-	var VOD_FRAME = (function(VOD_FRAME) {
-	    VOD_FRAME.setup = function(){
+	var VOD_FRAME = (function() {
+	    this.setup = function(){
 	        var callback = function(data) {
 	            var src = 'https://redir.atmcdn.pl';
 	            var frameSelector = 'iframe[src^="' + src + '"]';
@@ -1952,9 +1934,7 @@
 	            windowReference: window.parent
 	        }, callback);
 	    };
-	
-	    return VOD_FRAME;
-	}(VOD_FRAME || {}));
+	});
 	
 	var Starter = (function(Starter) {
 	    var tvZones = [
@@ -1963,24 +1943,25 @@
 	    ];
 	
 	    var sources = [
-	        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\/video\//},
-	        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
-	        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/(' + tvZones.join('|') + ')\.tvp\.pl\/\\d{6,}\/')},
-	        {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
-	        {action: CDA.waitOnWrapper, pattern: /^https:\/\/.*\.cda\.pl\//},
-	        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod.pl\//},
-	        {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
-	        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
-	        {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//},
-	        {action: NINATEKA.waitOnWrapper, pattern: /^https:\/\/ninateka.pl\//},
-	        {action: ARTE.waitOnWrapper, pattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
-	        {action: VOD_FRAME.setup, pattern: /^https:\/\/pulsembed\.eu\//}
+	        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\//},
+	        {objectName: 'CYF_TVP', urlPattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
+	        {objectName: 'TVP_REG', urlPattern: new RegExp('^https:\/\/(' + tvZones.join('|') + ')\.tvp\.pl\/\\d{6,}\/')},
+	        {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
+	        {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
+	        {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},
+	        {objectName: 'VOD_IPLA', urlPattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
+	        {objectName: 'IPLA', urlPattern: /^https:\/\/www\.ipla\.tv\//},
+	        {objectName: 'WP', urlPattern: /^https:\/\/video\.wp\.pl\//},
+	        {objectName: 'NINATEKA', urlPattern: /^https:\/\/ninateka.pl\//},
+	        {objectName: 'ARTE', urlPattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
+	        {objectName: 'VOD_FRAME', urlPattern: /^https:\/\/pulsembed\.eu\//}
 	    ];
 	
 	    Starter.start = function() {
 	        sources.some(function(source){
-	            if(location.href.match(source.pattern)){
-	                source.action();
+	            if(location.href.match(source.urlPattern)){
+	                var object = eval('new ' + source.objectName + '()');
+	                object.setup();
 	                return true;
 	            }
 	        });

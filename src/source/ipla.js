@@ -1,4 +1,4 @@
-var IPLA = (function(IPLA) {
+var IPLA = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child,' +
@@ -19,7 +19,7 @@ var IPLA = (function(IPLA) {
                         return idParser();
                     },
                     afterStep: function (output) {
-                        return IPLA.grabVideoData(output);
+                        return COMMON_SOURCE.grabIplaVideoData(output);
                     }
                 })
             ],
@@ -31,7 +31,7 @@ var IPLA = (function(IPLA) {
                         return getParamsForSubtitles();
                     },
                     afterStep: function (output) {
-                        return IPLA.grabSubtitlesData(output);
+                        return COMMON_SOURCE.grabIplaSubtitlesData(output);
                     }
                 })
             ]
@@ -64,42 +64,8 @@ var IPLA = (function(IPLA) {
         return grabVideoIdFromWatchingNowElement();
     };
 
-    IPLA.waitOnWrapper = function(){
-        WrapperDetector.run(properties, IPLA.waitOnWrapper);
-    };
-
-    IPLA.grabSubtitlesData = function(data){
-        var items = [];
-        var subtitles = (((data.result || {}).mediaItem || {}).displayInfo || {}).subtitles || [];
-        subtitles.forEach(function(subtitle) {
-            items.push(new Format({
-                url: subtitle.src,
-                description: subtitle.name,
-                format: subtitle.format
-            }))
-        });
-        return {
-            cards: {subtitles: {items: items}}
-        };
-    };
-
-    IPLA.grabVideoData = function(data){
-        var items = [];
-        var vod = data.vod || {};
-        if(vod.copies && vod.copies.length > 0){
-            $.each(vod.copies, function( index, value ) {
-                items.push(new Format({
-                    bitrate: value.bitrate,
-                    url: value.url,
-                    quality: value.quality_p
-                }))
-            });
-            return {
-                title: vod.title,
-                cards: {videos: {items: items}}
-            }
-        }
-        throw new Exception(config.error.noSource, Tool.getRealUrl());
+    this.setup = function(){
+        WrapperDetector.run(properties, this.setup);
     };
 
     var grabVideoIdFromWatchingNowElement = function(){
@@ -121,6 +87,4 @@ var IPLA = (function(IPLA) {
 
         throw new Exception(config.error.id, Tool.getRealUrl());
     };
-
-    return IPLA;
-}(IPLA || {}));
+});

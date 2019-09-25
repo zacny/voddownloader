@@ -1,4 +1,4 @@
-function Detector(conf) {
+var Detector = (function(conf) {
     var configuration = conf;
 
     var logMessage = function(attempt){
@@ -36,4 +36,4 @@ function Detector(conf) {
     this.detect = function() {
         check(config.attempts);
     };
-}
+});

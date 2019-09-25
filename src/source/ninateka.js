@@ -1,4 +1,4 @@
-var NINATEKA = (function(NINATEKA) {
+var NINATEKA = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: '#videoPlayer, #player'
@@ -58,9 +58,7 @@ var NINATEKA = (function(NINATEKA) {
         }
     };
 
-    NINATEKA.waitOnWrapper = function(){
+    this.setup = function(){
         WrapperDetector.run(properties);
     };
-
-    return NINATEKA;
-}(NINATEKA || {}));
+});

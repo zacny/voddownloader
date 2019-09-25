@@ -5,24 +5,25 @@ var Starter = (function(Starter) {
     ];
 
     var sources = [
-        {action: VOD_TVP.waitOnWrapper, pattern: /^https:\/\/vod\.tvp\.pl\/video\//},
-        {action: CYF_TVP.waitOnWrapper, pattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
-        {action: TVP_REG.waitOnWrapper, pattern: new RegExp('^https:\/\/(' + tvZones.join('|') + ')\.tvp\.pl\/\\d{6,}\/')},
-        {action: TVN.waitOnWrapper, pattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
-        {action: CDA.waitOnWrapper, pattern: /^https:\/\/.*\.cda\.pl\//},
-        {action: VOD.waitOnWrapper, pattern: /^https:\/\/vod.pl\//},
-        {action: VOD_IPLA.waitOnWrapper, pattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
-        {action: IPLA.waitOnWrapper, pattern: /^https:\/\/www\.ipla\.tv\//},
-        {action: WP.waitOnWrapper, pattern: /^https:\/\/video\.wp\.pl\//},
-        {action: NINATEKA.waitOnWrapper, pattern: /^https:\/\/ninateka.pl\//},
-        {action: ARTE.waitOnWrapper, pattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
-        {action: VOD_FRAME.setup, pattern: /^https:\/\/pulsembed\.eu\//}
+        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\//},
+        {objectName: 'CYF_TVP', urlPattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
+        {objectName: 'TVP_REG', urlPattern: new RegExp('^https:\/\/(' + tvZones.join('|') + ')\.tvp\.pl\/\\d{6,}\/')},
+        {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
+        {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
+        {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},
+        {objectName: 'VOD_IPLA', urlPattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
+        {objectName: 'IPLA', urlPattern: /^https:\/\/www\.ipla\.tv\//},
+        {objectName: 'WP', urlPattern: /^https:\/\/video\.wp\.pl\//},
+        {objectName: 'NINATEKA', urlPattern: /^https:\/\/ninateka.pl\//},
+        {objectName: 'ARTE', urlPattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
+        {objectName: 'VOD_FRAME', urlPattern: /^https:\/\/pulsembed\.eu\//}
     ];
 
     Starter.start = function() {
         sources.some(function(source){
-            if(location.href.match(source.pattern)){
-                source.action();
+            if(location.href.match(source.urlPattern)){
+                var object = eval('new ' + source.objectName + '()');
+                object.setup();
                 return true;
             }
         });

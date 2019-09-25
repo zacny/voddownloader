@@ -1,4 +1,4 @@
-var VOD_TVP = (function(VOD_TVP) {
+var VOD_TVP = (function() {
     var properties = new Configurator({
         wrapper: {
             selector: 'div.playerContainerWrapper'
@@ -20,7 +20,7 @@ var VOD_TVP = (function(VOD_TVP) {
                         return getRealVideoId(json);
                     },
                     afterStep: function (output) {
-                        return VOD_TVP.grabVideoData(output);
+                        return COMMON_SOURCE.grabTvpVideoData(output);
                     }
                 })
             ]
@@ -46,28 +46,7 @@ var VOD_TVP = (function(VOD_TVP) {
         };
     };
 
-    VOD_TVP.grabVideoData = function(data){
-        var items = [];
-        if(data.status == 'OK' && data.formats !== undefined){
-            $.each(data.formats, function( index, value ) {
-                if(value.adaptive == false){
-                    items.push(new Format({
-                        bitrate: value.totalBitrate,
-                        url: value.url
-                    }));
-                }
-            });
-            return {
-                title: data.title,
-                cards: {videos: {items: items}}
-            }
-        }
-        throw new Exception(config.error.noSource, window.location.href);
-    };
-
-    VOD_TVP.waitOnWrapper = function(){
+    this.setup = function(){
         WrapperDetector.run(properties);
     };
-
-    return VOD_TVP;
-}(VOD_TVP || {}));
+});

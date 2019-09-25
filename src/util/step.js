@@ -1,4 +1,4 @@
-function Step(properties){
+var Step = (function(properties){
     var step = {
         urlTemplate: '',
         /** Will be done before call. It should return an object ready to use by resolveUrl function. **/
@@ -30,4 +30,4 @@ function Step(properties){
     };
 
     return $.extend(true, step, properties);
-}
+});
