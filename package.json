@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "6.3.1",
+  "version": "6.3.2",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -72,6 +72,7 @@
         "https://vod.pl/*",
         "https://redir.atmcdn.pl/*",
         "https://*.redcdn.pl/file/o2/redefine/partner/*",
+        "https://partner.ipla.tv/embed/*",
         "https://video.wp.pl/*",
         "https://ninateka.pl/*",
         "https://www.arte.tv/*/videos/*",
