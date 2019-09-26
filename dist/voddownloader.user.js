@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.3.0
+// @version        6.3.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1331,12 +1331,13 @@
 	
 	    var grabVideoData = function(data){
 	        var items = [];
-	        var video_content = (((data.item || {}).videos || {}).main || {}).video_content || {};
-	        if(video_content && video_content.length > 0){
+	        var main = ((data.item || {}).videos || {}).main || {};
+	        var video_content = main.video_content || {};
+	        if(main.video_content_license_type !== 'WIDEVINE' && video_content && video_content.length > 0){
 	            $.each(video_content, function( index, value ) {
 	                items.push(new Format({
 	                    quality: value.profile_name,
-	                    url: value.url !== undefined ? value.url : value.src
+	                    url: value.url
 	                }));
 	            });
 	

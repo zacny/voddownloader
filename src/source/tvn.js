@@ -75,12 +75,13 @@ var TVN = (function() {
 
     var grabVideoData = function(data){
         var items = [];
-        var video_content = (((data.item || {}).videos || {}).main || {}).video_content || {};
-        if(video_content && video_content.length > 0){
+        var main = ((data.item || {}).videos || {}).main || {};
+        var video_content = main.video_content || {};
+        if(main.video_content_license_type !== 'WIDEVINE' && video_content && video_content.length > 0){
             $.each(video_content, function( index, value ) {
                 items.push(new Format({
                     quality: value.profile_name,
-                    url: value.url !== undefined ? value.url : value.src
+                    url: value.url
                 }));
             });
 
