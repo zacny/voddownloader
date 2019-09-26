@@ -11,7 +11,7 @@ var Starter = (function(Starter) {
         {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
         {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
         {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},
-        {objectName: 'VOD_IPLA', urlPattern: /^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
+        {objectName: 'VOD_IPLA', urlPattern: /^https:\/\/partner\.ipla\.tv\/embed\/|^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
         {objectName: 'IPLA', urlPattern: /^https:\/\/www\.ipla\.tv\//},
         {objectName: 'WP', urlPattern: /^https:\/\/video\.wp\.pl\//},
         {objectName: 'NINATEKA', urlPattern: /^https:\/\/ninateka.pl\//},
@@ -23,6 +23,7 @@ var Starter = (function(Starter) {
         sources.some(function(source){
             if(location.href.match(source.urlPattern)){
                 var object = eval('new ' + source.objectName + '()');
+                console.info('voddownloader: jQuery v' + $().jquery + ', context: ' + source.objectName);
                 object.setup();
                 return true;
             }

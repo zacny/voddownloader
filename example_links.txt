@@ -46,17 +46,19 @@ https://vod.tvp.pl/video/wiadomosci,17052019-1200,42549669
 https://vod.pl/programy-onetu/onet-rano-online-za-darmo/9l14dv6
 https://vod.pl/seriale/upadek/86x3xz5
 #with subtitles
-https://vod.pl/filmy/chce-sie-zyc-audiodeskrypcja-online/ncm9e63
+https://vod.pl/filmy/goraczka-zlota-caly-film/gk3h2fw
 
 #VOD player
 https://vod.pl/playerpl-promocja/programy-online/automaniak-odcinki,139/odcinek-2,S06E02,16815
 https://vod.pl/playerpl-promocja/programy-online/dzentelmeni-i-wiesniacy-odcinki,10536
+https://vod.pl/playerpl-promocja/filmy-online/listy-do-m,25291
 
 #VOD_IPLA
 https://vod.pl/seriale/swiat-wedlug-kiepskich/v20nc47
 https://vod.pl/programy-tv/ewa-gotuje/hbv34z7
 #with subtitles
 https://vod.pl/seriale/przyjaciolki/z6yfl4f
+https://vod.pl/filmy/vabank/mmwldxr
 
 #WP
 https://video.wp.pl/i,samochod-do-ktorego-mowisz-sprawdzamy-asystenta-w-mercedesie-klasy-a,mid,2024006,cid,8053,klip.html

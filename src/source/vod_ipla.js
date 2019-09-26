@@ -1,7 +1,7 @@
 var VOD_IPLA = (function() {
     var properties = new Configurator({
         wrapper: {
-            selector: '#player-wrapper'
+            selector: '#player-wrapper, #playerContainer'
         },
         button: {
             class: 'vod_ipla_downlaod_button'

@@ -102,7 +102,7 @@ var VOD = (function() {
         if(iplaDetected()) {
             workWithSubService();
         }
-        else {
+        else if(Tool.isTopWindow()){
             WrapperDetector.run(properties);
         }
     };
