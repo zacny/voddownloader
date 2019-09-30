@@ -19,9 +19,9 @@ var Step = (function(properties){
                 urlParams: urlParams
             };
         },
-        /** Is this step async? */
-        isAsync: function(){
-            return step.urlTemplate;
+        /** Is this step remote? */
+        isRemote: function(){
+            return this.urlTemplate.length > 0;
         },
         /** Method of async step */
         method: 'GET',

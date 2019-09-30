@@ -12,14 +12,12 @@ var VOD_IPLA = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345' +
-                        '&media_id=#videoId',
+                    urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
+                        'dev=pc&os=linux&player=html&app=firefox&build=12345',
                     beforeStep: function (input) {
-                        return idParser();
+                        return {media_id: idParser()};
                     },
-                    afterStep: function (output) {
-                        return COMMON_SOURCE.grabIplaVideoData(output);
-                    }
+                    afterStep: COMMON_SOURCE.grabIplaVideoData
                 })
             ],
             subtitles: [
@@ -29,7 +27,8 @@ var VOD_IPLA = (function() {
                     }
                 })
             ]
-        }
+        },
+        formatter: COMMON_SOURCE.iplaFormatter
     });
 
     var getJson = function(){
@@ -40,11 +39,21 @@ var VOD_IPLA = (function() {
 
     var idParser = function(){
         try {
-            return (((getJson() || {}).result || {}).mediaItem || {}).id;
+            if($('#player-wrapper').length > 0) {
+                return (((getJson() || {}).result || {}).mediaItem || {}).id;
+            }
+            else if($('#playerContainer').length > 0){
+                return getMediaId();
+            }
         }
         catch(e){
             throw new Exception(config.error.id, Tool.getRealUrl());
         }
+    };
+
+    var getMediaId = function(){
+        var match = $('script:not(:empty)').text().match(/mediaId: "(\w+)",/);
+        return match[1];
     };
 
     var parseSubtitleData = function(){

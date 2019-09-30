@@ -13,9 +13,7 @@ var CYF_TVP = (function() {
                     beforeStep: function (input) {
                         return idParser();
                     },
-                    afterStep: function (output) {
-                        return COMMON_SOURCE.grabTvpVideoData(output);
-                    }
+                    afterStep: COMMON_SOURCE.grabTvpVideoData
                 })
             ]
         }

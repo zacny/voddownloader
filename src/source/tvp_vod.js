@@ -19,9 +19,7 @@ var VOD_TVP = (function() {
                     beforeStep: function (json) {
                         return getRealVideoId(json);
                     },
-                    afterStep: function (output) {
-                        return COMMON_SOURCE.grabTvpVideoData(output);
-                    }
+                    afterStep: COMMON_SOURCE.grabTvpVideoData
                 })
             ]
         }
