@@ -14,28 +14,6 @@ var COMMON_SOURCE = (function(COMMON_SOURCE) {
         };
     };
 
-    COMMON_SOURCE.grabIplaVideoData = function(data){
-        var items = [];
-        var displayInfo = (data.mediaItem || {}).displayInfo || {};
-        var mediaSources = ((data.mediaItem || {}).playback || {}).mediaSources || {};
-        var videos = $.grep(mediaSources, function(source) {
-            return source.accessMethod === 'direct';
-        });
-        if(videos && videos.length > 0){
-            $.each(videos, function( index, value ) {
-                items.push(new Format({
-                    url: value.url,
-                    quality: value.quality
-                }))
-            });
-            return {
-                title: displayInfo.title,
-                cards: {videos: {items: items}}
-            }
-        }
-        throw new Exception(config.error.noSource, Tool.getRealUrl());
-    };
-
     COMMON_SOURCE.iplaFormatter = function(data){
         var videosRegexp = /^(\d+)p$/;
         data.cards['videos'].items.sort(function (a, b) {

@@ -91,6 +91,7 @@
       ],
       "connect": [
         "tvp.pl",
+        "getmedia.redefine.pl",
         "distro.redefine.pl",
         "player-api.dreamlab.pl",
         "api.arte.tv",

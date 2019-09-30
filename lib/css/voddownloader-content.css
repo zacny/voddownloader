@@ -8,10 +8,10 @@
     display: none;
 }
 
-.bug-report-position {
+.links-position {
     position: fixed;
-    right: 0.5rem;
-    bottom: 0.5rem;
+    right: 0.25rem;
+    bottom: 0.25rem;
 }
 
 /** loader **/

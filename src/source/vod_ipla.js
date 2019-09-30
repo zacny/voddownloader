@@ -17,7 +17,9 @@ var VOD_IPLA = (function() {
                     beforeStep: function (input) {
                         return {media_id: idParser()};
                     },
-                    afterStep: COMMON_SOURCE.grabIplaVideoData
+                    afterStep: function(data){
+                        return grabVideoData(data);
+                    }
                 })
             ],
             subtitles: [
@@ -30,6 +32,28 @@ var VOD_IPLA = (function() {
         },
         formatter: COMMON_SOURCE.iplaFormatter
     });
+
+    var grabVideoData = function(data){
+        var items = [];
+        var displayInfo = (data.mediaItem || {}).displayInfo || {};
+        var mediaSources = ((data.mediaItem || {}).playback || {}).mediaSources || {};
+        var videos = $.grep(mediaSources, function(source) {
+            return source.accessMethod === 'direct';
+        });
+        if(videos && videos.length > 0){
+            $.each(videos, function( index, value ) {
+                items.push(new Format({
+                    url: value.url,
+                    quality: value.quality
+                }))
+            });
+            return {
+                title: displayInfo.title,
+                cards: {videos: {items: items}}
+            }
+        }
+        throw new Exception(config.error.noSource, Tool.getRealUrl());
+    };
 
     var getJson = function(){
         var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);

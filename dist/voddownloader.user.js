@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name           voddownloader
-// @version        6.3.2-develop
-// @updateURL      http://localhost:5011/dist/voddownloader.meta.js
-// @downloadURL    http://localhost:5011/dist/voddownloader.user.js
+// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @version        6.3.2
+// @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
+// @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -33,6 +33,7 @@
 // @grant          GM_setClipboard
 // @grant          GM_info
 // @connect        tvp.pl
+// @connect        getmedia.redefine.pl
 // @connect        distro.redefine.pl
 // @connect        player-api.dreamlab.pl
 // @connect        api.arte.tv
@@ -42,8 +43,8 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
 // @require        https://gitcdn.xyz/cdn/zacny/voddownloader/4b17a120f521eaddf476d6e8fe3be152d506f244/lib/js/mdb-with-waves-patch.js
-// @resource       buttons_css http://localhost:5011/lib/css/voddownloader-buttons.css
-// @resource       content_css http://localhost:5011/lib/css/voddownloader-content.css
+// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
+// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($, platform, Waves) {
@@ -127,7 +128,6 @@
 	        mdb: {
 	            id: 'mdb',
 	            css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
-	            /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
 	        }
 	    },
 	    error: {
@@ -173,11 +173,8 @@
 	var Step = (function(properties){
 	    var step = {
 	        urlTemplate: '',
-	        /** Will be done before call. It should return an object ready to use by resolveUrl function. **/
 	        beforeStep: function(input){return input},
-	        /** Will be done after call **/
 	        afterStep: function (output) {return output},
-	        /** Processing parameters of url before step */
 	        resolveUrl: function (input) {
 	            var url = this.urlTemplate;
 	            var urlParams = {};
@@ -191,13 +188,10 @@
 	                urlParams: urlParams
 	            };
 	        },
-	        /** Is this step remote? */
 	        isRemote: function(){
 	            return this.urlTemplate.length > 0;
 	        },
-	        /** Method of async step */
 	        method: 'GET',
-	        /** Method parameters function of async step */
 	        methodParam: function(){return {}}
 	    };
 	
@@ -292,7 +286,6 @@
 	        if(downloadMode !== 'browser'){
 	            disableDownload(w);
 	            var value = w.localStorage.getItem(config.storage.doNotWarn);
-	            console.log('[' + config.storageItem + ']: ' + value);
 	            if(value !== 'true'){
 	                prepareWarningNotification(w);
 	            }
@@ -301,7 +294,6 @@
 	    return PluginSettingsDetector;
 	}(PluginSettingsDetector || {}));
 	
-	/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
 	var DomTamper = (function(DomTamper){
 	
 	    DomTamper.injectStyle = function(w, name){
@@ -329,14 +321,28 @@
 	        DomTamper.injectStyle(w, 'content_css');
 	    };
 	
-	    var createBugReportLink = function(w, additionalClass){
-	        var button = $('<button>').attr('id', 'bug-report-button').attr('type', 'button')
-	            .addClass('btn btn-sm m-0').addClass(additionalClass)
-	            .append($('<i>').addClass('fas fa-bug'));
-	        button.click(function(){
-	            w.open('https://github.com/zacny/voddownloader/issues');
+	    var createLinks = function(w, additionalClass){
+	        var links = [
+	            {
+	                url: 'https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod/feedback',
+	                icon: 'fa-comments'
+	            },
+	            {
+	                url: 'https://github.com/zacny/voddownloader/issues',
+	                icon: 'fa-bug'
+	            }
+	        ];
+	        var container = $('<div>').addClass('links-position');
+	        links.forEach(function(link){
+	            var button = $('<button>').attr('type', 'button')
+	                .addClass('btn btn-sm m-1').addClass(additionalClass)
+	                .append($('<i>').addClass('fas').addClass(link.icon));
+	            button.click(function(){
+	                w.open(link.url);
+	            });
+	            container.append(button);
 	        });
-	        return $('<div>').addClass('bug-report-position').append(button);
+	        return container;
 	    };
 	
 	    var prepareBody = function(w, pageContent, detection) {
@@ -372,7 +378,7 @@
 	        var errorData = getErrorData(exception);
 	        var pageContent = $('<div>').addClass('page-content');
 	        pageContent.append(createErrorContent(errorData));
-	        pageContent.append(createBugReportLink(w, errorData.type === 'error' ?
+	        pageContent.append(createLinks(w, errorData.type === 'error' ?
 	            'btn-danger' : 'special-color white-text'));
 	        prepareBody(w, pageContent);
 	    };
@@ -429,7 +435,7 @@
 	        prepareHead(w);
 	        var pageContent = $('<div>').addClass('page-content');
 	        pageContent.append(createLoaderContent());
-	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
+	        pageContent.append(createLinks(w, 'special-color white-text'));
 	        prepareBody(w, pageContent);
 	        Unloader.init(w);
 	    };
@@ -463,7 +469,7 @@
 	        setWindowTitle(data, w);
 	        var pageContent = $('<div>').addClass('page-content');
 	        pageContent.append(Accordion.create(w, data));
-	        pageContent.append(createBugReportLink(w, 'special-color white-text'));
+	        pageContent.append(createLinks(w, 'special-color white-text'));
 	        pageContent.append(createNotificationContainer());
 	        prepareBody(w, pageContent, true);
 	        Unloader.init(w);
@@ -649,8 +655,6 @@
 	    return Accordion;
 	}(Accordion || {}));
 	
-	//TODO wyeliminować pokazywanie metody przy krokach nieasynchronicznych
-	//TODO wyeliminować odpytywanie drugiego iframe jak któryś już odpowiedział
 	var Executor = (function(Executor){
 	    var execute = function(service, options, w){
 	        var setup = setupStep(service, options);
@@ -688,7 +692,6 @@
 	    };
 	
 	    var logStepInfo = function(options, setup){
-	        debugger;
 	        var chain = options.chainNames[options.chainIndex];
 	        var step = chain + '[' + options.stepIndex + ']';
 	        var stepParams = $.isEmptyObject(setup.methodParam) ? '' : JSON.stringify(setup.methodParam);
@@ -1014,11 +1017,9 @@
 	        }
 	
 	        var data = JSON.parse(event.data);
-	        /** confirmation for the sender */
 	        if(data.confirmation){
 	            alreadyConfirmed = true;
 	        }
-	        /** message for the recipient */
 	        else {
 	            data.confirmation = true;
 	            if(!alreadyPosted) {
@@ -1093,28 +1094,6 @@
 	        return {
 	            cards: {subtitles: {items: items}}
 	        };
-	    };
-	
-	    COMMON_SOURCE.grabIplaVideoData = function(data){
-	        var items = [];
-	        var displayInfo = (data.mediaItem || {}).displayInfo || {};
-	        var mediaSources = ((data.mediaItem || {}).playback || {}).mediaSources || {};
-	        var videos = $.grep(mediaSources, function(source) {
-	            return source.accessMethod === 'direct';
-	        });
-	        if(videos && videos.length > 0){
-	            $.each(videos, function( index, value ) {
-	                items.push(new Format({
-	                    url: value.url,
-	                    quality: value.quality
-	                }))
-	            });
-	            return {
-	                title: displayInfo.title,
-	                cards: {videos: {items: items}}
-	            }
-	        }
-	        throw new Exception(config.error.noSource, Tool.getRealUrl());
 	    };
 	
 	    COMMON_SOURCE.iplaFormatter = function(data){
@@ -1415,12 +1394,14 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
-	                        'dev=pc&os=linux&player=html&app=firefox&build=12345',
+	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
+	                        '&ua=www_iplatv_html5/12345&media_id=#videoId',
 	                    beforeStep: function (input) {
-	                        return {media_id: idParser()};
+	                        return idParser();
 	                    },
-	                    afterStep: COMMON_SOURCE.grabIplaVideoData
+	                    afterStep: function(data){
+	                        return grabVideoData(data);
+	                    }
 	                })
 	            ],
 	            subtitles: [
@@ -1433,9 +1414,27 @@
 	                    afterStep: COMMON_SOURCE.grabIplaSubtitlesData
 	                })
 	            ]
-	        },
-	        formatter: COMMON_SOURCE.iplaFormatter
+	        }
 	    });
+	
+	    var grabVideoData = function(data){
+	        var items = [];
+	        var vod = data.vod || {};
+	        if(vod.copies && vod.copies.length > 0){
+	            $.each(vod.copies, function( index, value ) {
+	                items.push(new Format({
+	                    bitrate: value.bitrate,
+	                    url: value.url,
+	                    quality: value.quality_p
+	                }))
+	            });
+	            return {
+	                title: vod.title,
+	                cards: {videos: {items: items}}
+	            }
+	        }
+	        throw new Exception(config.error.noSource, Tool.getRealUrl());
+	    };
 	
 	    var getParamsForSubtitles = function(){
 	        var mediaId = idParser();
@@ -1617,7 +1616,9 @@
 	                    beforeStep: function (input) {
 	                        return {media_id: idParser()};
 	                    },
-	                    afterStep: COMMON_SOURCE.grabIplaVideoData
+	                    afterStep: function(data){
+	                        return grabVideoData(data);
+	                    }
 	                })
 	            ],
 	            subtitles: [
@@ -1630,6 +1631,28 @@
 	        },
 	        formatter: COMMON_SOURCE.iplaFormatter
 	    });
+	
+	    var grabVideoData = function(data){
+	        var items = [];
+	        var displayInfo = (data.mediaItem || {}).displayInfo || {};
+	        var mediaSources = ((data.mediaItem || {}).playback || {}).mediaSources || {};
+	        var videos = $.grep(mediaSources, function(source) {
+	            return source.accessMethod === 'direct';
+	        });
+	        if(videos && videos.length > 0){
+	            $.each(videos, function( index, value ) {
+	                items.push(new Format({
+	                    url: value.url,
+	                    quality: value.quality
+	                }))
+	            });
+	            return {
+	                title: displayInfo.title,
+	                cards: {videos: {items: items}}
+	            }
+	        }
+	        throw new Exception(config.error.noSource, Tool.getRealUrl());
+	    };
 	
 	    var getJson = function(){
 	        var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
@@ -1749,11 +1772,9 @@
 	        try {
 	            var url = $("video.pb-video-player").attr('src');
 	            if(url !== undefined){
-	                /** HTML5 player */
 	                if(!url.match(/blank\.mp4/)){
 	                    prepareResult(url, w);
 	                }
-	                /** Flash pleyar - l is an existing variable on page */
 	                else if(l !== undefined){
 	                    prepareResult(l, w);
 	                }

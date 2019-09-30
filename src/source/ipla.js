@@ -13,12 +13,14 @@ var IPLA = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
-                        'dev=pc&os=linux&player=html&app=firefox&build=12345',
+                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
+                        '&ua=www_iplatv_html5/12345&media_id=#videoId',
                     beforeStep: function (input) {
-                        return {media_id: idParser()};
+                        return idParser();
                     },
-                    afterStep: COMMON_SOURCE.grabIplaVideoData
+                    afterStep: function(data){
+                        return grabVideoData(data);
+                    }
                 })
             ],
             subtitles: [
@@ -31,9 +33,27 @@ var IPLA = (function() {
                     afterStep: COMMON_SOURCE.grabIplaSubtitlesData
                 })
             ]
-        },
-        formatter: COMMON_SOURCE.iplaFormatter
+        }
     });
+
+    var grabVideoData = function(data){
+        var items = [];
+        var vod = data.vod || {};
+        if(vod.copies && vod.copies.length > 0){
+            $.each(vod.copies, function( index, value ) {
+                items.push(new Format({
+                    bitrate: value.bitrate,
+                    url: value.url,
+                    quality: value.quality_p
+                }))
+            });
+            return {
+                title: vod.title,
+                cards: {videos: {items: items}}
+            }
+        }
+        throw new Exception(config.error.noSource, Tool.getRealUrl());
+    };
 
     var getParamsForSubtitles = function(){
         var mediaId = idParser();
