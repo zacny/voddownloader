@@ -1,5 +1,3 @@
-//TODO wyeliminować pokazywanie metody przy krokach nieasynchronicznych
-//TODO wyeliminować odpytywanie drugiego iframe jak któryś już odpowiedział
 var Executor = (function(Executor){
     var execute = function(service, options, w){
         var setup = setupStep(service, options);
