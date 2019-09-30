@@ -1,8 +1,8 @@
 var VOD_FRAME = (function() {
     this.setup = function(){
         var callback = function(data) {
-            setupDetector('https://redir.atmcdn.pl', data);
-            setupDetector('https://partner.ipla.tv', data);
+            var srcArray = ['https://redir.atmcdn.pl', 'https://partner.ipla.tv'];
+            setupDetector(srcArray, data);
         };
         MessageReceiver.awaitMessage({
             origin: 'https://vod.pl',
@@ -10,17 +10,37 @@ var VOD_FRAME = (function() {
         }, callback);
     };
 
-    var setupDetector = function(src, data){
-        var frameSelector = 'iframe[src^="' + src + '"]';
+    var setupDetector = function(srcArray, data){
+        var selectors = createArrySelectors(srcArray);
+        var multiSelector = createMultiSelector(selectors);
 
-        ElementDetector.detect(frameSelector, function () {
-            MessageReceiver.postUntilConfirmed({
-                windowReference: $(frameSelector).get(0).contentWindow,
-                origin: src,
-                message: {
-                    location: data.location
+        ElementDetector.detect(multiSelector, function() {
+            selectors.forEach(function(element){
+                if($(element.frameSelector).length > 0){
+                    MessageReceiver.postUntilConfirmed({
+                        windowReference: $(element.frameSelector).get(0).contentWindow,
+                        origin: element.src,
+                        message: {
+                            location: data.location
+                        }
+                    });
                 }
             });
         });
+    };
+
+    var createArrySelectors = function(srcArray){
+        return jQuery.map(srcArray, function(src) {
+            return {
+                src: src,
+                frameSelector: 'iframe[src^="' + src + '"]'
+            }
+        });
+    };
+
+    var createMultiSelector = function(selectors){
+        return $.map(selectors, function(src){
+            return src.frameSelector
+        }).join(', ');
     }
 });

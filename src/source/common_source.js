@@ -16,21 +16,38 @@ var COMMON_SOURCE = (function(COMMON_SOURCE) {
 
     COMMON_SOURCE.grabIplaVideoData = function(data){
         var items = [];
-        var vod = data.vod || {};
-        if(vod.copies && vod.copies.length > 0){
-            $.each(vod.copies, function( index, value ) {
+        var displayInfo = (data.mediaItem || {}).displayInfo || {};
+        var mediaSources = ((data.mediaItem || {}).playback || {}).mediaSources || {};
+        var videos = $.grep(mediaSources, function(source) {
+            return source.accessMethod === 'direct';
+        });
+        if(videos && videos.length > 0){
+            $.each(videos, function( index, value ) {
                 items.push(new Format({
-                    bitrate: value.bitrate,
                     url: value.url,
-                    quality: value.quality_p
+                    quality: value.quality
                 }))
             });
             return {
-                title: vod.title,
+                title: displayInfo.title,
                 cards: {videos: {items: items}}
             }
         }
         throw new Exception(config.error.noSource, Tool.getRealUrl());
+    };
+
+    COMMON_SOURCE.iplaFormatter = function(data){
+        var videosRegexp = /^(\d+)p$/;
+        data.cards['videos'].items.sort(function (a, b) {
+            var qualityMatchA = a.quality.match(videosRegexp);
+            var qualityMatchB = b.quality.match(videosRegexp);
+            var qualityA = qualityMatchA && qualityMatchA[1] ? Number(qualityMatchA[1]) : 0;
+            var qualityB = qualityMatchB && qualityMatchB[1] ? Number(qualityMatchB[1]) : 0;
+            return qualityB - qualityA;
+        });
+        data.cards['subtitles'].items.sort(function (a, b) {
+            return ('' + a.format).localeCompare(b.format);
+        });
     };
 
     COMMON_SOURCE.grabTvpVideoData = function(data){

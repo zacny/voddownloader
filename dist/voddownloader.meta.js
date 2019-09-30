@@ -33,7 +33,7 @@
 // @grant          GM_setClipboard
 // @grant          GM_info
 // @connect        tvp.pl
-// @connect        getmedia.redefine.pl
+// @connect        distro.redefine.pl
 // @connect        player-api.dreamlab.pl
 // @connect        api.arte.tv
 // @connect        b2c.redefine.pl

@@ -60,7 +60,6 @@ var MessageReceiver = (function(MessageReceiver) {
         if (alreadyConfirmed || attempt <= 0) {
             return Promise.resolve().then(function(){
                 window.removeEventListener('message', callbackFunction);
-                alreadyConfirmed = false;
                 if(attempt <= 0){
                     console.warn("Nie udało się przekazać adresu z okna głównego.");
                 }

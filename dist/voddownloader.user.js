@@ -33,7 +33,7 @@
 // @grant          GM_setClipboard
 // @grant          GM_info
 // @connect        tvp.pl
-// @connect        getmedia.redefine.pl
+// @connect        distro.redefine.pl
 // @connect        player-api.dreamlab.pl
 // @connect        api.arte.tv
 // @connect        b2c.redefine.pl
@@ -191,9 +191,9 @@
 	                urlParams: urlParams
 	            };
 	        },
-	        /** Is this step async? */
-	        isAsync: function(){
-	            return step.urlTemplate;
+	        /** Is this step remote? */
+	        isRemote: function(){
+	            return this.urlTemplate.length > 0;
 	        },
 	        /** Method of async step */
 	        method: 'GET',
@@ -649,11 +649,13 @@
 	    return Accordion;
 	}(Accordion || {}));
 	
+	//TODO wyeliminować pokazywanie metody przy krokach nieasynchronicznych
+	//TODO wyeliminować odpytywanie drugiego iframe jak któryś już odpowiedział
 	var Executor = (function(Executor){
 	    var execute = function(service, options, w){
 	        var setup = setupStep(service, options);
 	        logStepInfo(options, setup);
-	        if(setup.isAsync){
+	        if(setup.isRemote){
 	             executeAsync(service, setup, options, w);
 	        }
 	        else {
@@ -686,12 +688,13 @@
 	    };
 	
 	    var logStepInfo = function(options, setup){
+	        debugger;
 	        var chain = options.chainNames[options.chainIndex];
 	        var step = chain + '[' + options.stepIndex + ']';
 	        var stepParams = $.isEmptyObject(setup.methodParam) ? '' : JSON.stringify(setup.methodParam);
 	        var params = [
-	            'color:blue', step,  'color:red', setup.method, 'color:black;font-weight: bold',
-	            setup.resolveUrl.url, 'color:magenta', stepParams
+	            'color:blue', step,  'color:red', setup.isRemote ? setup.method : '---',
+	            'color:black;font-weight: bold', setup.resolveUrl.url, 'color:magenta', stepParams
 	        ];
 	        Tool.formatConsoleMessage('%c%s%c %s %c %s %c%s', params);
 	    };
@@ -715,7 +718,7 @@
 	            resolveUrl: currentStep.resolveUrl(options.urlParams),
 	            method: currentStep.method,
 	            methodParam: currentStep.methodParam(),
-	            isAsync: currentStep.isAsync()
+	            isRemote: currentStep.isRemote()
 	        };
 	    };
 	
@@ -1010,8 +1013,6 @@
 	            return;
 	        }
 	
-	        console.log(event.origin);
-	        console.log('data: ' + event.data);
 	        var data = JSON.parse(event.data);
 	        /** confirmation for the sender */
 	        if(data.confirmation){
@@ -1062,7 +1063,6 @@
 	        if (alreadyConfirmed || attempt <= 0) {
 	            return Promise.resolve().then(function(){
 	                window.removeEventListener('message', callbackFunction);
-	                alreadyConfirmed = false;
 	                if(attempt <= 0){
 	                    console.warn("Nie udało się przekazać adresu z okna głównego.");
 	                }
@@ -1097,21 +1097,38 @@
 	
 	    COMMON_SOURCE.grabIplaVideoData = function(data){
 	        var items = [];
-	        var vod = data.vod || {};
-	        if(vod.copies && vod.copies.length > 0){
-	            $.each(vod.copies, function( index, value ) {
+	        var displayInfo = (data.mediaItem || {}).displayInfo || {};
+	        var mediaSources = ((data.mediaItem || {}).playback || {}).mediaSources || {};
+	        var videos = $.grep(mediaSources, function(source) {
+	            return source.accessMethod === 'direct';
+	        });
+	        if(videos && videos.length > 0){
+	            $.each(videos, function( index, value ) {
 	                items.push(new Format({
-	                    bitrate: value.bitrate,
 	                    url: value.url,
-	                    quality: value.quality_p
+	                    quality: value.quality
 	                }))
 	            });
 	            return {
-	                title: vod.title,
+	                title: displayInfo.title,
 	                cards: {videos: {items: items}}
 	            }
 	        }
 	        throw new Exception(config.error.noSource, Tool.getRealUrl());
+	    };
+	
+	    COMMON_SOURCE.iplaFormatter = function(data){
+	        var videosRegexp = /^(\d+)p$/;
+	        data.cards['videos'].items.sort(function (a, b) {
+	            var qualityMatchA = a.quality.match(videosRegexp);
+	            var qualityMatchB = b.quality.match(videosRegexp);
+	            var qualityA = qualityMatchA && qualityMatchA[1] ? Number(qualityMatchA[1]) : 0;
+	            var qualityB = qualityMatchB && qualityMatchB[1] ? Number(qualityMatchB[1]) : 0;
+	            return qualityB - qualityA;
+	        });
+	        data.cards['subtitles'].items.sort(function (a, b) {
+	            return ('' + a.format).localeCompare(b.format);
+	        });
 	    };
 	
 	    COMMON_SOURCE.grabTvpVideoData = function(data){
@@ -1156,9 +1173,7 @@
 	                    beforeStep: function (json) {
 	                        return getRealVideoId(json);
 	                    },
-	                    afterStep: function (output) {
-	                        return COMMON_SOURCE.grabTvpVideoData(output);
-	                    }
+	                    afterStep: COMMON_SOURCE.grabTvpVideoData
 	                })
 	            ]
 	        }
@@ -1203,9 +1218,7 @@
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
-	                    afterStep: function (output) {
-	                        return COMMON_SOURCE.grabTvpVideoData(output);
-	                    }
+	                    afterStep: COMMON_SOURCE.grabTvpVideoData
 	                })
 	            ]
 	        }
@@ -1246,9 +1259,7 @@
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
-	                    afterStep: function (output) {
-	                        return COMMON_SOURCE.grabTvpVideoData(output);
-	                    }
+	                    afterStep: COMMON_SOURCE.grabTvpVideoData
 	                })
 	            ]
 	        }
@@ -1404,14 +1415,12 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
-	                        '&ua=www_iplatv_html5/12345&media_id=#videoId',
+	                    urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
+	                        'dev=pc&os=linux&player=html&app=firefox&build=12345',
 	                    beforeStep: function (input) {
-	                        return idParser();
+	                        return {media_id: idParser()};
 	                    },
-	                    afterStep: function (output) {
-	                        return COMMON_SOURCE.grabIplaVideoData(output);
-	                    }
+	                    afterStep: COMMON_SOURCE.grabIplaVideoData
 	                })
 	            ],
 	            subtitles: [
@@ -1421,12 +1430,11 @@
 	                    methodParam: function(){
 	                        return getParamsForSubtitles();
 	                    },
-	                    afterStep: function (output) {
-	                        return COMMON_SOURCE.grabIplaSubtitlesData(output);
-	                    }
+	                    afterStep: COMMON_SOURCE.grabIplaSubtitlesData
 	                })
 	            ]
-	        }
+	        },
+	        formatter: COMMON_SOURCE.iplaFormatter
 	    });
 	
 	    var getParamsForSubtitles = function(){
@@ -1604,14 +1612,12 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&ua=www_iplatv_html5/12345' +
-	                        '&media_id=#videoId',
+	                    urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
+	                        'dev=pc&os=linux&player=html&app=firefox&build=12345',
 	                    beforeStep: function (input) {
-	                        return idParser();
+	                        return {media_id: idParser()};
 	                    },
-	                    afterStep: function (output) {
-	                        return COMMON_SOURCE.grabIplaVideoData(output);
-	                    }
+	                    afterStep: COMMON_SOURCE.grabIplaVideoData
 	                })
 	            ],
 	            subtitles: [
@@ -1621,7 +1627,8 @@
 	                    }
 	                })
 	            ]
-	        }
+	        },
+	        formatter: COMMON_SOURCE.iplaFormatter
 	    });
 	
 	    var getJson = function(){
@@ -1632,11 +1639,21 @@
 	
 	    var idParser = function(){
 	        try {
-	            return (((getJson() || {}).result || {}).mediaItem || {}).id;
+	            if($('#player-wrapper').length > 0) {
+	                return (((getJson() || {}).result || {}).mediaItem || {}).id;
+	            }
+	            else if($('#playerContainer').length > 0){
+	                return getMediaId();
+	            }
 	        }
 	        catch(e){
 	            throw new Exception(config.error.id, Tool.getRealUrl());
 	        }
+	    };
+	
+	    var getMediaId = function(){
+	        var match = $('script:not(:empty)').text().match(/mediaId: "(\w+)",/);
+	        return match[1];
 	    };
 	
 	    var parseSubtitleData = function(){
@@ -1933,8 +1950,8 @@
 	var VOD_FRAME = (function() {
 	    this.setup = function(){
 	        var callback = function(data) {
-	            setupDetector('https://redir.atmcdn.pl', data);
-	            setupDetector('https://partner.ipla.tv', data);
+	            var srcArray = ['https://redir.atmcdn.pl', 'https://partner.ipla.tv'];
+	            setupDetector(srcArray, data);
 	        };
 	        MessageReceiver.awaitMessage({
 	            origin: 'https://vod.pl',
@@ -1942,18 +1959,38 @@
 	        }, callback);
 	    };
 	
-	    var setupDetector = function(src, data){
-	        var frameSelector = 'iframe[src^="' + src + '"]';
+	    var setupDetector = function(srcArray, data){
+	        var selectors = createArrySelectors(srcArray);
+	        var multiSelector = createMultiSelector(selectors);
 	
-	        ElementDetector.detect(frameSelector, function () {
-	            MessageReceiver.postUntilConfirmed({
-	                windowReference: $(frameSelector).get(0).contentWindow,
-	                origin: src,
-	                message: {
-	                    location: data.location
+	        ElementDetector.detect(multiSelector, function() {
+	            selectors.forEach(function(element){
+	                if($(element.frameSelector).length > 0){
+	                    MessageReceiver.postUntilConfirmed({
+	                        windowReference: $(element.frameSelector).get(0).contentWindow,
+	                        origin: element.src,
+	                        message: {
+	                            location: data.location
+	                        }
+	                    });
 	                }
 	            });
 	        });
+	    };
+	
+	    var createArrySelectors = function(srcArray){
+	        return jQuery.map(srcArray, function(src) {
+	            return {
+	                src: src,
+	                frameSelector: 'iframe[src^="' + src + '"]'
+	            }
+	        });
+	    };
+	
+	    var createMultiSelector = function(selectors){
+	        return $.map(selectors, function(src){
+	            return src.frameSelector
+	        }).join(', ');
 	    }
 	});
 	

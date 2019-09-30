@@ -1,8 +1,10 @@
+//TODO wyeliminować pokazywanie metody przy krokach nieasynchronicznych
+//TODO wyeliminować odpytywanie drugiego iframe jak któryś już odpowiedział
 var Executor = (function(Executor){
     var execute = function(service, options, w){
         var setup = setupStep(service, options);
         logStepInfo(options, setup);
-        if(setup.isAsync){
+        if(setup.isRemote){
              executeAsync(service, setup, options, w);
         }
         else {
@@ -39,8 +41,8 @@ var Executor = (function(Executor){
         var step = chain + '[' + options.stepIndex + ']';
         var stepParams = $.isEmptyObject(setup.methodParam) ? '' : JSON.stringify(setup.methodParam);
         var params = [
-            'color:blue', step,  'color:red', setup.method, 'color:black;font-weight: bold',
-            setup.resolveUrl.url, 'color:magenta', stepParams
+            'color:blue', step,  'color:red', setup.isRemote ? setup.method : '---',
+            'color:black;font-weight: bold', setup.resolveUrl.url, 'color:magenta', stepParams
         ];
         Tool.formatConsoleMessage('%c%s%c %s %c %s %c%s', params);
     };
@@ -64,7 +66,7 @@ var Executor = (function(Executor){
             resolveUrl: currentStep.resolveUrl(options.urlParams),
             method: currentStep.method,
             methodParam: currentStep.methodParam(),
-            isAsync: currentStep.isAsync()
+            isRemote: currentStep.isRemote()
         };
     };
 
