@@ -26,14 +26,28 @@ var DomTamper = (function(DomTamper){
         DomTamper.injectStyle(w, 'content_css');
     };
 
-    var createBugReportLink = function(w, additionalClass){
-        var button = $('<button>').attr('id', 'bug-report-button').attr('type', 'button')
-            .addClass('btn btn-sm m-0').addClass(additionalClass)
-            .append($('<i>').addClass('fas fa-bug'));
-        button.click(function(){
-            w.open('https://github.com/zacny/voddownloader/issues');
+    var createLinks = function(w, additionalClass){
+        var links = [
+            {
+                url: 'https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod/feedback',
+                icon: 'fa-comments'
+            },
+            {
+                url: 'https://github.com/zacny/voddownloader/issues',
+                icon: 'fa-bug'
+            }
+        ];
+        var container = $('<div>').addClass('links-position');
+        links.forEach(function(link){
+            var button = $('<button>').attr('type', 'button')
+                .addClass('btn btn-sm m-1').addClass(additionalClass)
+                .append($('<i>').addClass('fas').addClass(link.icon));
+            button.click(function(){
+                w.open(link.url);
+            });
+            container.append(button);
         });
-        return $('<div>').addClass('bug-report-position').append(button);
+        return container;
     };
 
     var prepareBody = function(w, pageContent, detection) {
@@ -69,7 +83,7 @@ var DomTamper = (function(DomTamper){
         var errorData = getErrorData(exception);
         var pageContent = $('<div>').addClass('page-content');
         pageContent.append(createErrorContent(errorData));
-        pageContent.append(createBugReportLink(w, errorData.type === 'error' ?
+        pageContent.append(createLinks(w, errorData.type === 'error' ?
             'btn-danger' : 'special-color white-text'));
         prepareBody(w, pageContent);
     };
@@ -126,7 +140,7 @@ var DomTamper = (function(DomTamper){
         prepareHead(w);
         var pageContent = $('<div>').addClass('page-content');
         pageContent.append(createLoaderContent());
-        pageContent.append(createBugReportLink(w, 'special-color white-text'));
+        pageContent.append(createLinks(w, 'special-color white-text'));
         prepareBody(w, pageContent);
         Unloader.init(w);
     };
@@ -160,7 +174,7 @@ var DomTamper = (function(DomTamper){
         setWindowTitle(data, w);
         var pageContent = $('<div>').addClass('page-content');
         pageContent.append(Accordion.create(w, data));
-        pageContent.append(createBugReportLink(w, 'special-color white-text'));
+        pageContent.append(createLinks(w, 'special-color white-text'));
         pageContent.append(createNotificationContainer());
         prepareBody(w, pageContent, true);
         Unloader.init(w);
