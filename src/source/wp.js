@@ -23,7 +23,9 @@ var WP = (function() {
 
     var idParser = function () {
         try {
-            return $('.identifier').attr('data-id');
+            var id = window.location.href.match(/^(.*)-(\d+)v$/)[2];
+            //__NEXT_DATA__ is a variable on page
+            return __NEXT_DATA__.props.initialPWPState.material[id].mid;
         }
         catch(e){
             throw new Exception(config.error.id, window.location.href);

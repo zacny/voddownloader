@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.3.2
+// @version        6.4.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -324,19 +324,27 @@
 	    var createLinks = function(w, additionalClass){
 	        var links = [
 	            {
-	                url: 'https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod/feedback',
-	                icon: 'fa-comments'
+	                url: 'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=RWX4EUR77CMKU',
+	                icon: 'fa-hand-holding-usd',
+	                tooltip: 'dotacje'
+	            },
+	            {
+	                url: 'https://greasyfork.org/pl/scripts/6049-skrypt-umo%C5%BCliwiaj%C4%85cy-pobieranie-' +
+	                    'materia%C5%82%C3%B3w-ze-znanych-serwis%C3%B3w-vod/feedback',
+	                icon: 'fa-comments',
+	                tooltip: 'problemy, komentarze'
 	            },
 	            {
 	                url: 'https://github.com/zacny/voddownloader/issues',
-	                icon: 'fa-bug'
+	                icon: 'fa-bug',
+	                tooltip: 'zgłoś błąd'
 	            }
 	        ];
 	        var container = $('<div>').addClass('links-position');
 	        links.forEach(function(link){
-	            var button = $('<button>').attr('type', 'button')
-	                .addClass('btn btn-sm m-1').addClass(additionalClass)
-	                .append($('<i>').addClass('fas').addClass(link.icon));
+	            var button = $('<button>').attr('type', 'button').attr('title', link.tooltip)
+	                .addClass('btn btn-sm m-1 p-2').addClass(additionalClass)
+	                .append($('<i>').addClass('fas').addClass(link.icon).addClass('fa-2x'));
 	            button.click(function(){
 	                w.open(link.url);
 	            });
@@ -1720,7 +1728,9 @@
 	
 	    var idParser = function () {
 	        try {
-	            return $('.identifier').attr('data-id');
+	            var id = window.location.href.match(/^(.*)-(\d+)v$/)[2];
+	            //__NEXT_DATA__ is a variable on page
+	            return __NEXT_DATA__.props.initialPWPState.material[id].mid;
 	        }
 	        catch(e){
 	            throw new Exception(config.error.id, window.location.href);
