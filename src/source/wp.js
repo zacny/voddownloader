@@ -38,14 +38,15 @@ var WP = (function() {
         if(urls && urls.length > 0){
             $.each(urls, function( index, value ) {
                 if(value.type === 'mp4@avc'){
-                    items.push(new Format({
-                        bitrate: value.quality,
-                        url: value.url,
-                        quality: value.resolution
+                    var videoDesc = value.quality + ', ' + value.resolution;
+                    items.push(Tool.mapDescription({
+                        source: 'WP',
+                        key: value.quality,
+                        video: videoDesc,
+                        url: value.url
                     }));
                 }
             });
-
             return {
                 title: data.clip.title,
                 cards: {videos: {items: items}}

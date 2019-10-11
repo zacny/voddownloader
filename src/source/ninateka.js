@@ -15,11 +15,13 @@ var NINATEKA = (function() {
         var title = $('meta[name="title"]');
         var cardsData = properties.cardsData;
         cardsData.title = title.length > 0 ? title.attr('content').trim() : 'brak danych';
-        cardsData.cards['videos'].items = [new Format({
-            url: url,
-            quality: undefined
-        })];
-
+        cardsData.cards['videos'].items = [
+            Tool.mapDescription({
+                source: 'NINATEKA',
+                key: 'def',
+                url: url
+            })
+        ];
         DomTamper.createDocument(cardsData, w);
     };
 

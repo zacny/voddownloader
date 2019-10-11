@@ -54,18 +54,22 @@ var VOD = (function() {
         var videoData = video['mp4-uhd'] && video['mp4-uhd'].length > 0 ? video['mp4-uhd'] : video['mp4'];
         if(videoData && videoData.length > 0){
             videoData.forEach(function(value) {
-                items.push(new Format({
-                    quality: value.vertical_resolution,
-                    bitrate: value.video_bitrate,
+                var videoDesc = value.vertical_resolution + ', ' + value.video_bitrate;
+                items.push(Tool.mapDescription({
+                    source: 'VOD',
+                    key: value.vertical_resolution,
+                    video: videoDesc,
                     url: value.url
-                }))
+                }));
             });
 
             subtitles.forEach(function(subtitle) {
-                subtitlesItems.push(new Format({
+                var extension = subtitle.name.split('.').pop();
+                subtitlesItems.push({
                     url: subtitle.url,
+                    format: extension,
                     description: subtitle.name
-                }))
+                })
             });
 
             return {

@@ -20,21 +20,6 @@ var TVN = (function() {
                 })
             ]
         },
-        formatter: function(data){
-            var sortingOrder = {
-                'HD': 7,
-                'Bardzo wysoka': 6,
-                'Wysoka': 5,
-                'Standard': 4,
-                'Średnia': 3,
-                'Niska': 2,
-                'Bardzo niska': 1
-            };
-
-            data.cards['videos'].items.sort(function (a, b) {
-                return sortingOrder[b.quality] - sortingOrder[a.quality];
-            });
-        }
     });
 
     var idParser = function(){
@@ -79,8 +64,10 @@ var TVN = (function() {
         var video_content = main.video_content || {};
         if(main.video_content_license_type !== 'WIDEVINE' && video_content && video_content.length > 0){
             $.each(video_content, function( index, value ) {
-                items.push(new Format({
-                    quality: value.profile_name,
+                items.push(Tool.mapDescription({
+                    source: 'TVN',
+                    key: value.profile_name,
+                    video: value.profile_name,
                     url: value.url
                 }));
             });

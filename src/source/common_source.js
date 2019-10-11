@@ -3,29 +3,15 @@ var COMMON_SOURCE = (function(COMMON_SOURCE) {
         var items = [];
         var subtitles = (((data.result || {}).mediaItem || {}).displayInfo || {}).subtitles || [];
         subtitles.forEach(function(subtitle) {
-            items.push(new Format({
+            items.push({
                 url: subtitle.src,
                 description: subtitle.name,
                 format: subtitle.format
-            }))
+            })
         });
         return {
             cards: {subtitles: {items: items}}
         };
-    };
-
-    COMMON_SOURCE.iplaFormatter = function(data){
-        var videosRegexp = /^(\d+)p$/;
-        data.cards['videos'].items.sort(function (a, b) {
-            var qualityMatchA = a.quality.match(videosRegexp);
-            var qualityMatchB = b.quality.match(videosRegexp);
-            var qualityA = qualityMatchA && qualityMatchA[1] ? Number(qualityMatchA[1]) : 0;
-            var qualityB = qualityMatchB && qualityMatchB[1] ? Number(qualityMatchB[1]) : 0;
-            return qualityB - qualityA;
-        });
-        data.cards['subtitles'].items.sort(function (a, b) {
-            return ('' + a.format).localeCompare(b.format);
-        });
     };
 
     COMMON_SOURCE.grabTvpVideoData = function(data){
@@ -33,8 +19,11 @@ var COMMON_SOURCE = (function(COMMON_SOURCE) {
         if(data.status == 'OK' && data.formats !== undefined){
             $.each(data.formats, function( index, value ) {
                 if(value.adaptive == false){
-                    items.push(new Format({
-                        bitrate: value.totalBitrate,
+                    var videoDesc = value.totalBitrate;
+                    items.push(Tool.mapDescription({
+                        source: 'TVP',
+                        key: value.totalBitrate,
+                        video: videoDesc,
                         url: value.url
                     }));
                 }
