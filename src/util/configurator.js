@@ -28,9 +28,9 @@ function Configurator(properties){
                 videos: {
                     icon: 'fa-video', label: 'Video', collapse: true, items: [],
                     info: [
-                        {name: 'bitrate', desc: 'bitrate'},
-                        {name: 'quality', desc: 'rozdzielczość'},
-                        {name: 'langDesc', desc: 'wersja językowa'}
+                        {name: 'video', desc: 'video'},
+                        {name: 'audio', desc: 'audio'},
+                        {name: 'language', desc: 'wersja językowa'}
                     ],
                     actions: [
                         {label: 'Pobierz', icon: 'fa-download'},
@@ -58,7 +58,7 @@ function Configurator(properties){
         },
         formatter: function(data){
             data.cards['videos'].items.sort(function (a, b) {
-                return b.bitrate - a.bitrate;
+                return a.index - b.index;
             });
             data.cards['subtitles'].items.sort(function (a, b) {
                 return ('' + a.format).localeCompare(b.format);

@@ -38,10 +38,16 @@ var CDA = (function() {
         var title = $('meta[property="og:title"]');
         var quality = $('.quality-btn-active');
         cardsData.title = title.length > 0 ? title.attr('content').trim() : 'brak danych';
-        cardsData.cards['videos'].items = [new Format({
-            url: url,
-            quality: quality.length > 0 ? quality.text() : undefined
-        })];
+        var videoDesc = quality.length > 0 ? quality.text() : '-';
+        cardsData.cards['videos'].items = [
+            Tool.mapDescription({
+                source: 'CDA',
+                key: videoDesc,
+                video: videoDesc,
+                audio: '-',
+                url: url
+            })
+        ];
 
         DomTamper.createDocument(cardsData, w);
     };

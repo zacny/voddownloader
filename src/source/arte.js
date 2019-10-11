@@ -21,22 +21,15 @@ var ARTE = (function() {
         },
         formatter: function(data) {
             data.cards['videos'].items.sort(function (a, b) {
-                return  b.bitrate - a.bitrate;
+                return a.index - b.index;
             });
+
+            var sortingOrder = {'POL': 1};
             data.cards['videos'].items.sort(function (a, b) {
-                var aLang = a.langCode, bLang = b.langCode;
-                if(aLang !== 'POL' && bLang !== 'POL'){
-                    return ('' + a.langCode).localeCompare(b.langCode);
-                }
-                else if(aLang === 'POL' && bLang !== 'POL'){
-                    return -1;
-                }
-                else if(aLang !== 'POL' && bLang === 'POL'){
-                    return 1;
-                }
-                else {
-                    return 0;
-                }
+                var aLangOrder = sortingOrder[a.langCode] ? sortingOrder[a.langCode] : -1,
+                    bLangOrder = sortingOrder[b.langCode] ? sortingOrder[b.langCode] : -1;
+                return bLangOrder - aLangOrder;
+
             });
         }
     });
@@ -74,11 +67,13 @@ var ARTE = (function() {
                 return k.startsWith("HTTPS");
             }).forEach(function(k) {
                 var stream = streams[k];
-                items.push(new Format({
-                    bitrate: stream.bitrate,
-                    quality: stream.width + 'x' + stream.height,
+                var videoDesc = stream.width + 'x' + stream.height + ', ' + stream.bitrate;
+                items.push(Tool.mapDescription({
+                    source: 'ARTE',
+                    key: stream.bitrate,
+                    video: videoDesc,
                     langCode: stream.versionShortLibelle,
-                    langDesc: stream.versionLibelle,
+                    language: stream.versionLibelle,
                     url: stream.url
                 }));
             });

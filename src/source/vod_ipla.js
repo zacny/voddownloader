@@ -29,8 +29,7 @@ var VOD_IPLA = (function() {
                     }
                 })
             ]
-        },
-        formatter: COMMON_SOURCE.iplaFormatter
+        }
     });
 
     var grabVideoData = function(data){
@@ -42,10 +41,12 @@ var VOD_IPLA = (function() {
         });
         if(videos && videos.length > 0){
             $.each(videos, function( index, value ) {
-                items.push(new Format({
-                    url: value.url,
-                    quality: value.quality
-                }))
+                items.push(Tool.mapDescription({
+                    source: 'IPLA',
+                    key: value.quality,
+                    video: value.quality,
+                    url: value.url
+                }));
             });
             return {
                 title: displayInfo.title,

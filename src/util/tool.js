@@ -43,5 +43,19 @@ var Tool = (function(Tool) {
         return window.top === window.self;
     };
 
+    Tool.mapDescription = function(data){
+        var defaults = config.description.defaults;
+        var sourceDescriptions = config.description.sources[data.source] || {};
+        var descriptionVariant = sourceDescriptions[data.key] || {};
+        var output = {
+            video: descriptionVariant.video ? descriptionVariant.video : data.video,
+            index: descriptionVariant.index ? descriptionVariant.index : 99,
+            audio: data.audio ? data.audio : defaults.audio,
+            language: data.language ? data.language: defaults.language,
+            url: data.url
+        };
+        return $.extend(true, data, output);
+    };
+
     return Tool;
 }(Tool || {}));
