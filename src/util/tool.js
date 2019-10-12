@@ -43,6 +43,10 @@ var Tool = (function(Tool) {
         return window.top === window.self;
     };
 
+    Tool.pad = function(number, characters){
+        return(1e15+number+"").slice(-characters)
+    };
+
     Tool.mapDescription = function(data){
         var defaults = config.description.defaults;
         var sourceDescriptions = config.description.sources[data.source] || {};

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.5.0
+// @version        6.5.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -38,6 +38,7 @@
 // @connect        player-api.dreamlab.pl
 // @connect        api.arte.tv
 // @connect        b2c.redefine.pl
+// @connect        player.pl
 // @run-at         document-end
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
@@ -98,6 +99,10 @@
 	
 	    Tool.isTopWindow = function(){
 	        return window.top === window.self;
+	    };
+	
+	    Tool.pad = function(number, characters){
+	        return(1e15+number+"").slice(-characters)
 	    };
 	
 	    Tool.mapDescription = function(data){
@@ -1331,7 +1336,7 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
+	                    urlTemplate: 'http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
 	                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
 	                    beforeStep: function(input){
 	                        return idParser();
@@ -1403,12 +1408,14 @@
 	    };
 	
 	    var getTitle = function(data){
-	        var title = data.item.episode != null ? 'E'+data.item.episode : '';
-	        title = data.item.season != null ? 'S'+data.item.season + title : title;
-	        if(data.item.serie_title != null){
-	            title = data.item.serie_title + (title != '' ? ' - ' + title : '');
-	        }
-	        return title;
+	        var episode = data.item.episode ? 'E'+Tool.pad(data.item.episode, 2) : '';
+	        var season = data.item.season != null ? 'S'+Tool.pad(data.item.season, 2) : '';
+	        var serie_title = data.item.serie_title != null ? data.item.serie_title : '';
+	        var episodeTitle = data.item.title ? ' ' + data.item.title : '';
+	        var seasonAndEpisode = season + episode;
+	
+	        return serie_title + (seasonAndEpisode !== '' ? ' - ' + seasonAndEpisode : '') +
+	            (episodeTitle !== '' ? ' - ' + episodeTitle : '');
 	    };
 	
 	    var inVodFrame = function(){

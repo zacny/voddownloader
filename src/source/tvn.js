@@ -9,7 +9,7 @@ var TVN = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: '/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
+                    urlTemplate: 'http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
                         '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
                     beforeStep: function(input){
                         return idParser();
@@ -81,12 +81,14 @@ var TVN = (function() {
     };
 
     var getTitle = function(data){
-        var title = data.item.episode != null ? 'E'+data.item.episode : '';
-        title = data.item.season != null ? 'S'+data.item.season + title : title;
-        if(data.item.serie_title != null){
-            title = data.item.serie_title + (title != '' ? ' - ' + title : '');
-        }
-        return title;
+        var episode = data.item.episode ? 'E'+Tool.pad(data.item.episode, 2) : '';
+        var season = data.item.season != null ? 'S'+Tool.pad(data.item.season, 2) : '';
+        var serie_title = data.item.serie_title != null ? data.item.serie_title : '';
+        var episodeTitle = data.item.title ? ' ' + data.item.title : '';
+        var seasonAndEpisode = season + episode;
+
+        return serie_title + (seasonAndEpisode !== '' ? ' - ' + seasonAndEpisode : '') +
+            (episodeTitle !== '' ? ' - ' + episodeTitle : '');
     };
 
     var inVodFrame = function(){
