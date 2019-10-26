@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.5.2
+// @version        6.5.3
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1719,8 +1719,12 @@
 	
 	    var getJson = function(){
 	        var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
-	        var jsonObject = JSON.parse(match[2]);
-	        return JSON.parse(jsonObject[0].media);
+	        if(match) {
+	            var jsonObject = JSON.parse(match[2]);
+	            return JSON.parse(jsonObject[0].media);
+	        }
+	
+	        return {};
 	    };
 	
 	    var idParser = function(){

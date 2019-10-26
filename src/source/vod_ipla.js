@@ -58,8 +58,12 @@ var VOD_IPLA = (function() {
 
     var getJson = function(){
         var match = $('script:not(:empty)').text().match(/(window\.CP\.embedSetup\()(.*)\);/);
-        var jsonObject = JSON.parse(match[2]);
-        return JSON.parse(jsonObject[0].media);
+        if(match) {
+            var jsonObject = JSON.parse(match[2]);
+            return JSON.parse(jsonObject[0].media);
+        }
+
+        return {};
     };
 
     var idParser = function(){
@@ -78,6 +82,7 @@ var VOD_IPLA = (function() {
 
     var getMediaId = function(){
         var match = $('script:not(:empty)').text().match(/mediaId: "(\w+)",/);
+        console.log(match[1]);
         return match[1];
     };
 
