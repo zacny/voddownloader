@@ -1,10 +1,11 @@
 var VOD_TVP = (function() {
     var properties = new Configurator({
         wrapper: {
-            selector: 'div.playerContainerWrapper'
+            /**        vod.tvp.pl             *.tvp.pl **/
+            selector: '#JS-TVPlayer2-Wrapper, #player2'
         },
         button: {
-            class: 'video-block__btn tvp_vod_downlaod_button',
+            class: 'tvp_vod_downlaod_button',
         },
         asyncChains: {
             videos: [
@@ -26,7 +27,7 @@ var VOD_TVP = (function() {
     });
 
     var idParser = function() {
-        var src = $('div.playerContainer').attr('data-id');
+        var src = $(properties.wrapper.selector).attr('data-video-id');
         if(src !== undefined){
             return {
                 videoId: src.split("/").pop()

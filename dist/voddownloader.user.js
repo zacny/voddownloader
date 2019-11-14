@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.5.3
+// @version        6.6.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -12,7 +12,7 @@
 // @namespace      http://www.ipla.tv/
 // @source         https://github.com/zacny/voddownloader
 // @include        https://vod.tvp.pl/video/*
-// @include        /^https://(bialystok|katowice|lodz|rzeszow|bydgoszcz|kielce|olsztyn|szczecin|gdansk|krakow|opole|warszawa|gorzow|lublin|poznan|wroclaw).tvp.pl/\d{6,}/
+// @include        https://*.tvp.pl/sess/TVPlayer2/embed*
 // @include        https://cyfrowa.tvp.pl/video/*
 // @include        https://www.ipla.tv/*
 // @include        https://player.pl/*
@@ -1201,10 +1201,10 @@
 	var VOD_TVP = (function() {
 	    var properties = new Configurator({
 	        wrapper: {
-	            selector: 'div.playerContainerWrapper'
+	            selector: '#JS-TVPlayer2-Wrapper, #player2'
 	        },
 	        button: {
-	            class: 'video-block__btn tvp_vod_downlaod_button',
+	            class: 'tvp_vod_downlaod_button',
 	        },
 	        asyncChains: {
 	            videos: [
@@ -1226,7 +1226,7 @@
 	    });
 	
 	    var idParser = function() {
-	        var src = $('div.playerContainer').attr('data-id');
+	        var src = $(properties.wrapper.selector).attr('data-video-id');
 	        if(src !== undefined){
 	            return {
 	                videoId: src.split("/").pop()
@@ -1280,41 +1280,6 @@
 	            if(div !== undefined){
 	                return div.attr('data-video-id');
 	            }
-	        }
-	
-	        throw new Exception(config.error.id, window.location.href);
-	    };
-	
-	    this.setup = function(){
-	        WrapperDetector.run(properties);
-	    };
-	});
-	
-	var TVP_REG = (function() {
-	    var properties = new Configurator({
-	        wrapper: {
-	            selector: 'div.js-video'
-	        },
-	        button: {
-	            class: 'tvp_reg_download_button'
-	        },
-	        asyncChains: {
-	            videos: [
-	                new Step({
-	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
-	                    beforeStep: function (input) {
-	                        return idParser();
-	                    },
-	                    afterStep: COMMON_SOURCE.grabTvpVideoData
-	                })
-	            ]
-	        }
-	    });
-	
-	    var idParser = function(){
-	        var dataId = $('div.js-video').attr('data-object-id');
-	        if(dataId != undefined) {
-	            return dataId;
 	        }
 	
 	        throw new Exception(config.error.id, window.location.href);
@@ -2089,15 +2054,9 @@
 	});
 	
 	var Starter = (function(Starter) {
-	    var tvZones = [
-	        'bialystok', 'katowice', 'lodz', 'rzeszow', 'bydgoszcz', 'kielce', 'olsztyn', 'szczecin',
-	        'gdansk', 'krakow', 'opole', 'warszawa', 'gorzow', 'lublin', 'poznan', 'wroclaw'
-	    ];
-	
 	    var sources = [
-	        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\//},
+	        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https:\/\/.*\.tvp\.pl\/sess\/TVPlayer2\/embed.*/},
 	        {objectName: 'CYF_TVP', urlPattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
-	        {objectName: 'TVP_REG', urlPattern: new RegExp('^https:\/\/(' + tvZones.join('|') + ')\.tvp\.pl\/\\d{6,}\/')},
 	        {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
 	        {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
 	        {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},
