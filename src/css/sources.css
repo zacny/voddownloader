@@ -59,6 +59,16 @@
     padding: 0px 15px;
     left: 0px;
     top: 0px;
+    font-size: 12px;
+    display: block;
+    text-decoration: none;
+    background-color: #4c92e3;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-align: center;
+    color: #fff;
+    border: 0;
+    outline: 0;
 }
 
 .tvp_cyf_downlaod_button {

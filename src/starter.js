@@ -1,13 +1,7 @@
 var Starter = (function(Starter) {
-    var tvZones = [
-        'bialystok', 'katowice', 'lodz', 'rzeszow', 'bydgoszcz', 'kielce', 'olsztyn', 'szczecin',
-        'gdansk', 'krakow', 'opole', 'warszawa', 'gorzow', 'lublin', 'poznan', 'wroclaw'
-    ];
-
     var sources = [
-        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\//},
+        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https:\/\/.*\.tvp\.pl\/sess\/TVPlayer2\/embed.*/},
         {objectName: 'CYF_TVP', urlPattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
-        {objectName: 'TVP_REG', urlPattern: new RegExp('^https:\/\/(' + tvZones.join('|') + ')\.tvp\.pl\/\\d{6,}\/')},
         {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
         {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
         {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},
