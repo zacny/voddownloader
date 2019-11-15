@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.6.0
+// @version        6.6.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -12,7 +12,7 @@
 // @namespace      http://www.ipla.tv/
 // @source         https://github.com/zacny/voddownloader
 // @include        https://vod.tvp.pl/video/*
-// @include        https://*.tvp.pl/sess/TVPlayer2/embed*
+// @include        /^https?://.*\.tvp.pl/sess/TVPlayer2/embed.*$/
 // @include        https://cyfrowa.tvp.pl/video/*
 // @include        https://www.ipla.tv/*
 // @include        https://player.pl/*
@@ -2055,7 +2055,7 @@
 	
 	var Starter = (function(Starter) {
 	    var sources = [
-	        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https:\/\/.*\.tvp\.pl\/sess\/TVPlayer2\/embed.*/},
+	        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https?:\/\/.*\.tvp.pl\/sess\/TVPlayer2\/embed.*$/},
 	        {objectName: 'CYF_TVP', urlPattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
 	        {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
 	        {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
