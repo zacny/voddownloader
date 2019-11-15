@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "6.6.0",
+  "version": "6.6.1",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -64,7 +64,7 @@
       "source": "https://github.com/zacny/voddownloader",
       "include": [
         "https://vod.tvp.pl/video/*",
-        "https://*.tvp.pl/sess/TVPlayer2/embed*",
+        "/^https?://.*\\.tvp.pl/sess/TVPlayer2/embed.*$/",
         "https://cyfrowa.tvp.pl/video/*",
         "https://www.ipla.tv/*",
         "https://player.pl/*",
