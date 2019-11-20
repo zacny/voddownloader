@@ -1,7 +1,7 @@
 var TVN = (function() {
     var properties = new Configurator({
         wrapper: {
-            selector: '#player-container'
+            selector: '#player-container, div.custom-alert-inner-wrapper'
         },
         button: {
             class: 'btn btn-primary tvn_download_button'
