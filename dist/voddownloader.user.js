@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.6.2
+// @version        6.6.3
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -496,7 +496,9 @@
 	            .append($('<div>').addClass('card-text text-white')
 	                .append('Informacje o systemie: ').append(platform.description))
 	            .append($('<div>').addClass('card-text text-white')
-	                .append('Wersja pluginu: ').append(GM_info.version));
+	                .append('Wersja pluginu: ').append(GM_info.version))
+	            .append($('<div>').addClass('card-text text-white')
+	                .append('Wersja skryptu: ').append(GM_info.script.version));
 	        card.append(cardHeader).append(cardBody);
 	        return card;
 	    };
@@ -1418,7 +1420,7 @@
 	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
 	                        '&ua=www_iplatv_html5/12345&media_id=#videoId',
 	                    beforeStep: function (input) {
-	                        return idParser();
+	                        return grabVideoHexIdFromUrl();
 	                    },
 	                    afterStep: function(data){
 	                        return grabVideoData(data);
@@ -1460,7 +1462,7 @@
 	    };
 	
 	    var getParamsForSubtitles = function(){
-	        var mediaId = idParser();
+	        var mediaId = grabVideoHexIdFromUrl();
 	        return {
 	            jsonrpc: "2.0",
 	            id: 1,
@@ -1476,28 +1478,43 @@
 	        }
 	    };
 	
-	    var idParser = function(){
-	        var match = location.href.match(/[\a-z\d]{32}/);
-	        if(match && match[0]) {
-	            return match[0];
-	        }
-	
-	        return grabVideoIdFromWatchingNowElement();
-	    };
-	
 	    this.setup = function(){
 	        WrapperDetector.run(properties, this.setup);
 	    };
 	
-	    var grabVideoIdFromWatchingNowElement = function(){
-	        var href = $('div.vod-image-wrapper__overlay').closest('a').attr('href');
-	        if(href !== undefined){
-	            var match = href.match(/[\a-z\d]{32}/);
-	            if(match && match[0]){
-	                return match[0];
-	            }
+	    var matchingId = function(input, failureAction){
+	        input = input ? input : '';
+	        var match = matchingHexId(input);
+	        if(!match){
+	            match = matchingDecId(input);
 	        }
-	        return grabVideoIdFromHtmlElement();
+	        return match ? match : failureAction();
+	    };
+	
+	    var matchingHexId = function(input){
+	        var match = input.match(/[0-9a-f]{32}/);
+	        if(match && match[0]) {
+	            return match[0];
+	        }
+	
+	        return null;
+	    };
+	
+	    var matchingDecId = function(input) {
+	        var match = input.match(/([\d]+)?(\?.*)$/);
+	        if(match && match[1]) {
+	            return match[1];
+	        }
+	
+	        return null;
+	    };
+	
+	    var grabVideoHexIdFromUrl = function(){
+	        return matchingId(location.href, grabVideoHexIdFromWatchingNowElement);
+	    };
+	
+	    var grabVideoHexIdFromWatchingNowElement = function(){
+	        return matchingId($('div.vod-image-wrapper__overlay').closest('a').attr('href'), grabVideoIdFromHtmlElement);
 	    };
 	
 	    var grabVideoIdFromHtmlElement = function(){
@@ -1505,7 +1522,6 @@
 	        if(frameSrc !== undefined) {
 	            return Tool.getUrlParameter('vid', frameSrc);
 	        }
-	
 	        throw new Exception(config.error.id, Tool.getRealUrl());
 	    };
 	});

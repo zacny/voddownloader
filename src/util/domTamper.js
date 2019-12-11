@@ -131,7 +131,9 @@ var DomTamper = (function(DomTamper){
             .append($('<div>').addClass('card-text text-white')
                 .append('Informacje o systemie: ').append(platform.description))
             .append($('<div>').addClass('card-text text-white')
-                .append('Wersja pluginu: ').append(GM_info.version));
+                .append('Wersja pluginu: ').append(GM_info.version))
+            .append($('<div>').addClass('card-text text-white')
+                .append('Wersja skryptu: ').append(GM_info.script.version));
         card.append(cardHeader).append(cardBody);
         return card;
     };
