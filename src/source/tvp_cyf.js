@@ -9,7 +9,7 @@ var CYF_TVP = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+                    urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId'],
                     beforeStep: function (input) {
                         return idParser();
                     },

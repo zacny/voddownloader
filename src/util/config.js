@@ -66,7 +66,8 @@ const config = {
             IPLA: {
                 '1080p': {video: 'H264 MPEG-4 AVC, 4011 kb/s, 1920x1080, 25fps, 16:9', index: 1},
                 '720p': {video: 'H264 MPEG-4 AVC, 1672 kb/s, 1280x720, 25fps, 16:9', index: 2},
-                '576p': {video: 'H264 MPEG-4 AVC, 1175 kb/s, 1024x576, 25fps, 16:9', index: 3}
+                '576p': {video: 'H264 MPEG-4 AVC, 1175 kb/s, 1024x576, 25fps, 16:9', index: 3},
+                '384p': {video: 'H264 MPEG-4 AVC, 256 kb/s, 484x272, 25fps, 16:9', index: 4}
             },
             WP: {
                 HQ: {video: 'H264 MPEG-4 AVC, 1804 kb/s, 1280x720, 24fps, 16:9', index: 1},

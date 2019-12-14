@@ -18,6 +18,7 @@ function Configurator(properties){
                 Executor.chain(service, {
                     stepIndex: 0,
                     chainIndex: 0,
+                    retries: 0,
                     chainNames: chainNames
                 });
             }

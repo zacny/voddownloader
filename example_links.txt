@@ -9,6 +9,8 @@ https://www.ipla.tv/wideo/dzieci/Dinopociag/5010809
 https://www.ipla.tv/wideo/film/Asteriks-i-Obeliks-Tajemnica-magicznego-wywaru/77640b9ec5c061ef8b51e98faa55dc69
 #with subtitles
 https://www.ipla.tv/wideo/serial/Przyjaciolki/5001717/Sezon-13/5015678/Przyjaciolki-Odcinek-155/02eadd46a4148e0c26914a9837ddecb2
+#retry needed
+https://www.ipla.tv/wideo/serial/Rolnicy-Podlasie/5017276/Sezon-1/5017277/Rolnicy-Podlasie-Odcinek-7/6a5a81ceb3d68657d08673b15a65be3d
 
 #TVN
 https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114/odcinek-1,S01E01,1979
