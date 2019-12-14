@@ -9,10 +9,10 @@ var VOD = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplates: ['https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
+                    urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
                         '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
                         '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +
-                        '&x-onet-app=player.front.onetapi.pl&callback='],
+                        '&x-onet-app=player.front.onetapi.pl&callback=',
                     beforeStep: function (input) {
                         return idParser();
                     },

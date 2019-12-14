@@ -9,7 +9,7 @@ var WP = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplates: ['https://video.wp.pl/player/mid,#videoId,embed.json'],
+                    urlTemplate: 'https://wideo.wp.pl/player/mid,#videoId,embed.json',
                     beforeStep: function (input) {
                         return idParser();
                     },
