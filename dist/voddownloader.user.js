@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.7.1
+// @version        6.8.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -21,7 +21,7 @@
 // @include        https://redir.atmcdn.pl/*
 // @include        https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include        https://partner.ipla.tv/embed/*
-// @include        https://video.wp.pl/*
+// @include        https://wideo.wp.pl/*
 // @include        https://ninateka.pl/*
 // @include        https://www.arte.tv/*/videos/*
 // @include        https://pulsembed.eu/*
@@ -243,44 +243,41 @@
 	
 	var Step = (function(properties){
 	    var step = {
-	        urlTemplateBase: '',
-	        urlTemplateDynamicParts: [],
-	        urlTemplates: [],
+	        urlTemplateParts: [],
+	        urlTemplate: '',
 	        beforeStep: function(input){return input},
 	        afterStep: function (output) {return output},
-	        resolveUrl: function (input, templateIndex) {
-	            var url = this.urlTemplates.length ? this.urlTemplates[templateIndex] : '';
+	        resultUrlParams: function (input, template) {
 	            var urlParams = {};
 	            $.each(input, function (key, value) {
-	                url = url.replace(new RegExp('#'+key,'g'), value);
+	                template = template.replace(new RegExp('#'+key,'g'), value);
 	                urlParams[key] = value;
 	            });
 	
 	            return {
-	                url: url,
+	                url: template,
 	                urlParams: urlParams
 	            };
 	        },
+	        resolveUrl: function (input, partIndex) {
+	            return this.resultUrlParams(input, this.resolveUrlParts(partIndex));
+	        },
 	        isRemote: function(){
-	            return this.urlTemplates.length > 0;
+	            return this.urlTemplate.length > 0;
 	        },
 	        method: 'GET',
 	        retryErrorCodes: [],
 	        methodParam: function(){return {}},
-	        init: function(){
-	            if(this.urlTemplateDynamicParts.length){
-	                var that = this;
-	                that.urlTemplateDynamicParts.forEach(function(part) {
-	                    that.urlTemplates.push(that.urlTemplateBase.replace('@', part));
-	                });
+	        resolveUrlParts: function(partIndex){
+	            if(this.urlTemplateParts.length){
+	                return this.urlTemplate.replace('@', this.urlTemplateParts[partIndex]);
 	            }
+	
+	            return this.urlTemplate;
 	        }
 	    };
 	
-	    var extendedStep = $.extend(true, step, properties);
-	    extendedStep.init();
-	
-	    return extendedStep;
+	    return $.extend(true, step, properties);
 	});
 	
 	var Notification = (function(Notification) {
@@ -774,7 +771,6 @@
 	            responseType: 'json',
 	            onload: function(data) {
 	                var currentStep = getCurrentStep(service, options);
-	                options.retries++;
 	                if(retryPossible(currentStep, options, data.status)){
 	                    execute(service, options, w);
 	                }
@@ -794,7 +790,7 @@
 	    };
 	
 	    var retryPossible = function(step, options, status){
-	        return step.retryErrorCodes.indexOf(status) >= 0 && step.urlTemplates[options.retries];
+	        return step.retryErrorCodes.indexOf(status) >= 0 && step.urlTemplateParts[options.retries++];
 	    };
 	
 	    var logStepInfo = function(options, setup){
@@ -879,6 +875,7 @@
 	    var afterStep = function(service, options) {
 	        var currentStep = getCurrentStep(service, options);
 	        var output = currentStep.afterStep(options.temporaryData);
+	        options.retries = 0;
 	        options.temporaryData = output;
 	    };
 	
@@ -886,7 +883,6 @@
 	        try {
 	            afterStep(service, options);
 	            if(pushStep(service, options) || pushChain(service, options)) {
-	                options.retries = 0;
 	                return Promise.resolve().then(
 	                    Executor.chain(service, options, w)
 	                );
@@ -1240,13 +1236,13 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplates: ['https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId'],
+	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    }
 	                }),
 	                new Step({
-	                    urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId'],
+	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
 	                    beforeStep: function (json) {
 	                        return getRealVideoId(json);
 	                    },
@@ -1291,7 +1287,7 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId'],
+	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
@@ -1332,8 +1328,8 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplates: ['http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
-	                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId'],
+	                    urlTemplate: 'http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
+	                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
 	                    beforeStep: function(input){
 	                        return idParser();
 	                    },
@@ -1446,11 +1442,11 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplateDynamicParts: [
+	                    urlTemplateParts: [
 	                      'ua=www_iplatv_html5/12345',
 	                      'ua=mipla_ios/122'
 	                    ],
-	                    urlTemplateBase: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&@&media_id=#videoId',
+	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&@&media_id=#videoId',
 	                    retryErrorCodes: [404],
 	                    beforeStep: function (input) {
 	                        return grabVideoIdFromUrl();
@@ -1462,7 +1458,7 @@
 	            ],
 	            subtitles: [
 	                new Step({
-	                    urlTemplates: ['https://b2c.redefine.pl/rpc/navigation/'],
+	                    urlTemplate: 'https://b2c.redefine.pl/rpc/navigation/',
 	                    method: 'POST',
 	                    methodParam: function(){
 	                        return getParamsForSubtitles();
@@ -1570,10 +1566,10 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplates: ['https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
+	                    urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
 	                        '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
 	                        '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +
-	                        '&x-onet-app=player.front.onetapi.pl&callback='],
+	                        '&x-onet-app=player.front.onetapi.pl&callback=',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
@@ -1687,8 +1683,8 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplates: ['https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
-	                        'dev=pc&os=linux&player=html&app=firefox&build=12345'],
+	                    urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
+	                        'dev=pc&os=linux&player=html&app=firefox&build=12345',
 	                    beforeStep: function (input) {
 	                        return {media_id: idParser()};
 	                    },
@@ -1787,7 +1783,7 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplates: ['https://video.wp.pl/player/mid,#videoId,embed.json'],
+	                    urlTemplate: 'https://wideo.wp.pl/player/mid,#videoId,embed.json',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
@@ -1973,7 +1969,7 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplates: ['https://api.arte.tv/api/player/v1/config/#langCode/#videoId'],
+	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
@@ -2111,7 +2107,7 @@
 	        {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},
 	        {objectName: 'VOD_IPLA', urlPattern: /^https:\/\/partner\.ipla\.tv\/embed\/|^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
 	        {objectName: 'IPLA', urlPattern: /^https:\/\/www\.ipla\.tv\//},
-	        {objectName: 'WP', urlPattern: /^https:\/\/video\.wp\.pl\//},
+	        {objectName: 'WP', urlPattern: /^https:\/\/wideo\.wp\.pl\//},
 	        {objectName: 'NINATEKA', urlPattern: /^https:\/\/ninateka.pl\//},
 	        {objectName: 'ARTE', urlPattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
 	        {objectName: 'VOD_FRAME', urlPattern: /^https:\/\/pulsembed\.eu\//}

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.7.1
+// @version        6.8.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -21,7 +21,7 @@
 // @include        https://redir.atmcdn.pl/*
 // @include        https://*.redcdn.pl/file/o2/redefine/partner/*
 // @include        https://partner.ipla.tv/embed/*
-// @include        https://video.wp.pl/*
+// @include        https://wideo.wp.pl/*
 // @include        https://ninateka.pl/*
 // @include        https://www.arte.tv/*/videos/*
 // @include        https://pulsembed.eu/*

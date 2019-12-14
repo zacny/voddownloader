@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "6.7.1",
+  "version": "6.8.1",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -73,7 +73,7 @@
         "https://redir.atmcdn.pl/*",
         "https://*.redcdn.pl/file/o2/redefine/partner/*",
         "https://partner.ipla.tv/embed/*",
-        "https://video.wp.pl/*",
+        "https://wideo.wp.pl/*",
         "https://ninateka.pl/*",
         "https://www.arte.tv/*/videos/*",
         "https://pulsembed.eu/*"

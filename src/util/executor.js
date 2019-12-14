@@ -22,7 +22,6 @@ var Executor = (function(Executor){
             responseType: 'json',
             onload: function(data) {
                 var currentStep = getCurrentStep(service, options);
-                options.retries++;
                 if(retryPossible(currentStep, options, data.status)){
                     execute(service, options, w);
                 }
@@ -42,7 +41,7 @@ var Executor = (function(Executor){
     };
 
     var retryPossible = function(step, options, status){
-        return step.retryErrorCodes.indexOf(status) >= 0 && step.urlTemplates[options.retries];
+        return step.retryErrorCodes.indexOf(status) >= 0 && step.urlTemplateParts[options.retries++];
     };
 
     var logStepInfo = function(options, setup){
@@ -127,6 +126,7 @@ var Executor = (function(Executor){
     var afterStep = function(service, options) {
         var currentStep = getCurrentStep(service, options);
         var output = currentStep.afterStep(options.temporaryData);
+        options.retries = 0;
         options.temporaryData = output;
     };
 
@@ -134,7 +134,6 @@ var Executor = (function(Executor){
         try {
             afterStep(service, options);
             if(pushStep(service, options) || pushChain(service, options)) {
-                options.retries = 0;
                 return Promise.resolve().then(
                     Executor.chain(service, options, w)
                 );

@@ -9,8 +9,8 @@ var TVN = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplates: ['http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
-                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId'],
+                    urlTemplate: 'http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
+                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
                     beforeStep: function(input){
                         return idParser();
                     },

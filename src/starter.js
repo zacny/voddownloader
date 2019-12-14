@@ -7,7 +7,7 @@ var Starter = (function(Starter) {
         {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},
         {objectName: 'VOD_IPLA', urlPattern: /^https:\/\/partner\.ipla\.tv\/embed\/|^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
         {objectName: 'IPLA', urlPattern: /^https:\/\/www\.ipla\.tv\//},
-        {objectName: 'WP', urlPattern: /^https:\/\/video\.wp\.pl\//},
+        {objectName: 'WP', urlPattern: /^https:\/\/wideo\.wp\.pl\//},
         {objectName: 'NINATEKA', urlPattern: /^https:\/\/ninateka.pl\//},
         {objectName: 'ARTE', urlPattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
         {objectName: 'VOD_FRAME', urlPattern: /^https:\/\/pulsembed\.eu\//}
