@@ -10,13 +10,13 @@ var VOD_TVP = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
+                    urlTemplates: ['https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId'],
                     beforeStep: function (input) {
                         return idParser();
                     }
                 }),
                 new Step({
-                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+                    urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId'],
                     beforeStep: function (json) {
                         return getRealVideoId(json);
                     },

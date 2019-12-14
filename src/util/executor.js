@@ -21,10 +21,17 @@ var Executor = (function(Executor){
             data: JSON.stringify(setup.methodParam),
             responseType: 'json',
             onload: function(data) {
-                options.temporaryData = data.response || {};
-                callback(service, options, w);
+                var currentStep = getCurrentStep(service, options);
+                options.retries++;
+                if(retryPossible(currentStep, options, data.status)){
+                    execute(service, options, w);
+                }
+                else {
+                    options.temporaryData = data.response || {};
+                    callback(service, options, w);
+                }
             },
-            onerror: function(){
+            onerror: function(data){
                 DomTamper.handleError(new Exception(config.error.call, exceptionParams), w);
             },
             ontimeout: function(){
@@ -34,15 +41,20 @@ var Executor = (function(Executor){
         GM_xmlhttpRequest(requestParams);
     };
 
+    var retryPossible = function(step, options, status){
+        return step.retryErrorCodes.indexOf(status) >= 0 && step.urlTemplates[options.retries];
+    };
+
     var logStepInfo = function(options, setup){
         var chain = options.chainNames[options.chainIndex];
         var step = chain + '[' + options.stepIndex + ']';
         var stepParams = $.isEmptyObject(setup.methodParam) ? '' : JSON.stringify(setup.methodParam);
         var params = [
+            'color:green', options.retries+1, 'color:black', ':',
             'color:blue', step,  'color:red', setup.isRemote ? setup.method : '---',
             'color:black;font-weight: bold', setup.resolveUrl.url, 'color:magenta', stepParams
         ];
-        Tool.formatConsoleMessage('%c%s%c %s %c %s %c%s', params);
+        Tool.formatConsoleMessage('%c%s%c%s%c%s%c %s %c %s %c%s', params);
     };
 
     var setupStep = function(service, options){
@@ -61,7 +73,7 @@ var Executor = (function(Executor){
         }
 
         return {
-            resolveUrl: currentStep.resolveUrl(options.urlParams),
+            resolveUrl: currentStep.resolveUrl(options.urlParams, options.retries),
             method: currentStep.method,
             methodParam: currentStep.methodParam(),
             isRemote: currentStep.isRemote()
@@ -122,6 +134,7 @@ var Executor = (function(Executor){
         try {
             afterStep(service, options);
             if(pushStep(service, options) || pushChain(service, options)) {
+                options.retries = 0;
                 return Promise.resolve().then(
                     Executor.chain(service, options, w)
                 );

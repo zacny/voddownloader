@@ -9,7 +9,7 @@ var ARTE = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
+                    urlTemplates: ['https://api.arte.tv/api/player/v1/config/#langCode/#videoId'],
                     beforeStep: function (input) {
                         return idParser();
                     },

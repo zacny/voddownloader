@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.6.3
+// @version        6.7.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -189,7 +189,8 @@
 	            IPLA: {
 	                '1080p': {video: 'H264 MPEG-4 AVC, 4011 kb/s, 1920x1080, 25fps, 16:9', index: 1},
 	                '720p': {video: 'H264 MPEG-4 AVC, 1672 kb/s, 1280x720, 25fps, 16:9', index: 2},
-	                '576p': {video: 'H264 MPEG-4 AVC, 1175 kb/s, 1024x576, 25fps, 16:9', index: 3}
+	                '576p': {video: 'H264 MPEG-4 AVC, 1175 kb/s, 1024x576, 25fps, 16:9', index: 3},
+	                '384p': {video: 'H264 MPEG-4 AVC, 256 kb/s, 484x272, 25fps, 16:9', index: 4}
 	            },
 	            WP: {
 	                HQ: {video: 'H264 MPEG-4 AVC, 1804 kb/s, 1280x720, 24fps, 16:9', index: 1},
@@ -242,11 +243,13 @@
 	
 	var Step = (function(properties){
 	    var step = {
-	        urlTemplate: '',
+	        urlTemplateBase: '',
+	        urlTemplateDynamicParts: [],
+	        urlTemplates: [],
 	        beforeStep: function(input){return input},
 	        afterStep: function (output) {return output},
-	        resolveUrl: function (input) {
-	            var url = this.urlTemplate;
+	        resolveUrl: function (input, templateIndex) {
+	            var url = this.urlTemplates.length ? this.urlTemplates[templateIndex] : '';
 	            var urlParams = {};
 	            $.each(input, function (key, value) {
 	                url = url.replace(new RegExp('#'+key,'g'), value);
@@ -259,13 +262,25 @@
 	            };
 	        },
 	        isRemote: function(){
-	            return this.urlTemplate.length > 0;
+	            return this.urlTemplates.length > 0;
 	        },
 	        method: 'GET',
-	        methodParam: function(){return {}}
+	        retryErrorCodes: [],
+	        methodParam: function(){return {}},
+	        init: function(){
+	            if(this.urlTemplateDynamicParts.length){
+	                var that = this;
+	                that.urlTemplateDynamicParts.forEach(function(part) {
+	                    that.urlTemplates.push(that.urlTemplateBase.replace('@', part));
+	                });
+	            }
+	        }
 	    };
 	
-	    return $.extend(true, step, properties);
+	    var extendedStep = $.extend(true, step, properties);
+	    extendedStep.init();
+	
+	    return extendedStep;
 	});
 	
 	var Notification = (function(Notification) {
@@ -758,10 +773,17 @@
 	            data: JSON.stringify(setup.methodParam),
 	            responseType: 'json',
 	            onload: function(data) {
-	                options.temporaryData = data.response || {};
-	                callback(service, options, w);
+	                var currentStep = getCurrentStep(service, options);
+	                options.retries++;
+	                if(retryPossible(currentStep, options, data.status)){
+	                    execute(service, options, w);
+	                }
+	                else {
+	                    options.temporaryData = data.response || {};
+	                    callback(service, options, w);
+	                }
 	            },
-	            onerror: function(){
+	            onerror: function(data){
 	                DomTamper.handleError(new Exception(config.error.call, exceptionParams), w);
 	            },
 	            ontimeout: function(){
@@ -771,15 +793,20 @@
 	        GM_xmlhttpRequest(requestParams);
 	    };
 	
+	    var retryPossible = function(step, options, status){
+	        return step.retryErrorCodes.indexOf(status) >= 0 && step.urlTemplates[options.retries];
+	    };
+	
 	    var logStepInfo = function(options, setup){
 	        var chain = options.chainNames[options.chainIndex];
 	        var step = chain + '[' + options.stepIndex + ']';
 	        var stepParams = $.isEmptyObject(setup.methodParam) ? '' : JSON.stringify(setup.methodParam);
 	        var params = [
+	            'color:green', options.retries+1, 'color:black', ':',
 	            'color:blue', step,  'color:red', setup.isRemote ? setup.method : '---',
 	            'color:black;font-weight: bold', setup.resolveUrl.url, 'color:magenta', stepParams
 	        ];
-	        Tool.formatConsoleMessage('%c%s%c %s %c %s %c%s', params);
+	        Tool.formatConsoleMessage('%c%s%c%s%c%s%c %s %c %s %c%s', params);
 	    };
 	
 	    var setupStep = function(service, options){
@@ -798,7 +825,7 @@
 	        }
 	
 	        return {
-	            resolveUrl: currentStep.resolveUrl(options.urlParams),
+	            resolveUrl: currentStep.resolveUrl(options.urlParams, options.retries),
 	            method: currentStep.method,
 	            methodParam: currentStep.methodParam(),
 	            isRemote: currentStep.isRemote()
@@ -859,6 +886,7 @@
 	        try {
 	            afterStep(service, options);
 	            if(pushStep(service, options) || pushChain(service, options)) {
+	                options.retries = 0;
 	                return Promise.resolve().then(
 	                    Executor.chain(service, options, w)
 	                );
@@ -911,6 +939,7 @@
 	                Executor.chain(service, {
 	                    stepIndex: 0,
 	                    chainIndex: 0,
+	                    retries: 0,
 	                    chainNames: chainNames
 	                });
 	            }
@@ -1211,13 +1240,13 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
+	                    urlTemplates: ['https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId'],
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    }
 	                }),
 	                new Step({
-	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+	                    urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId'],
 	                    beforeStep: function (json) {
 	                        return getRealVideoId(json);
 	                    },
@@ -1262,7 +1291,7 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+	                    urlTemplates: ['https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId'],
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
@@ -1303,8 +1332,8 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
-	                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
+	                    urlTemplates: ['http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
+	                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId'],
 	                    beforeStep: function(input){
 	                        return idParser();
 	                    },
@@ -1417,10 +1446,14 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
-	                        '&ua=www_iplatv_html5/12345&media_id=#videoId',
+	                    urlTemplateDynamicParts: [
+	                      'ua=www_iplatv_html5/12345',
+	                      'ua=mipla_ios/122'
+	                    ],
+	                    urlTemplateBase: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&@&media_id=#videoId',
+	                    retryErrorCodes: [404],
 	                    beforeStep: function (input) {
-	                        return grabVideoHexIdFromUrl();
+	                        return grabVideoIdFromUrl();
 	                    },
 	                    afterStep: function(data){
 	                        return grabVideoData(data);
@@ -1429,7 +1462,7 @@
 	            ],
 	            subtitles: [
 	                new Step({
-	                    urlTemplate: 'https://b2c.redefine.pl/rpc/navigation/',
+	                    urlTemplates: ['https://b2c.redefine.pl/rpc/navigation/'],
 	                    method: 'POST',
 	                    methodParam: function(){
 	                        return getParamsForSubtitles();
@@ -1443,7 +1476,7 @@
 	    var grabVideoData = function(data){
 	        var items = [];
 	        var vod = data.vod || {};
-	        if(vod.copies && vod.copies.length > 0){
+	        if(vod.copies && vod.copies.length > 0 && !vod.drm){
 	            $.each(vod.copies, function( index, value ) {
 	                var videoDesc = value.quality_p + ', ' + value.bitrate;
 	                items.push(Tool.mapDescription({
@@ -1462,7 +1495,7 @@
 	    };
 	
 	    var getParamsForSubtitles = function(){
-	        var mediaId = grabVideoHexIdFromUrl();
+	        var mediaId = grabVideoIdFromUrl();
 	        return {
 	            jsonrpc: "2.0",
 	            id: 1,
@@ -1509,11 +1542,11 @@
 	        return null;
 	    };
 	
-	    var grabVideoHexIdFromUrl = function(){
-	        return matchingId(location.href, grabVideoHexIdFromWatchingNowElement);
+	    var grabVideoIdFromUrl = function(){
+	        return matchingId(location.href, grabVideoIdFromWatchingNowElement);
 	    };
 	
-	    var grabVideoHexIdFromWatchingNowElement = function(){
+	    var grabVideoIdFromWatchingNowElement = function(){
 	        return matchingId($('div.vod-image-wrapper__overlay').closest('a').attr('href'), grabVideoIdFromHtmlElement);
 	    };
 	
@@ -1537,10 +1570,10 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
+	                    urlTemplates: ['https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
 	                        '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
 	                        '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +
-	                        '&x-onet-app=player.front.onetapi.pl&callback=',
+	                        '&x-onet-app=player.front.onetapi.pl&callback='],
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
@@ -1654,8 +1687,8 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
-	                        'dev=pc&os=linux&player=html&app=firefox&build=12345',
+	                    urlTemplates: ['https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
+	                        'dev=pc&os=linux&player=html&app=firefox&build=12345'],
 	                    beforeStep: function (input) {
 	                        return {media_id: idParser()};
 	                    },
@@ -1754,7 +1787,7 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://video.wp.pl/player/mid,#videoId,embed.json',
+	                    urlTemplates: ['https://video.wp.pl/player/mid,#videoId,embed.json'],
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
@@ -1940,7 +1973,7 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
+	                    urlTemplates: ['https://api.arte.tv/api/player/v1/config/#langCode/#videoId'],
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },

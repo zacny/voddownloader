@@ -12,8 +12,8 @@ var VOD_IPLA = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
-                        'dev=pc&os=linux&player=html&app=firefox&build=12345',
+                    urlTemplates: ['https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
+                        'dev=pc&os=linux&player=html&app=firefox&build=12345'],
                     beforeStep: function (input) {
                         return {media_id: idParser()};
                     },
@@ -82,7 +82,6 @@ var VOD_IPLA = (function() {
 
     var getMediaId = function(){
         var match = $('script:not(:empty)').text().match(/mediaId: "(\w+)",/);
-        console.log(match[1]);
         return match[1];
     };
 

@@ -13,10 +13,14 @@ var IPLA = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1' +
-                        '&ua=www_iplatv_html5/12345&media_id=#videoId',
+                    urlTemplateDynamicParts: [
+                      'ua=www_iplatv_html5/12345',
+                      'ua=mipla_ios/122'
+                    ],
+                    urlTemplateBase: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&@&media_id=#videoId',
+                    retryErrorCodes: [404],
                     beforeStep: function (input) {
-                        return grabVideoHexIdFromUrl();
+                        return grabVideoIdFromUrl();
                     },
                     afterStep: function(data){
                         return grabVideoData(data);
@@ -25,7 +29,7 @@ var IPLA = (function() {
             ],
             subtitles: [
                 new Step({
-                    urlTemplate: 'https://b2c.redefine.pl/rpc/navigation/',
+                    urlTemplates: ['https://b2c.redefine.pl/rpc/navigation/'],
                     method: 'POST',
                     methodParam: function(){
                         return getParamsForSubtitles();
@@ -39,7 +43,7 @@ var IPLA = (function() {
     var grabVideoData = function(data){
         var items = [];
         var vod = data.vod || {};
-        if(vod.copies && vod.copies.length > 0){
+        if(vod.copies && vod.copies.length > 0 && !vod.drm){
             $.each(vod.copies, function( index, value ) {
                 var videoDesc = value.quality_p + ', ' + value.bitrate;
                 items.push(Tool.mapDescription({
@@ -58,7 +62,7 @@ var IPLA = (function() {
     };
 
     var getParamsForSubtitles = function(){
-        var mediaId = grabVideoHexIdFromUrl();
+        var mediaId = grabVideoIdFromUrl();
         return {
             jsonrpc: "2.0",
             id: 1,
@@ -105,11 +109,11 @@ var IPLA = (function() {
         return null;
     };
 
-    var grabVideoHexIdFromUrl = function(){
-        return matchingId(location.href, grabVideoHexIdFromWatchingNowElement);
+    var grabVideoIdFromUrl = function(){
+        return matchingId(location.href, grabVideoIdFromWatchingNowElement);
     };
 
-    var grabVideoHexIdFromWatchingNowElement = function(){
+    var grabVideoIdFromWatchingNowElement = function(){
         return matchingId($('div.vod-image-wrapper__overlay').closest('a').attr('href'), grabVideoIdFromHtmlElement);
     };
 
