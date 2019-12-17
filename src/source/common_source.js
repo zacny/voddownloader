@@ -14,23 +14,39 @@ var COMMON_SOURCE = (function(COMMON_SOURCE) {
         };
     };
 
-    COMMON_SOURCE.grabTvpVideoData = function(data){
+    COMMON_SOURCE.grapTvpVideoData = function(data){
         var items = [];
-        if(data.status == 'OK' && data.formats !== undefined){
-            $.each(data.formats, function( index, value ) {
-                if(value.adaptive == false){
-                    var videoDesc = value.totalBitrate;
+        var subtitlesItems = [];
+        var info = ((data || {}).content || {}).info || {};
+        var files = ((data || {}).content || {}).files || [];
+        var subtitles = ((data || {}).content || {}).subtitles || [];
+        if(files.length) {
+            files.forEach(function (file) {
+                if (file.type === 'any_native') {
+                    var videoDesc = file.quality.bitrate;
                     items.push(Tool.mapDescription({
                         source: 'TVP',
-                        key: value.totalBitrate,
+                        key: videoDesc,
                         video: videoDesc,
-                        url: value.url
+                        url: file.url
                     }));
                 }
             });
+            subtitles.forEach(function(subtitle) {
+                var extension = subtitle.type;
+                subtitlesItems.push({
+                    url: 'https:' + subtitle.url,
+                    format: extension,
+                    description: subtitle.lang
+                })
+            });
+
             return {
-                title: data.title,
-                cards: {videos: {items: items}}
+                title: (info.title != null ? info.title : '') + (info.subtitle != null ? ' ' + info.subtitle : ''),
+                cards: {
+                    videos: {items: items},
+                    subtitles: {items: subtitlesItems}
+                }
             }
         }
         throw new Exception(config.error.noSource, window.location.href);

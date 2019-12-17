@@ -9,11 +9,13 @@ var CYF_TVP = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
+                        '&@callback=callback',
+                    responseType: 'jsonp',
                     beforeStep: function (input) {
                         return idParser();
                     },
-                    afterStep: COMMON_SOURCE.grabTvpVideoData
+                    afterStep: COMMON_SOURCE.grapTvpVideoData
                 })
             ]
         }

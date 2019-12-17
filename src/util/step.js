@@ -10,7 +10,7 @@ var Step = (function(properties){
         resultUrlParams: function (input, template) {
             var urlParams = {};
             $.each(input, function (key, value) {
-                template = template.replace(new RegExp('#'+key,'g'), value);
+                template = template.replace(new RegExp(config.urlParamPattern + key,'g'), value);
                 urlParams[key] = value;
             });
 
@@ -29,13 +29,14 @@ var Step = (function(properties){
         },
         /** Method of async step */
         method: 'GET',
+        responseType: 'json',
         retryErrorCodes: [],
         /** Method parameters function of async step */
         methodParam: function(){return {}},
         /** Processing url dynamic parts */
         resolveUrlParts: function(partIndex){
             if(this.urlTemplateParts.length){
-                return this.urlTemplate.replace('@', this.urlTemplateParts[partIndex]);
+                return this.urlTemplate.replace(config.urlPartPattern, this.urlTemplateParts[partIndex]);
             }
 
             return this.urlTemplate;
