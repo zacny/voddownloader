@@ -5,6 +5,9 @@ const config = {
         doNotWarn: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
         topWindowLocation: 'voddownloader.topWindowLocation'
     },
+    urlParamPattern: '#',
+    urlParamDefaultKey: 'videoId',
+    urlPartPattern: '~',
     include: {
         fontawesome: {
             id: 'fontawesome',

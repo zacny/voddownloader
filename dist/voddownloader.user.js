@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.8.1
+// @version        6.9.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -129,6 +129,9 @@
 	        doNotWarn: 'voddownloader.doNotwarnIfIncorrectPluginSettingsDetected',
 	        topWindowLocation: 'voddownloader.topWindowLocation'
 	    },
+	    urlParamPattern: '#',
+	    urlParamDefaultKey: 'videoId',
+	    urlPartPattern: '~',
 	    include: {
 	        fontawesome: {
 	            id: 'fontawesome',
@@ -250,7 +253,7 @@
 	        resultUrlParams: function (input, template) {
 	            var urlParams = {};
 	            $.each(input, function (key, value) {
-	                template = template.replace(new RegExp('#'+key,'g'), value);
+	                template = template.replace(new RegExp(config.urlParamPattern + key,'g'), value);
 	                urlParams[key] = value;
 	            });
 	
@@ -266,11 +269,12 @@
 	            return this.urlTemplate.length > 0;
 	        },
 	        method: 'GET',
+	        responseType: 'json',
 	        retryErrorCodes: [],
 	        methodParam: function(){return {}},
 	        resolveUrlParts: function(partIndex){
 	            if(this.urlTemplateParts.length){
-	                return this.urlTemplate.replace('@', this.urlTemplateParts[partIndex]);
+	                return this.urlTemplate.replace(config.urlPartPattern, this.urlTemplateParts[partIndex]);
 	            }
 	
 	            return this.urlTemplate;
@@ -751,7 +755,7 @@
 	    var execute = function(service, options, w){
 	        var setup = setupStep(service, options);
 	        logStepInfo(options, setup);
-	        if(setup.isRemote){
+	        if(setup.isRemote()){
 	             executeAsync(service, setup, options, w);
 	        }
 	        else {
@@ -767,15 +771,23 @@
 	        var requestParams = {
 	            method: setup.method,
 	            url: setup.resolveUrl.url,
-	            data: JSON.stringify(setup.methodParam),
-	            responseType: 'json',
+	            data: JSON.stringify(setup.methodParam()),
+	            responseType: setup.responseType,
 	            onload: function(data) {
 	                var currentStep = getCurrentStep(service, options);
 	                if(retryPossible(currentStep, options, data.status)){
 	                    execute(service, options, w);
 	                }
 	                else {
-	                    options.temporaryData = data.response || {};
+	                    if(setup.responseType === 'jsonp'){
+	                        var match = data.responseText.match(/callback\(([\s\S]*?)\);/);
+	                        if(match && match[1] && !match[1].startsWith('null')){
+	                            options.temporaryData = JSON.parse(match[1]);
+	                        }
+	                    }
+	                    else {
+	                        options.temporaryData = data.response || {};
+	                    }
 	                    callback(service, options, w);
 	                }
 	            },
@@ -796,7 +808,7 @@
 	    var logStepInfo = function(options, setup){
 	        var chain = options.chainNames[options.chainIndex];
 	        var step = chain + '[' + options.stepIndex + ']';
-	        var stepParams = $.isEmptyObject(setup.methodParam) ? '' : JSON.stringify(setup.methodParam);
+	        var stepParams = $.isEmptyObject(setup.methodParam()) ? '' : JSON.stringify(setup.methodParam());
 	        var params = [
 	            'color:green', options.retries+1, 'color:black', ':',
 	            'color:blue', step,  'color:red', setup.isRemote ? setup.method : '---',
@@ -807,31 +819,34 @@
 	
 	    var setupStep = function(service, options){
 	        var currentStep = getCurrentStep(service, options);
-	        var result = currentStep.beforeStep(options.temporaryData);
-	        if(typeof result === 'string' || typeof result == 'number'){
-	            result = {
-	                videoId: result
-	            }
-	        }
-	        if(options.urlParams){
-	            $.extend(true, options.urlParams, result);
-	        }
-	        else {
-	            options.urlParams = result;
-	        }
-	
-	        return {
-	            resolveUrl: currentStep.resolveUrl(options.urlParams, options.retries),
-	            method: currentStep.method,
-	            methodParam: currentStep.methodParam(),
-	            isRemote: currentStep.isRemote()
-	        };
+	        prepareStepOutput(currentStep, options);
+	        var setup = $.extend(true, {}, currentStep);
+	        setup.resolveUrl = currentStep.resolveUrl(options.urlParams, options.retries);
+	        return setup;
 	    };
 	
 	    var getCurrentStep = function(service, options){
 	        var chain = options.chainNames[options.chainIndex];
 	        var steps = service.asyncChains[chain];
 	        return steps[options.stepIndex];
+	    };
+	
+	    var prepareStepOutput = function(currentStep, options){
+	        var stepOutput = {};
+	        var result = currentStep.beforeStep(options.temporaryData);
+	        if(typeof result === 'string' || typeof result == 'number'){
+	            stepOutput[config.urlParamDefaultKey] = result;
+	        }
+	        else if(typeof result === 'object'){
+	            stepOutput = result;
+	        }
+	
+	        if(options.urlParams){
+	            $.extend(true, options.urlParams, stepOutput);
+	        }
+	        else {
+	            options.urlParams = stepOutput;
+	        }
 	    };
 	
 	    var hasNextStep = function(service, options){
@@ -1201,23 +1216,39 @@
 	        };
 	    };
 	
-	    COMMON_SOURCE.grabTvpVideoData = function(data){
+	    COMMON_SOURCE.grapTvpVideoData = function(data){
 	        var items = [];
-	        if(data.status == 'OK' && data.formats !== undefined){
-	            $.each(data.formats, function( index, value ) {
-	                if(value.adaptive == false){
-	                    var videoDesc = value.totalBitrate;
+	        var subtitlesItems = [];
+	        var info = ((data || {}).content || {}).info || {};
+	        var files = ((data || {}).content || {}).files || [];
+	        var subtitles = ((data || {}).content || {}).subtitles || [];
+	        if(files.length) {
+	            files.forEach(function (file) {
+	                if (file.type === 'any_native') {
+	                    var videoDesc = file.quality.bitrate;
 	                    items.push(Tool.mapDescription({
 	                        source: 'TVP',
-	                        key: value.totalBitrate,
+	                        key: videoDesc,
 	                        video: videoDesc,
-	                        url: value.url
+	                        url: file.url
 	                    }));
 	                }
 	            });
+	            subtitles.forEach(function(subtitle) {
+	                var extension = subtitle.type;
+	                subtitlesItems.push({
+	                    url: 'https:' + subtitle.url,
+	                    format: extension,
+	                    description: subtitle.lang
+	                })
+	            });
+	
 	            return {
-	                title: data.title,
-	                cards: {videos: {items: items}}
+	                title: (info.title != null ? info.title : '') + (info.subtitle != null ? ' ' + info.subtitle : ''),
+	                cards: {
+	                    videos: {items: items},
+	                    subtitles: {items: subtitlesItems}
+	                }
 	            }
 	        }
 	        throw new Exception(config.error.noSource, window.location.href);
@@ -1242,11 +1273,13 @@
 	                    }
 	                }),
 	                new Step({
-	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+	                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
+	                        '&@callback=callback',
+	                    responseType: 'jsonp',
 	                    beforeStep: function (json) {
 	                        return getRealVideoId(json);
 	                    },
-	                    afterStep: COMMON_SOURCE.grabTvpVideoData
+	                    afterStep: COMMON_SOURCE.grapTvpVideoData
 	                })
 	            ]
 	        }
@@ -1287,11 +1320,13 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://www.tvp.pl/shared/cdn/tokenizer_v2.php?object_id=#videoId',
+	                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
+	                        '&@callback=callback',
+	                    responseType: 'jsonp',
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
-	                    afterStep: COMMON_SOURCE.grabTvpVideoData
+	                    afterStep: COMMON_SOURCE.grapTvpVideoData
 	                })
 	            ]
 	        }
@@ -1446,7 +1481,7 @@
 	                      'ua=www_iplatv_html5/12345',
 	                      'ua=mipla_ios/122'
 	                    ],
-	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&@&media_id=#videoId',
+	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&~&media_id=#videoId',
 	                    retryErrorCodes: [404],
 	                    beforeStep: function (input) {
 	                        return grabVideoIdFromUrl();

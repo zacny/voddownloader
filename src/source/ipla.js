@@ -17,7 +17,7 @@ var IPLA = (function() {
                       'ua=www_iplatv_html5/12345',
                       'ua=mipla_ios/122'
                     ],
-                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&@&media_id=#videoId',
+                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&~&media_id=#videoId',
                     retryErrorCodes: [404],
                     beforeStep: function (input) {
                         return grabVideoIdFromUrl();

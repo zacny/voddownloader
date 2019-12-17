@@ -2,7 +2,7 @@ var Executor = (function(Executor){
     var execute = function(service, options, w){
         var setup = setupStep(service, options);
         logStepInfo(options, setup);
-        if(setup.isRemote){
+        if(setup.isRemote()){
              executeAsync(service, setup, options, w);
         }
         else {
@@ -18,15 +18,23 @@ var Executor = (function(Executor){
         var requestParams = {
             method: setup.method,
             url: setup.resolveUrl.url,
-            data: JSON.stringify(setup.methodParam),
-            responseType: 'json',
+            data: JSON.stringify(setup.methodParam()),
+            responseType: setup.responseType,
             onload: function(data) {
                 var currentStep = getCurrentStep(service, options);
                 if(retryPossible(currentStep, options, data.status)){
                     execute(service, options, w);
                 }
                 else {
-                    options.temporaryData = data.response || {};
+                    if(setup.responseType === 'jsonp'){
+                        var match = data.responseText.match(/callback\(([\s\S]*?)\);/);
+                        if(match && match[1] && !match[1].startsWith('null')){
+                            options.temporaryData = JSON.parse(match[1]);
+                        }
+                    }
+                    else {
+                        options.temporaryData = data.response || {};
+                    }
                     callback(service, options, w);
                 }
             },
@@ -47,7 +55,7 @@ var Executor = (function(Executor){
     var logStepInfo = function(options, setup){
         var chain = options.chainNames[options.chainIndex];
         var step = chain + '[' + options.stepIndex + ']';
-        var stepParams = $.isEmptyObject(setup.methodParam) ? '' : JSON.stringify(setup.methodParam);
+        var stepParams = $.isEmptyObject(setup.methodParam()) ? '' : JSON.stringify(setup.methodParam());
         var params = [
             'color:green', options.retries+1, 'color:black', ':',
             'color:blue', step,  'color:red', setup.isRemote ? setup.method : '---',
@@ -58,31 +66,34 @@ var Executor = (function(Executor){
 
     var setupStep = function(service, options){
         var currentStep = getCurrentStep(service, options);
-        var result = currentStep.beforeStep(options.temporaryData);
-        if(typeof result === 'string' || typeof result == 'number'){
-            result = {
-                videoId: result
-            }
-        }
-        if(options.urlParams){
-            $.extend(true, options.urlParams, result);
-        }
-        else {
-            options.urlParams = result;
-        }
-
-        return {
-            resolveUrl: currentStep.resolveUrl(options.urlParams, options.retries),
-            method: currentStep.method,
-            methodParam: currentStep.methodParam(),
-            isRemote: currentStep.isRemote()
-        };
+        prepareStepOutput(currentStep, options);
+        var setup = $.extend(true, {}, currentStep);
+        setup.resolveUrl = currentStep.resolveUrl(options.urlParams, options.retries);
+        return setup;
     };
 
     var getCurrentStep = function(service, options){
         var chain = options.chainNames[options.chainIndex];
         var steps = service.asyncChains[chain];
         return steps[options.stepIndex];
+    };
+
+    var prepareStepOutput = function(currentStep, options){
+        var stepOutput = {};
+        var result = currentStep.beforeStep(options.temporaryData);
+        if(typeof result === 'string' || typeof result == 'number'){
+            stepOutput[config.urlParamDefaultKey] = result;
+        }
+        else if(typeof result === 'object'){
+            stepOutput = result;
+        }
+
+        if(options.urlParams){
+            $.extend(true, options.urlParams, stepOutput);
+        }
+        else {
+            options.urlParams = stepOutput;
+        }
     };
 
     var hasNextStep = function(service, options){

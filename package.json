@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "6.8.1",
+  "version": "6.9.1",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
