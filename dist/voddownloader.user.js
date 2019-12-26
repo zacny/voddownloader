@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.9.1
+// @version        6.9.2
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1216,23 +1216,32 @@
 	        };
 	    };
 	
+	    var removeUnsupportedVideoFormats = function(files){
+	        var result = [];
+	        files.forEach(function (file) {
+	            if (file['type'] === 'any_native') {
+	                result.push(file);
+	            }
+	        });
+	        return result;
+	    };
+	
 	    COMMON_SOURCE.grapTvpVideoData = function(data){
 	        var items = [];
 	        var subtitlesItems = [];
 	        var info = ((data || {}).content || {}).info || {};
 	        var files = ((data || {}).content || {}).files || [];
 	        var subtitles = ((data || {}).content || {}).subtitles || [];
+	        var files = removeUnsupportedVideoFormats(files);
 	        if(files.length) {
 	            files.forEach(function (file) {
-	                if (file.type === 'any_native') {
-	                    var videoDesc = file.quality.bitrate;
-	                    items.push(Tool.mapDescription({
-	                        source: 'TVP',
-	                        key: videoDesc,
-	                        video: videoDesc,
-	                        url: file.url
-	                    }));
-	                }
+	                var videoDesc = file.quality.bitrate;
+	                items.push(Tool.mapDescription({
+	                    source: 'TVP',
+	                    key: videoDesc,
+	                    video: videoDesc,
+	                    url: file.url
+	                }));
 	            });
 	            subtitles.forEach(function(subtitle) {
 	                var extension = subtitle.type;
