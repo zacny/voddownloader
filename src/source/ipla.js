@@ -3,7 +3,7 @@ var IPLA = (function() {
         observer: {
             anchor: 'app-root',
             mode: 'added',
-            selector: 'div.player-wrapper:visible, div.promo-box:visible,' +
+            selector: 'div.player-wrapper, div.promo-box:visible,' +
                 ' div.player-error-presentation:visible'
         },
         button: {
