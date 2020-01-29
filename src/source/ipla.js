@@ -36,7 +36,7 @@ var IPLA = (function() {
                     methodParam: function(){
                         return getParamsForSubtitles();
                     },
-                    afterStep: COMMON_SOURCE.grabIplaSubtitlesData
+                    afterStep: Common.grabIplaSubtitlesData
                 })
             ]
         }
@@ -81,7 +81,7 @@ var IPLA = (function() {
     };
 
     this.setup = function(){
-        WrapperDetector.run(properties);
+        Common.run(properties);
     };
 
     var matchingId = function(input, failureAction){

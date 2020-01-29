@@ -106,6 +106,6 @@ var TVN = (function() {
             inVodFrame();
         }
 
-        WrapperDetector.run(properties);
+        Common.run(properties);
     };
 });

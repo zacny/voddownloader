@@ -1,5 +1,5 @@
-var COMMON_SOURCE = (function(COMMON_SOURCE) {
-    COMMON_SOURCE.grabIplaSubtitlesData = function(data){
+var Common = (function(Common) {
+    Common.grabIplaSubtitlesData = function(data){
         var items = [];
         var subtitles = (((data.result || {}).mediaItem || {}).displayInfo || {}).subtitles || [];
         subtitles.forEach(function(subtitle) {
@@ -24,7 +24,13 @@ var COMMON_SOURCE = (function(COMMON_SOURCE) {
         return result;
     };
 
-    COMMON_SOURCE.grapTvpVideoData = function(data){
+    Common.run = function(properties){
+        ElementDetector.detect(properties.observer, function () {
+            DomTamper.createButton(properties);
+        });
+    };
+
+    Common.grapTvpVideoData = function(data){
         var items = [];
         var subtitlesItems = [];
         var info = ((data || {}).content || {}).info || {};
@@ -61,5 +67,5 @@ var COMMON_SOURCE = (function(COMMON_SOURCE) {
         throw new Exception(config.error.noSource, window.location.href);
     };
 
-    return COMMON_SOURCE;
-}(COMMON_SOURCE || {}));
+    return Common;
+}(Common || {}));

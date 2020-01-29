@@ -6,7 +6,7 @@ var WrapperDetector = (function(WrapperDetector){
                 DomTamper.createButton(properties);
             }
         });
-        detector.observeChanges();
+        detector.observe();
     };
     return WrapperDetector;
 }(WrapperDetector || {}));

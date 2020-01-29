@@ -53,6 +53,6 @@ var CDA = (function() {
     };
 
     this.setup = function(){
-        WrapperDetector.run(properties);
+        Common.run(properties);
     };
 });

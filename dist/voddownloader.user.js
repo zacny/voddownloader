@@ -575,7 +575,7 @@
 	        }
 	    };
 	
-	    DomTamper.createDocument = function(data, w){
+	    DomTamper.createDocument = function(data, w, service){
 	        prepareHead(w);
 	        setWindowTitle(data, w);
 	        var pageContent = $('<div>').addClass('page-content');
@@ -583,7 +583,7 @@
 	        pageContent.append(createLinks(w, 'special-color white-text'));
 	        pageContent.append(createNotificationContainer());
 	        prepareBody(w, pageContent, true);
-	        Unloader.init(w);
+	        Unloader.init(w, service);
 	        Accordion.bindActions(w, data);
 	    };
 	
@@ -932,7 +932,7 @@
 	        try {
 	            if(w === undefined){
 	                w = window.open();
-	                DomTamper.createLoader(w);
+	                DomTamper.createLoader(w, service);
 	            }
 	
 	            execute(service, options, w);
@@ -1026,7 +1026,7 @@
 	        onDone: function(data, w) {
 	            var aggregatedData = service.aggregate(data);
 	            service.formatter(aggregatedData);
-	            DomTamper.createDocument(aggregatedData, w);
+	            DomTamper.createDocument(aggregatedData, w, service);
 	        }
 	    };
 	
@@ -1036,12 +1036,6 @@
 	var Detector = (function(conf) {
 	    var configuration = conf;
 	
-	    var logMessage = function(){
-	        var existColor = configuration.success() ? 'color:green' : 'color:red';
-	        var params = [existColor, configuration.observer.selector, 'color:black'];
-	        Tool.formatConsoleMessage('[%c%s%c]', params);
-	    };
-	
 	    var logObservation = function(){
 	        var observer = configuration.observer;
 	        var existColor = observer.exist() ? 'color:green' : 'color:red';
@@ -1050,7 +1044,7 @@
 	        Tool.formatConsoleMessage('[%c%s%c]', params);
 	    };
 	
-	    this.observeChanges = function(){
+	    this.observe = function(){
 	        var observer = configuration.observer;
 	        if(observer.exist()){
 	            logObservation();
@@ -1063,36 +1057,6 @@
 	            });
 	        }
 	    };
-	
-	    this.detect = function() {
-	        if(configuration.success()){
-	            console.log('Detection immediately');
-	            configuration.successCallback()
-	        }
-	        var observer = configuration.observer;
-	        // console.log($(observer.anchor).get(0));
-	        logMessage();
-	        $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
-	            console.log('Detection with success');
-	            logMessage();
-	            configuration.successCallback();
-	        });
-	    };
-	
-	    this.observe = function(){
-	        logMessage();
-	        var observer = configuration.prop.observer;
-	        if(observer.init){
-	            console.log($(observer.anchor).get(0));
-	            $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
-	                logMessage();
-	                DomTamper.createButton(configuration.prop);
-	            });
-	        }
-	        else {
-	            DomTamper.createButton(configuration.prop);
-	        }
-	    }
 	});
 	
 	var WrapperDetector = (function(WrapperDetector){
@@ -1103,7 +1067,7 @@
 	                DomTamper.createButton(properties);
 	            }
 	        });
-	        detector.observeChanges();
+	        detector.observe();
 	    };
 	    return WrapperDetector;
 	}(WrapperDetector || {}));
@@ -1112,12 +1076,9 @@
 	    ElementDetector.detect = function(observer, callback){
 	        var detector = new Detector({
 	            observer: observer,
-	            successCallback: callback,
-	            success: function(){
-	                return $(observer.selector).length > 0;
-	            }
+	            successCallback: callback
 	        });
-	        detector.detect();
+	        detector.observe();
 	    };
 	
 	    return ElementDetector;
@@ -1125,16 +1086,21 @@
 	
 	var Unloader = (function(Unloader) {
 	    var win;
+	    var observer;
 	    var url;
 	
-	    Unloader.init = function(w){
+	    Unloader.init = function(w, service){
 	        win = w;
+	        observer = (service || {}).observer;
 	        url = Tool.getRealUrl();
 	        $(window).bind('beforeunload', function(){
 	            if(!win.closed) {
 	                DomTamper.handleError(new Exception(config.error.noParent, url), win);
 	            }
 	        });
+	        if(observer){
+	            $(observer.anchor).disconnect(observer.mode, observer.selector);
+	        }
 	    };
 	
 	    return Unloader;
@@ -1232,8 +1198,8 @@
 	    return MessageReceiver;
 	}(MessageReceiver || {}));
 	
-	var COMMON_SOURCE = (function(COMMON_SOURCE) {
-	    COMMON_SOURCE.grabIplaSubtitlesData = function(data){
+	var Common = (function(Common) {
+	    Common.grabIplaSubtitlesData = function(data){
 	        var items = [];
 	        var subtitles = (((data.result || {}).mediaItem || {}).displayInfo || {}).subtitles || [];
 	        subtitles.forEach(function(subtitle) {
@@ -1258,7 +1224,13 @@
 	        return result;
 	    };
 	
-	    COMMON_SOURCE.grapTvpVideoData = function(data){
+	    Common.run = function(properties){
+	        ElementDetector.detect(properties.observer, function () {
+	            DomTamper.createButton(properties);
+	        });
+	    };
+	
+	    Common.grapTvpVideoData = function(data){
 	        var items = [];
 	        var subtitlesItems = [];
 	        var info = ((data || {}).content || {}).info || {};
@@ -1295,8 +1267,8 @@
 	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
-	    return COMMON_SOURCE;
-	}(COMMON_SOURCE || {}));
+	    return Common;
+	}(Common || {}));
 	var VOD_TVP = (function() {
 	    var properties = new Configurator({
 	        observer: {
@@ -1321,7 +1293,7 @@
 	                    beforeStep: function (json) {
 	                        return getRealVideoId(json);
 	                    },
-	                    afterStep: COMMON_SOURCE.grapTvpVideoData
+	                    afterStep: Common.grapTvpVideoData
 	                })
 	            ]
 	        }
@@ -1347,7 +1319,7 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties);
+	        Common.run(properties);
 	    };
 	});
 	
@@ -1368,7 +1340,7 @@
 	                    beforeStep: function (input) {
 	                        return idParser();
 	                    },
-	                    afterStep: COMMON_SOURCE.grapTvpVideoData
+	                    afterStep: Common.grapTvpVideoData
 	                })
 	            ]
 	        }
@@ -1390,7 +1362,7 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties);
+	        Common.run(properties);
 	    };
 	});
 	
@@ -1502,7 +1474,7 @@
 	            inVodFrame();
 	        }
 	
-	        WrapperDetector.run(properties);
+	        Common.run(properties);
 	    };
 	});
 	
@@ -1544,7 +1516,7 @@
 	                    methodParam: function(){
 	                        return getParamsForSubtitles();
 	                    },
-	                    afterStep: COMMON_SOURCE.grabIplaSubtitlesData
+	                    afterStep: Common.grabIplaSubtitlesData
 	                })
 	            ]
 	        }
@@ -1589,7 +1561,7 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties);
+	        Common.run(properties);
 	    };
 	
 	    var matchingId = function(input, failureAction){
@@ -1731,7 +1703,10 @@
 	        var observer = {
 	            anchor: 'div.pulsembed_embed',
 	            mode: 'added',
-	            selector: frameSelector
+	            selector: frameSelector,
+	            exist: function(){
+	                return $(observer.selector).length > 0;
+	            }
 	        };
 	
 	        ElementDetector.detect(observer, function () {
@@ -1750,7 +1725,7 @@
 	            workWithSubService();
 	        }
 	        else if(Tool.isTopWindow()){
-	            WrapperDetector.run(properties);
+	            Common.run(properties);
 	        }
 	    };
 	});
@@ -1845,7 +1820,7 @@
 	    };
 	
 	    var parseSubtitleData = function(){
-	        return COMMON_SOURCE.grabIplaSubtitlesData(getJson());
+	        return Common.grabIplaSubtitlesData(getJson());
 	    };
 	
 	    this.setup = function(){
@@ -1853,7 +1828,7 @@
 	            console.log(data);
 	
 	            window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
-	            WrapperDetector.run(properties);
+	            Common.run(properties);
 	        };
 	        MessageReceiver.awaitMessage({
 	            origin: 'https://pulsembed.eu',
@@ -1922,7 +1897,7 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties);
+	        Common.run(properties);
 	    };
 	});
 	
@@ -1981,7 +1956,7 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties);
+	        Common.run(properties);
 	    };
 	});
 	
@@ -2048,7 +2023,7 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties);
+	        Common.run(properties);
 	    };
 	});
 	
@@ -2142,7 +2117,7 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties);
+	        Common.run(properties);
 	    };
 	
 	});
@@ -2237,7 +2212,7 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties);
+	        Common.run(properties);
 	    };
 	
 	});
@@ -2260,7 +2235,10 @@
 	        var observer = {
 	            anchor: 'div.iplaContainer',
 	            mode: 'added',
-	            selector: multiSelector
+	            selector: multiSelector,
+	            exist: function(){
+	                return $(observer.selector).length > 0;
+	            }
 	        };
 	
 	        ElementDetector.detect(observer, function() {

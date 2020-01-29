@@ -15,7 +15,7 @@ var CYF_TVP = (function() {
                     beforeStep: function (input) {
                         return idParser();
                     },
-                    afterStep: COMMON_SOURCE.grapTvpVideoData
+                    afterStep: Common.grapTvpVideoData
                 })
             ]
         }
@@ -37,6 +37,6 @@ var CYF_TVP = (function() {
     };
 
     this.setup = function(){
-        WrapperDetector.run(properties);
+        Common.run(properties);
     };
 });

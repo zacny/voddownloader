@@ -164,7 +164,7 @@ var Executor = (function(Executor){
         try {
             if(w === undefined){
                 w = window.open();
-                DomTamper.createLoader(w);
+                DomTamper.createLoader(w, service);
             }
 
             execute(service, options, w);

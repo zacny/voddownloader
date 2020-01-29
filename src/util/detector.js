@@ -1,12 +1,6 @@
 var Detector = (function(conf) {
     var configuration = conf;
 
-    var logMessage = function(){
-        var existColor = configuration.success() ? 'color:green' : 'color:red';
-        var params = [existColor, configuration.observer.selector, 'color:black'];
-        Tool.formatConsoleMessage('[%c%s%c]', params);
-    };
-
     var logObservation = function(){
         var observer = configuration.observer;
         var existColor = observer.exist() ? 'color:green' : 'color:red';
@@ -15,7 +9,7 @@ var Detector = (function(conf) {
         Tool.formatConsoleMessage('[%c%s%c]', params);
     };
 
-    this.observeChanges = function(){
+    this.observe = function(){
         var observer = configuration.observer;
         if(observer.exist()){
             logObservation();
@@ -28,34 +22,4 @@ var Detector = (function(conf) {
             });
         }
     };
-
-    this.detect = function() {
-        if(configuration.success()){
-            console.log('Detection immediately');
-            configuration.successCallback()
-        }
-        var observer = configuration.observer;
-        // console.log($(observer.anchor).get(0));
-        logMessage();
-        $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
-            console.log('Detection with success');
-            logMessage();
-            configuration.successCallback();
-        });
-    };
-
-    this.observe = function(){
-        logMessage();
-        var observer = configuration.prop.observer;
-        if(observer.init){
-            console.log($(observer.anchor).get(0));
-            $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
-                logMessage();
-                DomTamper.createButton(configuration.prop);
-            });
-        }
-        else {
-            DomTamper.createButton(configuration.prop);
-        }
-    }
 });

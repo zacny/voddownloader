@@ -22,7 +22,7 @@ var VOD_TVP = (function() {
                     beforeStep: function (json) {
                         return getRealVideoId(json);
                     },
-                    afterStep: COMMON_SOURCE.grapTvpVideoData
+                    afterStep: Common.grapTvpVideoData
                 })
             ]
         }
@@ -48,6 +48,6 @@ var VOD_TVP = (function() {
     };
 
     this.setup = function(){
-        WrapperDetector.run(properties);
+        Common.run(properties);
     };
 });
