@@ -10,7 +10,10 @@ var MessageReceiver = (function(MessageReceiver) {
             return;
         }
 
-        var data = JSON.parse(event.data);
+        var data = parseJSON(event.data);
+        if($.isEmptyObject(data)){
+            return;
+        }
         /** confirmation for the sender */
         if(data.confirmation){
             alreadyConfirmed = true;
@@ -24,6 +27,17 @@ var MessageReceiver = (function(MessageReceiver) {
                 postMessage(data);
                 callback(data);
             }
+        }
+    };
+
+    var parseJSON = function(json) {
+        if (typeof json == 'object')
+            return {};
+        try {
+            return JSON.parse(json);
+        }
+        catch(e) {
+            return {};
         }
     };
 

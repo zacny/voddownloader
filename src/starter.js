@@ -10,7 +10,8 @@ var Starter = (function(Starter) {
         {objectName: 'WP', urlPattern: /^https:\/\/wideo\.wp\.pl\//},
         {objectName: 'NINATEKA', urlPattern: /^https:\/\/ninateka.pl\//},
         {objectName: 'ARTE', urlPattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
-        {objectName: 'VOD_FRAME', urlPattern: /^https:\/\/pulsembed\.eu\//}
+        {objectName: 'VOD_FRAME', urlPattern: /^https:\/\/pulsembed\.eu\//},
+        {objectName: 'TV_TRWAM', urlPattern: /^https:\/\/tv-trwam.pl\/local-vods\//}
     ];
 
     Starter.start = function() {

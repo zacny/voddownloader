@@ -1,6 +1,6 @@
 var VOD_TVP = (function() {
     var properties = new Configurator({
-        wrapper: {
+        observer: {
             /**        vod.tvp.pl             *.tvp.pl **/
             selector: '#JS-TVPlayer2-Wrapper, #player2'
         },
@@ -29,7 +29,7 @@ var VOD_TVP = (function() {
     });
 
     var idParser = function() {
-        var src = $(properties.wrapper.selector).attr('data-video-id');
+        var src = $(properties.observer.selector).attr('data-video-id');
         if(src !== undefined){
             return {
                 videoId: src.split("/").pop()

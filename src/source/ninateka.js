@@ -1,6 +1,6 @@
 var NINATEKA = (function() {
     var properties = new Configurator({
-        wrapper: {
+        observer: {
             selector: '#videoPlayer, #player'
         },
         button: {

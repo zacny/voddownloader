@@ -1,8 +1,10 @@
 var IPLA = (function() {
     var properties = new Configurator({
-        wrapper: {
-            selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child,' +
-                ' div.player-error-presentation:visible:first-child'
+        observer: {
+            anchor: 'app-root',
+            mode: 'added',
+            selector: 'div.player-wrapper:visible, div.promo-box:visible,' +
+                ' div.player-error-presentation:visible'
         },
         button: {
             class: 'ipla_download_button'
@@ -79,7 +81,7 @@ var IPLA = (function() {
     };
 
     this.setup = function(){
-        WrapperDetector.run(properties, this.setup);
+        WrapperDetector.run(properties);
     };
 
     var matchingId = function(input, failureAction){

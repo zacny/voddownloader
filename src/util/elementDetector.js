@@ -1,12 +1,11 @@
 var ElementDetector = (function(ElementDetector){
-    ElementDetector.detect = function(selector, callback){
+    ElementDetector.detect = function(observer, callback){
         var detector = new Detector({
-            logStyle: 'color:dodgerblue',
-            target: selector,
+            observer: observer,
+            successCallback: callback,
             success: function(){
-                return $(this.target).length > 0;
-            },
-            successCallback: callback
+                return $(observer.selector).length > 0;
+            }
         });
         detector.detect();
     };

@@ -1,6 +1,8 @@
 var TVN = (function() {
     var properties = new Configurator({
-        wrapper: {
+        observer: {
+            anchor: 'body',
+            mode: 'added',
             selector: '#player-container, div.custom-alert-inner-wrapper'
         },
         button: {
@@ -104,6 +106,6 @@ var TVN = (function() {
             inVodFrame();
         }
 
-        WrapperDetector.run(properties, this.setup);
+        WrapperDetector.run(properties);
     };
 });

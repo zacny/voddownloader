@@ -1,6 +1,6 @@
 var CYF_TVP = (function() {
     var properties = new Configurator({
-        wrapper: {
+        observer: {
             selector: 'div.playerContainerWrapper'
         },
         button: {

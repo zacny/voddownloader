@@ -1,12 +1,12 @@
-var ARTE = (function() {
+var TV_TRWAM = (function() {
     var properties = new Configurator({
         observer: {
-            anchor: 'div.video-thumbnail',
+            anchor: '#ipott',
             mode: 'added',
-            selector: 'div.avp-player'
+            selector: 'div[data-name="playerWindowPlace"]'
         },
         button: {
-            class: 'arte_download_button',
+            class: 'trwam_download_button',
         },
         asyncChains: {
             videos: [
