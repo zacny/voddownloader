@@ -93,7 +93,10 @@ var VOD = (function() {
         var observer = {
             anchor: 'div.pulsembed_embed',
             mode: 'added',
-            selector: frameSelector
+            selector: frameSelector,
+            exist: function(){
+                return $(observer.selector).length > 0;
+            }
         };
 
         ElementDetector.detect(observer, function () {
@@ -112,7 +115,7 @@ var VOD = (function() {
             workWithSubService();
         }
         else if(Tool.isTopWindow()){
-            WrapperDetector.run(properties);
+            Common.run(properties);
         }
     };
 });

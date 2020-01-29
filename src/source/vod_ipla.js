@@ -88,7 +88,7 @@ var VOD_IPLA = (function() {
     };
 
     var parseSubtitleData = function(){
-        return COMMON_SOURCE.grabIplaSubtitlesData(getJson());
+        return Common.grabIplaSubtitlesData(getJson());
     };
 
     this.setup = function(){
@@ -96,7 +96,7 @@ var VOD_IPLA = (function() {
             console.log(data);
 
             window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
-            WrapperDetector.run(properties);
+            Common.run(properties);
         };
         MessageReceiver.awaitMessage({
             origin: 'https://pulsembed.eu',

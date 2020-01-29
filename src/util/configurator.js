@@ -79,7 +79,7 @@ function Configurator(properties){
         onDone: function(data, w) {
             var aggregatedData = service.aggregate(data);
             service.formatter(aggregatedData);
-            DomTamper.createDocument(aggregatedData, w);
+            DomTamper.createDocument(aggregatedData, w, service);
         }
     };
 

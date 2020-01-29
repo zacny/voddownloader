@@ -179,7 +179,7 @@ var DomTamper = (function(DomTamper){
         }
     };
 
-    DomTamper.createDocument = function(data, w){
+    DomTamper.createDocument = function(data, w, service){
         prepareHead(w);
         setWindowTitle(data, w);
         var pageContent = $('<div>').addClass('page-content');
@@ -187,7 +187,7 @@ var DomTamper = (function(DomTamper){
         pageContent.append(createLinks(w, 'special-color white-text'));
         pageContent.append(createNotificationContainer());
         prepareBody(w, pageContent, true);
-        Unloader.init(w);
+        Unloader.init(w, service);
         Accordion.bindActions(w, data);
     };
 

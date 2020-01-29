@@ -17,7 +17,10 @@ var VOD_FRAME = (function() {
         var observer = {
             anchor: 'div.iplaContainer',
             mode: 'added',
-            selector: multiSelector
+            selector: multiSelector,
+            exist: function(){
+                return $(observer.selector).length > 0;
+            }
         };
 
         ElementDetector.detect(observer, function() {
