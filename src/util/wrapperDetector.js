@@ -1,18 +1,12 @@
 var WrapperDetector = (function(WrapperDetector){
-    WrapperDetector.run = function(properties, videoChangeCallback) {
+    WrapperDetector.run = function(properties) {
         var detector = new Detector({
-            logStyle: 'color:orange',
-            target: properties.wrapper.selector,
-            success: properties.wrapper.exist,
-            successCallback: function(){
+            observer: properties.observer,
+            successCallback: function () {
                 DomTamper.createButton(properties);
             }
         });
-        detector.detect();
-
-        if(typeof videoChangeCallback === "function"){
-            ChangeVideoDetector.run(videoChangeCallback);
-        }
+        detector.observeChanges();
     };
     return WrapperDetector;
 }(WrapperDetector || {}));

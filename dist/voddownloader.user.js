@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.9.3
-// @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
-// @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
+// @name           voddownloader
+// @version        6.10.1-develop
+// @updateURL      http://localhost:5011/dist/voddownloader.meta.js
+// @downloadURL    http://localhost:5011/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -25,6 +25,7 @@
 // @include        https://ninateka.pl/*
 // @include        https://www.arte.tv/*/videos/*
 // @include        https://pulsembed.eu/*
+// @include        https://tv-trwam.pl/local-vods/*
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
@@ -44,8 +45,9 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
 // @require        https://gitcdn.xyz/cdn/zacny/voddownloader/4b17a120f521eaddf476d6e8fe3be152d506f244/lib/js/mdb-with-waves-patch.js
-// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
-// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
+// @require        https://gitcdn.xyz/cdn/kapetan/jquery-observe/master/jquery-observe.js
+// @resource       buttons_css http://localhost:5011/lib/css/voddownloader-buttons.css
+// @resource       content_css http://localhost:5011/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($, platform, Waves) {
@@ -146,6 +148,7 @@
 	        mdb: {
 	            id: 'mdb',
 	            css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
+	            /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
 	        }
 	    },
 	    error: {
@@ -250,8 +253,11 @@
 	    var step = {
 	        urlTemplateParts: [],
 	        urlTemplate: '',
+	        /** Will be done before call. It should return an object ready to use by resolveUrl function. **/
 	        beforeStep: function(input){return input},
+	        /** Will be done after call **/
 	        afterStep: function (output) {return output},
+	        /** Processing parameters of url before step */
 	        resultUrlParams: function (input, template) {
 	            var urlParams = {};
 	            $.each(input, function (key, value) {
@@ -264,16 +270,21 @@
 	                urlParams: urlParams
 	            };
 	        },
+	        /** Processing the url template */
 	        resolveUrl: function (input, partIndex) {
 	            return this.resultUrlParams(input, this.resolveUrlParts(partIndex));
 	        },
+	        /** Is this step remote? */
 	        isRemote: function(){
 	            return this.urlTemplate.length > 0;
 	        },
+	        /** Method of async step */
 	        method: 'GET',
 	        responseType: 'json',
 	        retryErrorCodes: [],
+	        /** Method parameters function of async step */
 	        methodParam: function(){return {}},
+	        /** Processing url dynamic parts */
 	        resolveUrlParts: function(partIndex){
 	            if(this.urlTemplateParts.length){
 	                return this.urlTemplate.replace(config.urlPartPattern, this.urlTemplateParts[partIndex]);
@@ -374,6 +385,7 @@
 	        if(downloadMode !== 'browser'){
 	            disableDownload(w);
 	            var value = w.localStorage.getItem(config.storage.doNotWarn);
+	            console.log('[' + config.storageItem + ']: ' + value);
 	            if(value !== 'true'){
 	                prepareWarningNotification(w);
 	            }
@@ -382,6 +394,7 @@
 	    return PluginSettingsDetector;
 	}(PluginSettingsDetector || {}));
 	
+	/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
 	var DomTamper = (function(DomTamper){
 	
 	    DomTamper.injectStyle = function(w, name){
@@ -522,11 +535,11 @@
 	    };
 	
 	    DomTamper.createButton = function(properties){
-	        properties.wrapper.get().find('#'+properties.button.id).remove();
+	        properties.observer.get().find('#'+properties.button.id).remove();
 	        var button = $('<input>').attr('id', properties.button.id).attr('type', 'button')
 	            .attr('style', properties.button.style).attr('value', 'Pobierz video').addClass(properties.button.class);
 	        button.bind('click', properties.button.click);
-	        properties.wrapper.get().append(button);
+	        properties.observer.get().append(button);
 	    };
 	
 	    DomTamper.createLoader = function(w){
@@ -934,13 +947,15 @@
 	
 	function Configurator(properties){
 	    var service = {
-	        wrapper: {
-	            selector: '',
+	        observer: {
+	            anchor: undefined,
+	            mode: undefined,
+	            selector: undefined,
 	            get: function(){
-	                return $(service.wrapper.selector);
+	                return $(service.observer.selector);
 	            },
 	            exist: function(){
-	                return $(service.wrapper.selector).length > 0;
+	                return $(service.observer.selector).length > 0;
 	            }
 	        },
 	        button: {
@@ -1021,87 +1036,86 @@
 	var Detector = (function(conf) {
 	    var configuration = conf;
 	
-	    var logMessage = function(attempt){
-	        var color = configuration.logStyle || 'color:black;font-weight:bold';
+	    var logMessage = function(){
 	        var existColor = configuration.success() ? 'color:green' : 'color:red';
-	        if(configuration.unlimited){
-	            var params = [
-	                existColor, configuration.target, 'color:black'
-	            ];
-	            Tool.formatConsoleMessage('[%c%s%c]', params);
-	        }
-	        else {
-	            var params = [
-	                'color:black', color, configuration.target, 'color:black',
-	                existColor + ';font-weight:bold', attempt, 'color:black'
-	            ];
-	            Tool.formatConsoleMessage('%c[%c%s%c] [%c%s%c]', params);
-	        }
+	        var params = [existColor, configuration.observer.selector, 'color:black'];
+	        Tool.formatConsoleMessage('[%c%s%c]', params);
 	    };
 	
-	    var check = function(attempt){
-	        logMessage(attempt);
-	        if (configuration.success()) {
-	            return Promise.resolve().then(
-	                configuration.successCallback()
-	            );
-	        } else if(configuration.unlimited || attempt > 0){
-	            attempt = attempt-1;
-	            return Promise.resolve().then(
-	                setTimeout(check, config.attemptTimeout, attempt)
-	            );
+	    var logObservation = function(){
+	        var observer = configuration.observer;
+	        var existColor = observer.exist() ? 'color:green' : 'color:red';
+	        var anchor = observer.anchor ? observer.anchor + '->' : '';
+	        var params = [existColor, anchor + observer.selector, 'color:black'];
+	        Tool.formatConsoleMessage('[%c%s%c]', params);
+	    };
+	
+	    this.observeChanges = function(){
+	        var observer = configuration.observer;
+	        if(observer.exist()){
+	            logObservation();
+	            configuration.successCallback();
+	        }
+	        else {
+	            $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
+	                logObservation();
+	                configuration.successCallback();
+	            });
 	        }
 	    };
 	
 	    this.detect = function() {
-	        check(config.attempts);
+	        if(configuration.success()){
+	            console.log('Detection immediately');
+	            configuration.successCallback()
+	        }
+	        var observer = configuration.observer;
+	        // console.log($(observer.anchor).get(0));
+	        logMessage();
+	        $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
+	            console.log('Detection with success');
+	            logMessage();
+	            configuration.successCallback();
+	        });
 	    };
+	
+	    this.observe = function(){
+	        logMessage();
+	        var observer = configuration.prop.observer;
+	        if(observer.init){
+	            console.log($(observer.anchor).get(0));
+	            $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
+	                logMessage();
+	                DomTamper.createButton(configuration.prop);
+	            });
+	        }
+	        else {
+	            DomTamper.createButton(configuration.prop);
+	        }
+	    }
 	});
 	
-	var ChangeVideoDetector = (function(ChangeVideoDetector){
-	    ChangeVideoDetector.run = function(videoChangeCallback) {
-	        var detector = new Detector({
-	            unlimited: true,
-	            previousLocation: window.location.href,
-	            target: 'video-change',
-	            success: function(){
-	                return this.previousLocation !== window.location.href
-	            },
-	            successCallback: videoChangeCallback
-	        });
-	        detector.detect();
-	    };
-	    return ChangeVideoDetector;
-	}(ChangeVideoDetector || {}));
-	
 	var WrapperDetector = (function(WrapperDetector){
-	    WrapperDetector.run = function(properties, videoChangeCallback) {
+	    WrapperDetector.run = function(properties) {
 	        var detector = new Detector({
-	            logStyle: 'color:orange',
-	            target: properties.wrapper.selector,
-	            success: properties.wrapper.exist,
-	            successCallback: function(){
+	            observer: properties.observer,
+	            successCallback: function () {
 	                DomTamper.createButton(properties);
 	            }
 	        });
-	        detector.detect();
-	
-	        if(typeof videoChangeCallback === "function"){
-	            ChangeVideoDetector.run(videoChangeCallback);
-	        }
+	        detector.observeChanges();
 	    };
 	    return WrapperDetector;
 	}(WrapperDetector || {}));
 	
 	var ElementDetector = (function(ElementDetector){
-	    ElementDetector.detect = function(selector, callback){
+	    ElementDetector.detect = function(observer, callback){
 	        var detector = new Detector({
-	            logStyle: 'color:dodgerblue',
-	            target: selector,
+	            observer: observer,
+	            successCallback: callback,
 	            success: function(){
-	                return $(this.target).length > 0;
-	            },
-	            successCallback: callback
+	                return $(observer.selector).length > 0;
+	            }
 	        });
 	        detector.detect();
 	    };
@@ -1138,10 +1152,15 @@
 	            return;
 	        }
 	
-	        var data = JSON.parse(event.data);
+	        var data = parseJSON(event.data);
+	        if($.isEmptyObject(data)){
+	            return;
+	        }
+	        /** confirmation for the sender */
 	        if(data.confirmation){
 	            alreadyConfirmed = true;
 	        }
+	        /** message for the recipient */
 	        else {
 	            data.confirmation = true;
 	            if(!alreadyPosted) {
@@ -1150,6 +1169,17 @@
 	                postMessage(data);
 	                callback(data);
 	            }
+	        }
+	    };
+	
+	    var parseJSON = function(json) {
+	        if (typeof json == 'object')
+	            return {};
+	        try {
+	            return JSON.parse(json);
+	        }
+	        catch(e) {
+	            return {};
 	        }
 	    };
 	
@@ -1269,7 +1299,8 @@
 	}(COMMON_SOURCE || {}));
 	var VOD_TVP = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
+	        observer: {
+	            /**        vod.tvp.pl             *.tvp.pl **/
 	            selector: '#JS-TVPlayer2-Wrapper, #player2'
 	        },
 	        button: {
@@ -1297,7 +1328,7 @@
 	    });
 	
 	    var idParser = function() {
-	        var src = $(properties.wrapper.selector).attr('data-video-id');
+	        var src = $(properties.observer.selector).attr('data-video-id');
 	        if(src !== undefined){
 	            return {
 	                videoId: src.split("/").pop()
@@ -1322,7 +1353,7 @@
 	
 	var CYF_TVP = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
+	        observer: {
 	            selector: 'div.playerContainerWrapper'
 	        },
 	        button: {
@@ -1365,7 +1396,9 @@
 	
 	var TVN = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
+	        observer: {
+	            anchor: 'body',
+	            mode: 'added',
 	            selector: '#player-container, div.custom-alert-inner-wrapper'
 	        },
 	        button: {
@@ -1469,15 +1502,17 @@
 	            inVodFrame();
 	        }
 	
-	        WrapperDetector.run(properties, this.setup);
+	        WrapperDetector.run(properties);
 	    };
 	});
 	
 	var IPLA = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
-	            selector: 'div.player-wrapper:visible:first-child, div.promo-box:visible:first-child,' +
-	                ' div.player-error-presentation:visible:first-child'
+	        observer: {
+	            anchor: 'app-root',
+	            mode: 'added',
+	            selector: 'div.player-wrapper:visible, div.promo-box:visible,' +
+	                ' div.player-error-presentation:visible'
 	        },
 	        button: {
 	            class: 'ipla_download_button'
@@ -1554,7 +1589,7 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties, this.setup);
+	        WrapperDetector.run(properties);
 	    };
 	
 	    var matchingId = function(input, failureAction){
@@ -1603,7 +1638,7 @@
 	
 	var VOD = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
+	        observer: {
 	            selector: '#v_videoPlayer'
 	        },
 	        button: {
@@ -1693,8 +1728,13 @@
 	    var workWithSubService = function(){
 	        var src = 'https://pulsembed.eu';
 	        var frameSelector = 'iframe[src^="' + src + '"]';
+	        var observer = {
+	            anchor: 'div.pulsembed_embed',
+	            mode: 'added',
+	            selector: frameSelector
+	        };
 	
-	        ElementDetector.detect(frameSelector, function () {
+	        ElementDetector.detect(observer, function () {
 	            MessageReceiver.postUntilConfirmed({
 	                windowReference: $(frameSelector).get(0).contentWindow,
 	                origin: src,
@@ -1717,7 +1757,9 @@
 	
 	var VOD_IPLA = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
+	        observer: {
+	            anchor: 'body',
+	            mode: 'added',
 	            selector: '#player-wrapper, #playerContainer'
 	        },
 	        button: {
@@ -1808,6 +1850,8 @@
 	
 	    this.setup = function(){
 	        var callback = function(data) {
+	            console.log(data);
+	
 	            window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
 	            WrapperDetector.run(properties);
 	        };
@@ -1820,8 +1864,10 @@
 	
 	var WP = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
-	            selector: '#Player0 > div'
+	        observer: {
+	            anchor: 'body',
+	            mode: 'added',
+	            selector: 'div.npp-container'
 	        },
 	        button: {
 	            class: 'wp_download_button material__category'
@@ -1876,13 +1922,13 @@
 	    };
 	
 	    this.setup = function(){
-	        WrapperDetector.run(properties, this.setup);
+	        WrapperDetector.run(properties);
 	    };
 	});
 	
 	var CDA = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
+	        observer: {
 	            selector: '.pb-video-player-wrap'
 	        },
 	        button: {
@@ -1898,9 +1944,11 @@
 	        try {
 	            var url = $("video.pb-video-player").attr('src');
 	            if(url !== undefined){
+	                /** HTML5 player */
 	                if(!url.match(/blank\.mp4/)){
 	                    prepareResult(url, w);
 	                }
+	                /** Flash pleyar - l is an existing variable on page */
 	                else if(l !== undefined){
 	                    prepareResult(l, w);
 	                }
@@ -1939,7 +1987,7 @@
 	
 	var NINATEKA = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
+	        observer: {
 	            selector: '#videoPlayer, #player'
 	        },
 	        button: {
@@ -2006,7 +2054,9 @@
 	
 	var ARTE = (function() {
 	    var properties = new Configurator({
-	        wrapper: {
+	        observer: {
+	            anchor: 'div.video-thumbnail',
+	            mode: 'added',
 	            selector: 'div.avp-player'
 	        },
 	        button: {
@@ -2097,6 +2147,100 @@
 	
 	});
 	
+	var TV_TRWAM = (function() {
+	    var properties = new Configurator({
+	        observer: {
+	            anchor: '#ipott',
+	            mode: 'added',
+	            selector: 'div[data-name="playerWindowPlace"]'
+	        },
+	        button: {
+	            class: 'trwam_download_button',
+	        },
+	        asyncChains: {
+	            videos: [
+	                new Step({
+	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
+	                    beforeStep: function (input) {
+	                        return idParser();
+	                    },
+	                    afterStep: function (output) {
+	                        return grabVideoData(output);
+	                    }
+	                })
+	            ]
+	        },
+	        formatter: function(data) {
+	            data.cards['videos'].items.sort(function (a, b) {
+	                return a.index - b.index;
+	            });
+	
+	            var sortingOrder = {'POL': 1};
+	            data.cards['videos'].items.sort(function (a, b) {
+	                var aLangOrder = sortingOrder[a.langCode] ? sortingOrder[a.langCode] : -1,
+	                    bLangOrder = sortingOrder[b.langCode] ? sortingOrder[b.langCode] : -1;
+	                return bLangOrder - aLangOrder;
+	
+	            });
+	        }
+	    });
+	
+	    var detectLanguage = function() {
+	        var regexp = new RegExp('https:\/\/www.arte\.tv\/(\\w{2})\/');
+	        var match = regexp.exec(window.location.href);
+	        return match[1];
+	    };
+	
+	    var detectVideoId = function(){
+	        var regexp = new RegExp('https:\/\/www.arte\.tv\/\\w{2}\/videos\/([\\w-]+)\/');
+	        var match = regexp.exec(window.location.href);
+	        return match[1];
+	    };
+	
+	    var idParser = function() {
+	        try {
+	            return {
+	                videoId: detectVideoId(),
+	                langCode: detectLanguage()
+	            };
+	        }
+	        catch(e){
+	            throw new Exception(config.error.id, window.location.href);
+	        }
+	    };
+	
+	    var grabVideoData = function(data){
+	        var items = [];
+	        var title = (((data || {}).videoJsonPlayer || {}).eStat || {}).streamName || '';
+	        var streams = ((data || {}).videoJsonPlayer || {}).VSR || {};
+	        if(streams){
+	            Object.keys(streams).filter(function(k, i) {
+	                return k.startsWith("HTTPS");
+	            }).forEach(function(k) {
+	                var stream = streams[k];
+	                var videoDesc = stream.width + 'x' + stream.height + ', ' + stream.bitrate;
+	                items.push(Tool.mapDescription({
+	                    source: 'ARTE',
+	                    key: stream.bitrate,
+	                    video: videoDesc,
+	                    langCode: stream.versionShortLibelle,
+	                    language: stream.versionLibelle,
+	                    url: stream.url
+	                }));
+	            });
+	            return {
+	                title: title,
+	                cards: {videos: {items: items}}
+	            }
+	        }
+	        throw new Exception(config.error.noSource, window.location.href);
+	    };
+	
+	    this.setup = function(){
+	        WrapperDetector.run(properties);
+	    };
+	
+	});
 	var VOD_FRAME = (function() {
 	    this.setup = function(){
 	        var callback = function(data) {
@@ -2113,7 +2257,13 @@
 	        var selectors = createArrySelectors(srcArray);
 	        var multiSelector = createMultiSelector(selectors);
 	
-	        ElementDetector.detect(multiSelector, function() {
+	        var observer = {
+	            anchor: 'div.iplaContainer',
+	            mode: 'added',
+	            selector: multiSelector
+	        };
+	
+	        ElementDetector.detect(observer, function() {
 	            selectors.forEach(function(element){
 	                if($(element.frameSelector).length > 0){
 	                    MessageReceiver.postUntilConfirmed({
@@ -2156,7 +2306,8 @@
 	        {objectName: 'WP', urlPattern: /^https:\/\/wideo\.wp\.pl\//},
 	        {objectName: 'NINATEKA', urlPattern: /^https:\/\/ninateka.pl\//},
 	        {objectName: 'ARTE', urlPattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
-	        {objectName: 'VOD_FRAME', urlPattern: /^https:\/\/pulsembed\.eu\//}
+	        {objectName: 'VOD_FRAME', urlPattern: /^https:\/\/pulsembed\.eu\//},
+	        {objectName: 'TV_TRWAM', urlPattern: /^https:\/\/tv-trwam.pl\/local-vods\//}
 	    ];
 	
 	    Starter.start = function() {

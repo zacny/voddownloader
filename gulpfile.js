@@ -86,7 +86,7 @@ function utilPartAttach() {
         .pipe(order([
             'exception.js', 'tool.js', 'config.js', 'step.js', 'notification.js',
             'pluginSettingsDetector.js', 'domTamper.js', 'accordion.js', 'executor.js', 'configurator.js',
-            'detector.js', 'changeVideoDetector.js', 'wrapperDetector.js', 'elementDetector.js',
+            'detector.js', 'wrapperDetector.js', 'elementDetector.js',
             'unloader.js', 'messageReceiver.js'
         ]))
         .pipe(concat('utils.js'))
@@ -97,7 +97,8 @@ function sourcePartAttach() {
     return gulp.src(config.source_dir + '/*.js')
         .pipe(order([
             'common_source.js', 'tvp_vod.js', 'tvp_cyf.js', 'tvn.js', 'ipla.js',
-            'vod.js', 'vod_ipla.js', 'wp.js', 'cda.js', 'ninateka.js', 'arte.js'
+            'vod.js', 'vod_ipla.js', 'wp.js', 'cda.js', 'ninateka.js', 'arte.js',
+            'tv_trwam.js'
         ]))
         .pipe(concat('sources.js'))
         .pipe(gulp.dest(config.tmp_dir));

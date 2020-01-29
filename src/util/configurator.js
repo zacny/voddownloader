@@ -1,12 +1,14 @@
 function Configurator(properties){
     var service = {
-        wrapper: {
-            selector: '',
+        observer: {
+            anchor: undefined,
+            mode: undefined,
+            selector: undefined,
             get: function(){
-                return $(service.wrapper.selector);
+                return $(service.observer.selector);
             },
             exist: function(){
-                return $(service.wrapper.selector).length > 0;
+                return $(service.observer.selector).length > 0;
             }
         },
         button: {

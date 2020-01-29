@@ -1,39 +1,61 @@
 var Detector = (function(conf) {
     var configuration = conf;
 
-    var logMessage = function(attempt){
-        var color = configuration.logStyle || 'color:black;font-weight:bold';
+    var logMessage = function(){
         var existColor = configuration.success() ? 'color:green' : 'color:red';
-        if(configuration.unlimited){
-            var params = [
-                existColor, configuration.target, 'color:black'
-            ];
-            Tool.formatConsoleMessage('[%c%s%c]', params);
-        }
-        else {
-            var params = [
-                'color:black', color, configuration.target, 'color:black',
-                existColor + ';font-weight:bold', attempt, 'color:black'
-            ];
-            Tool.formatConsoleMessage('%c[%c%s%c] [%c%s%c]', params);
-        }
+        var params = [existColor, configuration.observer.selector, 'color:black'];
+        Tool.formatConsoleMessage('[%c%s%c]', params);
     };
 
-    var check = function(attempt){
-        logMessage(attempt);
-        if (configuration.success()) {
-            return Promise.resolve().then(
-                configuration.successCallback()
-            );
-        } else if(configuration.unlimited || attempt > 0){
-            attempt = attempt-1;
-            return Promise.resolve().then(
-                setTimeout(check, config.attemptTimeout, attempt)
-            );
+    var logObservation = function(){
+        var observer = configuration.observer;
+        var existColor = observer.exist() ? 'color:green' : 'color:red';
+        var anchor = observer.anchor ? observer.anchor + '->' : '';
+        var params = [existColor, anchor + observer.selector, 'color:black'];
+        Tool.formatConsoleMessage('[%c%s%c]', params);
+    };
+
+    this.observeChanges = function(){
+        var observer = configuration.observer;
+        if(observer.exist()){
+            logObservation();
+            configuration.successCallback();
+        }
+        else {
+            $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
+                logObservation();
+                configuration.successCallback();
+            });
         }
     };
 
     this.detect = function() {
-        check(config.attempts);
+        if(configuration.success()){
+            console.log('Detection immediately');
+            configuration.successCallback()
+        }
+        var observer = configuration.observer;
+        // console.log($(observer.anchor).get(0));
+        logMessage();
+        $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
+            console.log('Detection with success');
+            logMessage();
+            configuration.successCallback();
+        });
     };
+
+    this.observe = function(){
+        logMessage();
+        var observer = configuration.prop.observer;
+        if(observer.init){
+            console.log($(observer.anchor).get(0));
+            $(observer.anchor).observe(observer.mode, observer.selector, function(record) {
+                logMessage();
+                DomTamper.createButton(configuration.prop);
+            });
+        }
+        else {
+            DomTamper.createButton(configuration.prop);
+        }
+    }
 });

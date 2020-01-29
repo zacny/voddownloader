@@ -139,11 +139,11 @@ var DomTamper = (function(DomTamper){
     };
 
     DomTamper.createButton = function(properties){
-        properties.wrapper.get().find('#'+properties.button.id).remove();
+        properties.observer.get().find('#'+properties.button.id).remove();
         var button = $('<input>').attr('id', properties.button.id).attr('type', 'button')
             .attr('style', properties.button.style).attr('value', 'Pobierz video').addClass(properties.button.class);
         button.bind('click', properties.button.click);
-        properties.wrapper.get().append(button);
+        properties.observer.get().append(button);
     };
 
     DomTamper.createLoader = function(w){

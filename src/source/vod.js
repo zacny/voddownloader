@@ -1,6 +1,6 @@
 var VOD = (function() {
     var properties = new Configurator({
-        wrapper: {
+        observer: {
             selector: '#v_videoPlayer'
         },
         button: {
@@ -90,8 +90,13 @@ var VOD = (function() {
     var workWithSubService = function(){
         var src = 'https://pulsembed.eu';
         var frameSelector = 'iframe[src^="' + src + '"]';
+        var observer = {
+            anchor: 'div.pulsembed_embed',
+            mode: 'added',
+            selector: frameSelector
+        };
 
-        ElementDetector.detect(frameSelector, function () {
+        ElementDetector.detect(observer, function () {
             MessageReceiver.postUntilConfirmed({
                 windowReference: $(frameSelector).get(0).contentWindow,
                 origin: src,

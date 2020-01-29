@@ -1,7 +1,9 @@
 var WP = (function() {
     var properties = new Configurator({
-        wrapper: {
-            selector: '#Player0 > div'
+        observer: {
+            anchor: 'body',
+            mode: 'added',
+            selector: 'div.npp-container'
         },
         button: {
             class: 'wp_download_button material__category'
@@ -56,6 +58,6 @@ var WP = (function() {
     };
 
     this.setup = function(){
-        WrapperDetector.run(properties, this.setup);
+        WrapperDetector.run(properties);
     };
 });

@@ -14,7 +14,13 @@ var VOD_FRAME = (function() {
         var selectors = createArrySelectors(srcArray);
         var multiSelector = createMultiSelector(selectors);
 
-        ElementDetector.detect(multiSelector, function() {
+        var observer = {
+            anchor: 'div.iplaContainer',
+            mode: 'added',
+            selector: multiSelector
+        };
+
+        ElementDetector.detect(observer, function() {
             selectors.forEach(function(element){
                 if($(element.frameSelector).length > 0){
                     MessageReceiver.postUntilConfirmed({
