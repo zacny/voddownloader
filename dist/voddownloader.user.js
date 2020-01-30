@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name           voddownloader
-// @version        6.10.1-develop
-// @updateURL      http://localhost:5011/dist/voddownloader.meta.js
-// @downloadURL    http://localhost:5011/dist/voddownloader.user.js
+// @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
+// @version        6.11.1
+// @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
+// @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
 //                 Działa poprawnie tylko z rozszerzeniem Tampermonkey.
 //                 Cześć kodu pochodzi z:
@@ -40,14 +40,15 @@
 // @connect        api.arte.tv
 // @connect        b2c.redefine.pl
 // @connect        player.pl
+// @connect        api-trwam.app.insysgo.pl
 // @run-at         document-end
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
 // @require        https://gitcdn.xyz/cdn/zacny/voddownloader/4b17a120f521eaddf476d6e8fe3be152d506f244/lib/js/mdb-with-waves-patch.js
 // @require        https://gitcdn.xyz/cdn/kapetan/jquery-observe/master/jquery-observe.js
-// @resource       buttons_css http://localhost:5011/lib/css/voddownloader-buttons.css
-// @resource       content_css http://localhost:5011/lib/css/voddownloader-content.css
+// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
+// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($, platform, Waves) {
@@ -148,7 +149,6 @@
 	        mdb: {
 	            id: 'mdb',
 	            css: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/css/mdb.min.css',
-	            /*script: 'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.2/js/mdb.min.js'*/
 	        }
 	    },
 	    error: {
@@ -243,6 +243,9 @@
 	                '720p': {video: 'H264 MPEG-4 AVC, 1280x720, 16:9', index: 2},
 	                '480p': {video: 'H264 MPEG-4 AVC, 854x480, 427:240', index: 3},
 	                '360p': {video: 'H264 MPEG-4 AVC, 640x360, 16:9', index: 4},
+	            },
+	            TRWAM: {
+	                '360p': {video: 'H264 MPEG-4 AVC, 640x360, 16:9', index: 1}
 	            }
 	        }
 	    }
@@ -253,11 +256,8 @@
 	    var step = {
 	        urlTemplateParts: [],
 	        urlTemplate: '',
-	        /** Will be done before call. It should return an object ready to use by resolveUrl function. **/
 	        beforeStep: function(input){return input},
-	        /** Will be done after call **/
 	        afterStep: function (output) {return output},
-	        /** Processing parameters of url before step */
 	        resultUrlParams: function (input, template) {
 	            var urlParams = {};
 	            $.each(input, function (key, value) {
@@ -270,21 +270,17 @@
 	                urlParams: urlParams
 	            };
 	        },
-	        /** Processing the url template */
 	        resolveUrl: function (input, partIndex) {
 	            return this.resultUrlParams(input, this.resolveUrlParts(partIndex));
 	        },
-	        /** Is this step remote? */
 	        isRemote: function(){
 	            return this.urlTemplate.length > 0;
 	        },
-	        /** Method of async step */
 	        method: 'GET',
+	        headers: {},
 	        responseType: 'json',
 	        retryErrorCodes: [],
-	        /** Method parameters function of async step */
 	        methodParam: function(){return {}},
-	        /** Processing url dynamic parts */
 	        resolveUrlParts: function(partIndex){
 	            if(this.urlTemplateParts.length){
 	                return this.urlTemplate.replace(config.urlPartPattern, this.urlTemplateParts[partIndex]);
@@ -385,7 +381,6 @@
 	        if(downloadMode !== 'browser'){
 	            disableDownload(w);
 	            var value = w.localStorage.getItem(config.storage.doNotWarn);
-	            console.log('[' + config.storageItem + ']: ' + value);
 	            if(value !== 'true'){
 	                prepareWarningNotification(w);
 	            }
@@ -394,7 +389,6 @@
 	    return PluginSettingsDetector;
 	}(PluginSettingsDetector || {}));
 	
-	/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
 	var DomTamper = (function(DomTamper){
 	
 	    DomTamper.injectStyle = function(w, name){
@@ -785,6 +779,7 @@
 	        var exceptionParams = [chainStep, Tool.getRealUrl()];
 	        var requestParams = {
 	            method: setup.method,
+	            headers: setup.headers,
 	            url: setup.resolveUrl.url,
 	            data: JSON.stringify(setup.methodParam()),
 	            responseType: setup.responseType,
@@ -862,6 +857,7 @@
 	        else {
 	            options.urlParams = stepOutput;
 	        }
+	        setChainResult(options)
 	    };
 	
 	    var hasNextStep = function(service, options){
@@ -880,7 +876,12 @@
 	            options.results = {};
 	        }
 	        var chainResult = options.results;
-	        chainResult[chain] = options.temporaryData;
+	        if(chainResult[chain]){
+	            $.extend(true, chainResult[chain], options.temporaryData);
+	        }
+	        else {
+	            chainResult[chain] = options.temporaryData;
+	        }
 	        options.temporaryData = {};
 	    };
 	
@@ -1059,19 +1060,6 @@
 	    };
 	});
 	
-	var WrapperDetector = (function(WrapperDetector){
-	    WrapperDetector.run = function(properties) {
-	        var detector = new Detector({
-	            observer: properties.observer,
-	            successCallback: function () {
-	                DomTamper.createButton(properties);
-	            }
-	        });
-	        detector.observe();
-	    };
-	    return WrapperDetector;
-	}(WrapperDetector || {}));
-	
 	var ElementDetector = (function(ElementDetector){
 	    ElementDetector.detect = function(observer, callback){
 	        var detector = new Detector({
@@ -1122,11 +1110,9 @@
 	        if($.isEmptyObject(data)){
 	            return;
 	        }
-	        /** confirmation for the sender */
 	        if(data.confirmation){
 	            alreadyConfirmed = true;
 	        }
-	        /** message for the recipient */
 	        else {
 	            data.confirmation = true;
 	            if(!alreadyPosted) {
@@ -1272,7 +1258,6 @@
 	var VOD_TVP = (function() {
 	    var properties = new Configurator({
 	        observer: {
-	            /**        vod.tvp.pl             *.tvp.pl **/
 	            selector: '#JS-TVPlayer2-Wrapper, #player2'
 	        },
 	        button: {
@@ -1483,7 +1468,7 @@
 	        observer: {
 	            anchor: 'app-root',
 	            mode: 'added',
-	            selector: 'div.player-wrapper:visible, div.promo-box:visible,' +
+	            selector: 'div.player-wrapper, div.promo-box:visible,' +
 	                ' div.player-error-presentation:visible'
 	        },
 	        button: {
@@ -1825,7 +1810,6 @@
 	
 	    this.setup = function(){
 	        var callback = function(data) {
-	            console.log(data);
 	
 	            window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
 	            Common.run(properties);
@@ -1919,11 +1903,9 @@
 	        try {
 	            var url = $("video.pb-video-player").attr('src');
 	            if(url !== undefined){
-	                /** HTML5 player */
 	                if(!url.match(/blank\.mp4/)){
 	                    prepareResult(url, w);
 	                }
-	                /** Flash pleyar - l is an existing variable on page */
 	                else if(l !== undefined){
 	                    prepareResult(l, w);
 	                }
@@ -2135,76 +2117,77 @@
 	        asyncChains: {
 	            videos: [
 	                new Step({
-	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
-	                    beforeStep: function (input) {
-	                        return idParser();
+	                    urlTemplate: 'https://api-trwam.app.insysgo.pl/v1/Tile/GetTiles',
+	                    headers: {'Content-Type': 'application/json'},
+	                    method: 'POST',
+	                    methodParam: function(){
+	                        return getParamsForVideo();
 	                    },
-	                    afterStep: function (output) {
+	                    afterStep: function(json) {
+	                        return getCodename(json);
+	                    }
+	                }),
+	                new Step({
+	                    urlTemplate: 'https://api-trwam.app.insysgo.pl/v1/Player/AcquireContent?platformCodename=www&' +
+	                        'codename=#codename',
+	                    afterStep: function(output) {
 	                        return grabVideoData(output);
 	                    }
 	                })
 	            ]
-	        },
-	        formatter: function(data) {
-	            data.cards['videos'].items.sort(function (a, b) {
-	                return a.index - b.index;
-	            });
-	
-	            var sortingOrder = {'POL': 1};
-	            data.cards['videos'].items.sort(function (a, b) {
-	                var aLangOrder = sortingOrder[a.langCode] ? sortingOrder[a.langCode] : -1,
-	                    bLangOrder = sortingOrder[b.langCode] ? sortingOrder[b.langCode] : -1;
-	                return bLangOrder - aLangOrder;
-	
-	            });
 	        }
 	    });
 	
-	    var detectLanguage = function() {
-	        var regexp = new RegExp('https:\/\/www.arte\.tv\/(\\w{2})\/');
-	        var match = regexp.exec(window.location.href);
-	        return match[1];
+	    var grabVideoIdFromUrl = function(input){
+	        var match = input.match(/\/(vod\.[\d]+)$/);
+	        if(match && match[1]) {
+	            return match[1];
+	        }
+	
+	        throw new Exception(config.error.id, Tool.getRealUrl());
 	    };
 	
-	    var detectVideoId = function(){
-	        var regexp = new RegExp('https:\/\/www.arte\.tv\/\\w{2}\/videos\/([\\w-]+)\/');
-	        var match = regexp.exec(window.location.href);
-	        return match[1];
+	    var getParamsForVideo = function(){
+	        var mediaId = grabVideoIdFromUrl(window.location.href);
+	        return {
+	            platformCodename: "www",
+	            tilesIds:[mediaId]
+	        }
 	    };
 	
-	    var idParser = function() {
-	        try {
-	            return {
-	                videoId: detectVideoId(),
-	                langCode: detectLanguage()
-	            };
+	    var getCodename = function(json){
+	        var tile = (json.Tiles || [])[0] || {};
+	        return {
+	            title: tile.Title || {},
+	            codename: tile.Codename || {}
+	        };
+	    };
+	
+	    var resolveKey = function(value){
+	        var match = value.Url.match(/\/[\w]+_([\d]+p)\.mp4$/);
+	        if(match && match[1]) {
+	            return match[1];
 	        }
-	        catch(e){
-	            throw new Exception(config.error.id, window.location.href);
-	        }
+	
+	        return value.VideoBitrate;
 	    };
 	
 	    var grabVideoData = function(data){
 	        var items = [];
-	        var title = (((data || {}).videoJsonPlayer || {}).eStat || {}).streamName || '';
-	        var streams = ((data || {}).videoJsonPlayer || {}).VSR || {};
+	        var streams = (((data || {}).MediaFiles || [])[0] || {}).Formats || [];
 	        if(streams){
-	            Object.keys(streams).filter(function(k, i) {
-	                return k.startsWith("HTTPS");
-	            }).forEach(function(k) {
-	                var stream = streams[k];
-	                var videoDesc = stream.width + 'x' + stream.height + ', ' + stream.bitrate;
-	                items.push(Tool.mapDescription({
-	                    source: 'ARTE',
-	                    key: stream.bitrate,
-	                    video: videoDesc,
-	                    langCode: stream.versionShortLibelle,
-	                    language: stream.versionLibelle,
-	                    url: stream.url
-	                }));
+	            $.each(streams, function( index, value ) {
+	                if(value.Type === 3){
+	                    var key = resolveKey(value);
+	                    items.push(Tool.mapDescription({
+	                        source: 'TRWAM',
+	                        key: key,
+	                        video: key,
+	                        url: value.Url
+	                    }));
+	                }
 	            });
 	            return {
-	                title: title,
 	                cards: {videos: {items: items}}
 	            }
 	        }

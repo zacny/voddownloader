@@ -116,6 +116,9 @@ const config = {
                 '720p': {video: 'H264 MPEG-4 AVC, 1280x720, 16:9', index: 2},
                 '480p': {video: 'H264 MPEG-4 AVC, 854x480, 427:240', index: 3},
                 '360p': {video: 'H264 MPEG-4 AVC, 640x360, 16:9', index: 4},
+            },
+            TRWAM: {
+                '360p': {video: 'H264 MPEG-4 AVC, 640x360, 16:9', index: 1}
             }
         }
     }

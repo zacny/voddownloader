@@ -11,76 +11,77 @@ var TV_TRWAM = (function() {
         asyncChains: {
             videos: [
                 new Step({
-                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
-                    beforeStep: function (input) {
-                        return idParser();
+                    urlTemplate: 'https://api-trwam.app.insysgo.pl/v1/Tile/GetTiles',
+                    headers: {'Content-Type': 'application/json'},
+                    method: 'POST',
+                    methodParam: function(){
+                        return getParamsForVideo();
                     },
-                    afterStep: function (output) {
+                    afterStep: function(json) {
+                        return getCodename(json);
+                    }
+                }),
+                new Step({
+                    urlTemplate: 'https://api-trwam.app.insysgo.pl/v1/Player/AcquireContent?platformCodename=www&' +
+                        'codename=#codename',
+                    afterStep: function(output) {
                         return grabVideoData(output);
                     }
                 })
             ]
-        },
-        formatter: function(data) {
-            data.cards['videos'].items.sort(function (a, b) {
-                return a.index - b.index;
-            });
-
-            var sortingOrder = {'POL': 1};
-            data.cards['videos'].items.sort(function (a, b) {
-                var aLangOrder = sortingOrder[a.langCode] ? sortingOrder[a.langCode] : -1,
-                    bLangOrder = sortingOrder[b.langCode] ? sortingOrder[b.langCode] : -1;
-                return bLangOrder - aLangOrder;
-
-            });
         }
     });
 
-    var detectLanguage = function() {
-        var regexp = new RegExp('https:\/\/www.arte\.tv\/(\\w{2})\/');
-        var match = regexp.exec(window.location.href);
-        return match[1];
+    var grabVideoIdFromUrl = function(input){
+        var match = input.match(/\/(vod\.[\d]+)$/);
+        if(match && match[1]) {
+            return match[1];
+        }
+
+        throw new Exception(config.error.id, Tool.getRealUrl());
     };
 
-    var detectVideoId = function(){
-        var regexp = new RegExp('https:\/\/www.arte\.tv\/\\w{2}\/videos\/([\\w-]+)\/');
-        var match = regexp.exec(window.location.href);
-        return match[1];
+    var getParamsForVideo = function(){
+        var mediaId = grabVideoIdFromUrl(window.location.href);
+        return {
+            platformCodename: "www",
+            tilesIds:[mediaId]
+        }
     };
 
-    var idParser = function() {
-        try {
-            return {
-                videoId: detectVideoId(),
-                langCode: detectLanguage()
-            };
+    var getCodename = function(json){
+        var tile = (json.Tiles || [])[0] || {};
+        return {
+            title: tile.Title || {},
+            codename: tile.Codename || {}
+        };
+    };
+
+    var resolveKey = function(value){
+        var match = value.Url.match(/\/[\w]+_([\d]+p)\.mp4$/);
+        if(match && match[1]) {
+            return match[1];
         }
-        catch(e){
-            throw new Exception(config.error.id, window.location.href);
-        }
+
+        return value.VideoBitrate;
     };
 
     var grabVideoData = function(data){
         var items = [];
-        var title = (((data || {}).videoJsonPlayer || {}).eStat || {}).streamName || '';
-        var streams = ((data || {}).videoJsonPlayer || {}).VSR || {};
+        var streams = (((data || {}).MediaFiles || [])[0] || {}).Formats || [];
         if(streams){
-            Object.keys(streams).filter(function(k, i) {
-                return k.startsWith("HTTPS");
-            }).forEach(function(k) {
-                var stream = streams[k];
-                var videoDesc = stream.width + 'x' + stream.height + ', ' + stream.bitrate;
-                items.push(Tool.mapDescription({
-                    source: 'ARTE',
-                    key: stream.bitrate,
-                    video: videoDesc,
-                    langCode: stream.versionShortLibelle,
-                    language: stream.versionLibelle,
-                    url: stream.url
-                }));
+            $.each(streams, function( index, value ) {
+                if(value.Type === 3){
+                    var key = resolveKey(value);
+                    items.push(Tool.mapDescription({
+                        source: 'TRWAM',
+                        key: key,
+                        video: key,
+                        url: value.Url
+                    }));
+                }
             });
             return {
-                title: title,
                 cards: {videos: {items: items}}
             }
         }

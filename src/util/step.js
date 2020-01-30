@@ -29,6 +29,7 @@ var Step = (function(properties){
         },
         /** Method of async step */
         method: 'GET',
+        headers: {},
         responseType: 'json',
         retryErrorCodes: [],
         /** Method parameters function of async step */
