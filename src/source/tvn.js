@@ -2,7 +2,6 @@ var TVN = (function() {
     var properties = new Configurator({
         observer: {
             anchor: 'body',
-            mode: 'added',
             selector: '#player-container, div.custom-alert-inner-wrapper'
         },
         button: {

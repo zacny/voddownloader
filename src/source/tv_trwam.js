@@ -2,7 +2,7 @@ var TV_TRWAM = (function() {
     var properties = new Configurator({
         observer: {
             anchor: '#ipott',
-            mode: 'added',
+            mode: 'removed',
             selector: 'div[data-name="playerWindowPlace"]'
         },
         button: {

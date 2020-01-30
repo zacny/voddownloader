@@ -30,6 +30,17 @@ var Common = (function(Common) {
         });
     };
 
+    Common.createObserver = function(anchor, selector, mode) {
+        return {
+            anchor: anchor,
+            mode: mode ? mode : 'added',
+            selector: selector,
+            exist: function() {
+                return $(this.selector).length > 0;
+            }
+        };
+    };
+
     Common.grapTvpVideoData = function(data){
         var items = [];
         var subtitlesItems = [];

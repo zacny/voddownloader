@@ -2,7 +2,6 @@ var ARTE = (function() {
     var properties = new Configurator({
         observer: {
             anchor: 'div.video-thumbnail',
-            mode: 'added',
             selector: 'div.avp-player'
         },
         button: {

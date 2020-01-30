@@ -2,7 +2,7 @@ function Configurator(properties){
     var service = {
         observer: {
             anchor: undefined,
-            mode: undefined,
+            mode: 'added',
             selector: undefined,
             get: function(){
                 return $(service.observer.selector);
