@@ -17,6 +17,7 @@ var Executor = (function(Executor){
         var exceptionParams = [chainStep, Tool.getRealUrl()];
         var requestParams = {
             method: setup.method,
+            headers: setup.headers,
             url: setup.resolveUrl.url,
             data: JSON.stringify(setup.methodParam()),
             responseType: setup.responseType,
@@ -94,6 +95,7 @@ var Executor = (function(Executor){
         else {
             options.urlParams = stepOutput;
         }
+        setChainResult(options)
     };
 
     var hasNextStep = function(service, options){
@@ -112,7 +114,12 @@ var Executor = (function(Executor){
             options.results = {};
         }
         var chainResult = options.results;
-        chainResult[chain] = options.temporaryData;
+        if(chainResult[chain]){
+            $.extend(true, chainResult[chain], options.temporaryData);
+        }
+        else {
+            chainResult[chain] = options.temporaryData;
+        }
         options.temporaryData = {};
     };
 

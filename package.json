@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "6.10.1",
+  "version": "6.11.1",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -97,7 +97,8 @@
         "player-api.dreamlab.pl",
         "api.arte.tv",
         "b2c.redefine.pl",
-        "player.pl"
+        "player.pl",
+        "api-trwam.app.insysgo.pl"
       ],
       "run-at": "document-end",
       "require": [
