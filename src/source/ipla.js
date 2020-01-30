@@ -2,7 +2,6 @@ var IPLA = (function() {
     var properties = new Configurator({
         observer: {
             anchor: 'app-root',
-            mode: 'added',
             selector: 'div.player-wrapper, div.promo-box:visible,' +
                 ' div.player-error-presentation:visible'
         },

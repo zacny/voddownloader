@@ -90,14 +90,7 @@ var VOD = (function() {
     var workWithSubService = function(){
         var src = 'https://pulsembed.eu';
         var frameSelector = 'iframe[src^="' + src + '"]';
-        var observer = {
-            anchor: 'div.pulsembed_embed',
-            mode: 'added',
-            selector: frameSelector,
-            exist: function(){
-                return $(observer.selector).length > 0;
-            }
-        };
+        var observer = Common.createObserver('div.pulsembed_embed', frameSelector);
 
         ElementDetector.detect(observer, function () {
             MessageReceiver.postUntilConfirmed({

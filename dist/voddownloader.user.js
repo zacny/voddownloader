@@ -950,7 +950,7 @@
 	    var service = {
 	        observer: {
 	            anchor: undefined,
-	            mode: undefined,
+	            mode: 'added',
 	            selector: undefined,
 	            get: function(){
 	                return $(service.observer.selector);
@@ -1211,6 +1211,17 @@
 	        });
 	    };
 	
+	    Common.createObserver = function(anchor, selector, mode) {
+	        return {
+	            anchor: anchor,
+	            mode: mode ? mode : 'added',
+	            selector: selector,
+	            exist: function() {
+	                return $(this.selector).length > 0;
+	            }
+	        };
+	    };
+	
 	    Common.grapTvpVideoData = function(data){
 	        var items = [];
 	        var subtitlesItems = [];
@@ -1350,7 +1361,6 @@
 	    var properties = new Configurator({
 	        observer: {
 	            anchor: 'body',
-	            mode: 'added',
 	            selector: '#player-container, div.custom-alert-inner-wrapper'
 	        },
 	        button: {
@@ -1462,7 +1472,6 @@
 	    var properties = new Configurator({
 	        observer: {
 	            anchor: 'app-root',
-	            mode: 'added',
 	            selector: 'div.player-wrapper, div.promo-box:visible,' +
 	                ' div.player-error-presentation:visible'
 	        },
@@ -1680,14 +1689,7 @@
 	    var workWithSubService = function(){
 	        var src = 'https://pulsembed.eu';
 	        var frameSelector = 'iframe[src^="' + src + '"]';
-	        var observer = {
-	            anchor: 'div.pulsembed_embed',
-	            mode: 'added',
-	            selector: frameSelector,
-	            exist: function(){
-	                return $(observer.selector).length > 0;
-	            }
-	        };
+	        var observer = Common.createObserver('div.pulsembed_embed', frameSelector);
 	
 	        ElementDetector.detect(observer, function () {
 	            MessageReceiver.postUntilConfirmed({
@@ -1714,7 +1716,6 @@
 	    var properties = new Configurator({
 	        observer: {
 	            anchor: 'body',
-	            mode: 'added',
 	            selector: '#player-wrapper, #playerContainer'
 	        },
 	        button: {
@@ -1805,7 +1806,6 @@
 	
 	    this.setup = function(){
 	        var callback = function(data) {
-	
 	            window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
 	            Common.run(properties);
 	        };
@@ -1820,7 +1820,6 @@
 	    var properties = new Configurator({
 	        observer: {
 	            anchor: 'body',
-	            mode: 'added',
 	            selector: 'div.npp-container'
 	        },
 	        button: {
@@ -2008,7 +2007,6 @@
 	    var properties = new Configurator({
 	        observer: {
 	            anchor: 'div.video-thumbnail',
-	            mode: 'added',
 	            selector: 'div.avp-player'
 	        },
 	        button: {
@@ -2103,7 +2101,7 @@
 	    var properties = new Configurator({
 	        observer: {
 	            anchor: '#ipott',
-	            mode: 'added',
+	            mode: 'removed',
 	            selector: 'div[data-name="playerWindowPlace"]'
 	        },
 	        button: {
@@ -2209,15 +2207,7 @@
 	    var setupDetector = function(srcArray, data){
 	        var selectors = createArrySelectors(srcArray);
 	        var multiSelector = createMultiSelector(selectors);
-	
-	        var observer = {
-	            anchor: 'div.iplaContainer',
-	            mode: 'added',
-	            selector: multiSelector,
-	            exist: function(){
-	                return $(observer.selector).length > 0;
-	            }
-	        };
+	        var observer = Common.createObserver('div.iplaContainer', multiSelector);
 	
 	        ElementDetector.detect(observer, function() {
 	            selectors.forEach(function(element){

@@ -13,15 +13,7 @@ var VOD_FRAME = (function() {
     var setupDetector = function(srcArray, data){
         var selectors = createArrySelectors(srcArray);
         var multiSelector = createMultiSelector(selectors);
-
-        var observer = {
-            anchor: 'div.iplaContainer',
-            mode: 'added',
-            selector: multiSelector,
-            exist: function(){
-                return $(observer.selector).length > 0;
-            }
-        };
+        var observer = Common.createObserver('div.iplaContainer', multiSelector);
 
         ElementDetector.detect(observer, function() {
             selectors.forEach(function(element){

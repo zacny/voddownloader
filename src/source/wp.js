@@ -2,7 +2,6 @@ var WP = (function() {
     var properties = new Configurator({
         observer: {
             anchor: 'body',
-            mode: 'added',
             selector: 'div.npp-container'
         },
         button: {

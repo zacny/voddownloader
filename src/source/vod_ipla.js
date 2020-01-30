@@ -2,7 +2,6 @@ var VOD_IPLA = (function() {
     var properties = new Configurator({
         observer: {
             anchor: 'body',
-            mode: 'added',
             selector: '#player-wrapper, #playerContainer'
         },
         button: {
@@ -93,8 +92,6 @@ var VOD_IPLA = (function() {
 
     this.setup = function(){
         var callback = function(data) {
-            console.log(data);
-
             window.sessionStorage.setItem(config.storage.topWindowLocation, data.location);
             Common.run(properties);
         };
