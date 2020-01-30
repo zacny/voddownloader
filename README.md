@@ -16,6 +16,7 @@ Creates a button in top right corner of video, that you can use to download a co
 - [ninateka.pl](http://ninateka.pl)
 - [video.wp.pl](https://video.wp.pl)
 - [cda.pl](https://www.cda.pl)
+- [trwam](https://tv-trwam.pl/local-vods)
 
 ## Installation
 
