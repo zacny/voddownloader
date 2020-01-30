@@ -569,7 +569,7 @@
 	        }
 	    };
 	
-	    DomTamper.createDocument = function(data, w, service){
+	    DomTamper.createDocument = function(data, w){
 	        prepareHead(w);
 	        setWindowTitle(data, w);
 	        var pageContent = $('<div>').addClass('page-content');
@@ -577,7 +577,7 @@
 	        pageContent.append(createLinks(w, 'special-color white-text'));
 	        pageContent.append(createNotificationContainer());
 	        prepareBody(w, pageContent, true);
-	        Unloader.init(w, service);
+	        Unloader.init(w);
 	        Accordion.bindActions(w, data);
 	    };
 	
@@ -1027,7 +1027,7 @@
 	        onDone: function(data, w) {
 	            var aggregatedData = service.aggregate(data);
 	            service.formatter(aggregatedData);
-	            DomTamper.createDocument(aggregatedData, w, service);
+	            DomTamper.createDocument(aggregatedData, w);
 	        }
 	    };
 	
@@ -1074,21 +1074,16 @@
 	
 	var Unloader = (function(Unloader) {
 	    var win;
-	    var observer;
 	    var url;
 	
-	    Unloader.init = function(w, service){
+	    Unloader.init = function(w){
 	        win = w;
-	        observer = (service || {}).observer;
 	        url = Tool.getRealUrl();
 	        $(window).bind('beforeunload', function(){
 	            if(!win.closed) {
 	                DomTamper.handleError(new Exception(config.error.noParent, url), win);
 	            }
 	        });
-	        if(observer){
-	            $(observer.anchor).disconnect(observer.mode, observer.selector);
-	        }
 	    };
 	
 	    return Unloader;
