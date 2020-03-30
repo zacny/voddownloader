@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.11.2
+// @version        6.12.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -13,6 +13,7 @@
 // @source         https://github.com/zacny/voddownloader
 // @include        https://vod.tvp.pl/video/*
 // @include        /^https?://.*\.tvp.pl/sess/TVPlayer2/embed.*$/
+// @include        /^https?://.*\.tvp.pl/sess/tvplayer.php.*$/
 // @include        https://cyfrowa.tvp.pl/video/*
 // @include        https://www.ipla.tv/*
 // @include        https://player.pl/*

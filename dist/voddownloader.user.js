@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.11.2
+// @version        6.12.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -13,6 +13,7 @@
 // @source         https://github.com/zacny/voddownloader
 // @include        https://vod.tvp.pl/video/*
 // @include        /^https?://.*\.tvp.pl/sess/TVPlayer2/embed.*$/
+// @include        /^https?://.*\.tvp.pl/sess/tvplayer.php.*$/
 // @include        https://cyfrowa.tvp.pl/video/*
 // @include        https://www.ipla.tv/*
 // @include        https://player.pl/*
@@ -1034,6 +1035,36 @@
 	    return $.extend(true, service, properties);
 	}
 	
+	function TvpConfigurator(selector, buttonClass, idParser){
+	    return new Configurator({
+	        observer: {
+	            selector: selector
+	        },
+	        button: {
+	            class: buttonClass,
+	        },
+	        asyncChains: {
+	            videos: [
+	                new Step({
+	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
+	                    beforeStep: function (input) {
+	                        return idParser();
+	                    }
+	                }),
+	                new Step({
+	                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
+	                        '&@callback=callback',
+	                    responseType: 'jsonp',
+	                    beforeStep: function (json) {
+	                        return Common.getRealVideoId(json);
+	                    },
+	                    afterStep: Common.grapTvpVideoData
+	                })
+	            ]
+	        }
+	    });
+	}
+	
 	var Detector = (function(conf) {
 	    var configuration = conf;
 	
@@ -1222,6 +1253,14 @@
 	        };
 	    };
 	
+	    Common.getRealVideoId = function(json){
+	        var videoId = json.copy_of_object_id !== undefined ?
+	            json.copy_of_object_id : json.video_id;
+	        return {
+	            videoId: videoId
+	        };
+	    };
+	
 	    Common.grapTvpVideoData = function(data){
 	        var items = [];
 	        var subtitlesItems = [];
@@ -1261,35 +1300,8 @@
 	
 	    return Common;
 	}(Common || {}));
-	var VOD_TVP = (function() {
-	    var properties = new Configurator({
-	        observer: {
-	            selector: '#JS-TVPlayer2-Wrapper, #player2'
-	        },
-	        button: {
-	            class: 'tvp_vod_downlaod_button',
-	        },
-	        asyncChains: {
-	            videos: [
-	                new Step({
-	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
-	                    beforeStep: function (input) {
-	                        return idParser();
-	                    }
-	                }),
-	                new Step({
-	                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
-	                        '&@callback=callback',
-	                    responseType: 'jsonp',
-	                    beforeStep: function (json) {
-	                        return getRealVideoId(json);
-	                    },
-	                    afterStep: Common.grapTvpVideoData
-	                })
-	            ]
-	        }
-	    });
 	
+	var VOD_TVP = (function() {
 	    var idParser = function() {
 	        var src = $(properties.observer.selector).attr('data-video-id');
 	        if(src !== undefined){
@@ -1300,43 +1312,33 @@
 	
 	        throw new Exception(config.error.id, window.location.href);
 	    };
-	
-	    var getRealVideoId = function(json){
-	        var videoId = json.copy_of_object_id !== undefined ?
-	            json.copy_of_object_id : json.video_id;
-	        return {
-	            videoId: videoId
-	        };
-	    };
+	    var properties = new TvpConfigurator('#JS-TVPlayer2-Wrapper, #player2', 'tvp_vod_downlaod_button', idParser);
 	
 	    this.setup = function(){
 	        Common.run(properties);
 	    };
 	});
 	
-	var CYF_TVP = (function() {
-	    var properties = new Configurator({
-	        observer: {
-	            selector: 'div.playerContainerWrapper'
-	        },
-	        button: {
-	            class: 'tvp_cyf_downlaod_button'
-	        },
-	        asyncChains: {
-	            videos: [
-	                new Step({
-	                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
-	                        '&@callback=callback',
-	                    responseType: 'jsonp',
-	                    beforeStep: function (input) {
-	                        return idParser();
-	                    },
-	                    afterStep: Common.grapTvpVideoData
-	                })
-	            ]
+	var TVP_PL = (function() {
+	    var idParser = function() {
+	        var scripts = $('script[type="text/javascript"]').filter(':not([src])');
+	        for (var i = 0; i < scripts.length; i++) {
+	            var match = $(scripts[i]).text().match(/GS_BASE_CONFIG\W+materialIdentifier:\s*"(\d+)"/m);
+	            if(match && match[1]){
+	                return match[1];
+	            }
 	        }
-	    });
 	
+	        throw new Exception(config.error.id, window.location.href);
+	    };
+	
+	    var properties = new TvpConfigurator('#tvplayer', 'tvp_vod_downlaod_button', idParser);
+	
+	    this.setup = function(){
+	        Common.run(properties);
+	    };
+	});
+	var CYF_TVP = (function() {
 	    var idParser = function(){
 	        var src = $('iframe#JS-TVPlayer').attr('src');
 	        if(src !== undefined) {
@@ -1351,6 +1353,8 @@
 	
 	        throw new Exception(config.error.id, window.location.href);
 	    };
+	
+	    var properties = new TvpConfigurator('div.playerContainerWrapper', 'tvp_cyf_downlaod_button', idParser);
 	
 	    this.setup = function(){
 	        Common.run(properties);
@@ -2192,6 +2196,7 @@
 	    };
 	
 	});
+	
 	var VOD_FRAME = (function() {
 	    this.setup = function(){
 	        var callback = function(data) {
@@ -2243,6 +2248,7 @@
 	var Starter = (function(Starter) {
 	    var sources = [
 	        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https?:\/\/.*\.tvp.pl\/sess\/TVPlayer2\/embed.*$/},
+	        {objectName: 'TVP_PL', urlPattern: /^https?:\/\/.*\.tvp\.pl\/sess\/tvplayer\.php.*$/},
 	        {objectName: 'CYF_TVP', urlPattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
 	        {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
 	        {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},

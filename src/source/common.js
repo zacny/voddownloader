@@ -41,6 +41,14 @@ var Common = (function(Common) {
         };
     };
 
+    Common.getRealVideoId = function(json){
+        var videoId = json.copy_of_object_id !== undefined ?
+            json.copy_of_object_id : json.video_id;
+        return {
+            videoId: videoId
+        };
+    };
+
     Common.grapTvpVideoData = function(data){
         var items = [];
         var subtitlesItems = [];
