@@ -1,4 +1,4 @@
-var VOD_TVP = (function() {
+var TVP_VOD = (function() {
     var idParser = function() {
         var src = $(properties.observer.selector).attr('data-video-id');
         if(src !== undefined){

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.12.1
+// @version        6.12.2
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1301,7 +1301,7 @@
 	    return Common;
 	}(Common || {}));
 	
-	var VOD_TVP = (function() {
+	var TVP_VOD = (function() {
 	    var idParser = function() {
 	        var src = $(properties.observer.selector).attr('data-video-id');
 	        if(src !== undefined){
@@ -2224,7 +2224,7 @@
 	
 	var Starter = (function(Starter) {
 	    var sources = [
-	        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https?:\/\/.*\.tvp.pl\/sess\/TVPlayer2\/embed.*$/|/^https:\/\/cyfrowa\.tvp\.pl\/video\//},
+	        {objectName: 'TVP_VOD', urlPattern: /^https:\/\/(vod|cyfrowa)\.tvp\.pl\/video\/|^https?:\/\/.*\.tvp.pl\/sess\/TVPlayer2\/embed.*$/},
 	        {objectName: 'TVP_PL', urlPattern: /^https?:\/\/(sport)\.tvp\.pl\/\d+\/.*$/},
 	        {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
 	        {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
