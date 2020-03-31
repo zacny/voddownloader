@@ -51,40 +51,24 @@
 
 .tvp_vod_downlaod_button {
     position:absolute;
+    left: 0px;
+    top: 0px;
     z-index: 1001;
     text-transform: uppercase;
     margin-top: 0px !important;
     width: auto !important;
     height: 30px !important;
     padding: 0px 15px;
-    left: 0px;
-    top: 0px;
-    font-size: 12px;
+    font: 900 12px Lato, sans-serif;
+    cursor: pointer;
     display: block;
     text-decoration: none;
-    background-color: #4c92e3;
-    font-weight: 900;
+    background-color: #4c92e3;;
     letter-spacing: 1.5px;
     text-align: center;
     color: #fff;
     border: 0;
     outline: 0;
-}
-
-.tvp_cyf_downlaod_button {
-    position:absolute;
-    top: 0px;
-    z-index: 100;
-    text-transform: uppercase;
-    width: auto;
-    height: 30px;
-    padding: 0px 15px;
-    background-color: #4c92e3;
-    color: #fff;
-    border: 0px;
-    font: 900 12px Lato, sans-serif;
-    cursor: pointer;
-    letter-spacing: 1.5px;
 }
 
 .tvp_downlaod_button {

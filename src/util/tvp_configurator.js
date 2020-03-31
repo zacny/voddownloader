@@ -1,10 +1,10 @@
-function TvpConfigurator(selector, buttonClass, idParser){
+function TvpConfigurator(selector, idParser){
     return new Configurator({
         observer: {
             selector: selector
         },
         button: {
-            class: buttonClass,
+            class: 'tvp_vod_downlaod_button'
         },
         asyncChains: {
             videos: [

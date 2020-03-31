@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.12.0
+// @version        6.12.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -13,7 +13,7 @@
 // @source         https://github.com/zacny/voddownloader
 // @include        https://vod.tvp.pl/video/*
 // @include        /^https?://.*\.tvp.pl/sess/TVPlayer2/embed.*$/
-// @include        /^https?://.*\.tvp.pl/sess/tvplayer.php.*$/
+// @include        /^https?://(sport).tvp.pl/\d{6,}/.*$/
 // @include        https://cyfrowa.tvp.pl/video/*
 // @include        https://www.ipla.tv/*
 // @include        https://player.pl/*
@@ -1035,13 +1035,13 @@
 	    return $.extend(true, service, properties);
 	}
 	
-	function TvpConfigurator(selector, buttonClass, idParser){
+	function TvpConfigurator(selector, idParser){
 	    return new Configurator({
 	        observer: {
 	            selector: selector
 	        },
 	        button: {
-	            class: buttonClass,
+	            class: 'tvp_vod_downlaod_button'
 	        },
 	        asyncChains: {
 	            videos: [
@@ -1312,7 +1312,7 @@
 	
 	        throw new Exception(config.error.id, window.location.href);
 	    };
-	    var properties = new TvpConfigurator('#JS-TVPlayer2-Wrapper, #player2', 'tvp_vod_downlaod_button', idParser);
+	    var properties = new TvpConfigurator('#JS-TVPlayer2-Wrapper, #player2', idParser);
 	
 	    this.setup = function(){
 	        Common.run(properties);
@@ -1323,7 +1323,7 @@
 	    var idParser = function() {
 	        var scripts = $('script[type="text/javascript"]').filter(':not([src])');
 	        for (var i = 0; i < scripts.length; i++) {
-	            var match = $(scripts[i]).text().match(/GS_BASE_CONFIG\W+materialIdentifier:\s*"(\d+)"/m);
+	            var match = $(scripts[i]).text().match(/window.__videoData\W+"_id":\s*(\d+)/m);
 	            if(match && match[1]){
 	                return match[1];
 	            }
@@ -1332,35 +1332,12 @@
 	        throw new Exception(config.error.id, window.location.href);
 	    };
 	
-	    var properties = new TvpConfigurator('#tvplayer', 'tvp_vod_downlaod_button', idParser);
+	    var properties = new TvpConfigurator('.news-video__overlay', idParser);
 	
 	    this.setup = function(){
 	        Common.run(properties);
 	    };
 	});
-	var CYF_TVP = (function() {
-	    var idParser = function(){
-	        var src = $('iframe#JS-TVPlayer').attr('src');
-	        if(src !== undefined) {
-	            return src.split("/").pop();
-	        }
-	        else {
-	            var div = $('div.playerWidget');
-	            if(div !== undefined){
-	                return div.attr('data-video-id');
-	            }
-	        }
-	
-	        throw new Exception(config.error.id, window.location.href);
-	    };
-	
-	    var properties = new TvpConfigurator('div.playerContainerWrapper', 'tvp_cyf_downlaod_button', idParser);
-	
-	    this.setup = function(){
-	        Common.run(properties);
-	    };
-	});
-	
 	var TVN = (function() {
 	    var properties = new Configurator({
 	        observer: {
@@ -2247,9 +2224,8 @@
 	
 	var Starter = (function(Starter) {
 	    var sources = [
-	        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https?:\/\/.*\.tvp.pl\/sess\/TVPlayer2\/embed.*$/},
-	        {objectName: 'TVP_PL', urlPattern: /^https?:\/\/.*\.tvp\.pl\/sess\/tvplayer\.php.*$/},
-	        {objectName: 'CYF_TVP', urlPattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
+	        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https?:\/\/.*\.tvp.pl\/sess\/TVPlayer2\/embed.*$/|/^https:\/\/cyfrowa\.tvp\.pl\/video\//},
+	        {objectName: 'TVP_PL', urlPattern: /^https?:\/\/(sport)\.tvp\.pl\/\d+\/.*$/},
 	        {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
 	        {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
 	        {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},

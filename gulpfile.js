@@ -96,7 +96,7 @@ function utilPartAttach() {
 function sourcePartAttach() {
     return gulp.src(config.source_dir + '/*.js')
         .pipe(order([
-            'common.js', 'tvp_vod.js', 'tvp_pl.js', 'tvp_cyf.js', 'tvn.js', 'ipla.js',
+            'common.js', 'tvp_vod.js', 'tvp_pl.js', 'tvn.js', 'ipla.js',
             'vod.js', 'vod_ipla.js', 'wp.js', 'cda.js', 'ninateka.js', 'arte.js',
             'tv_trwam.js'
         ]))

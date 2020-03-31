@@ -10,7 +10,7 @@ var VOD_TVP = (function() {
         throw new Exception(config.error.id, window.location.href);
     };
     /**                                   vod.tvp.pl             *.tvp.pl **/
-    var properties = new TvpConfigurator('#JS-TVPlayer2-Wrapper, #player2', 'tvp_vod_downlaod_button', idParser);
+    var properties = new TvpConfigurator('#JS-TVPlayer2-Wrapper, #player2', idParser);
 
     this.setup = function(){
         Common.run(properties);

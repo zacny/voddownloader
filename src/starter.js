@@ -1,8 +1,7 @@
 var Starter = (function(Starter) {
     var sources = [
-        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https?:\/\/.*\.tvp.pl\/sess\/TVPlayer2\/embed.*$/},
-        {objectName: 'TVP_PL', urlPattern: /^https?:\/\/.*\.tvp\.pl\/sess\/tvplayer\.php.*$/},
-        {objectName: 'CYF_TVP', urlPattern: /^https:\/\/cyfrowa\.tvp\.pl\/video\//},
+        {objectName: 'VOD_TVP', urlPattern: /^https:\/\/vod\.tvp\.pl\/video\/|^https?:\/\/.*\.tvp.pl\/sess\/TVPlayer2\/embed.*$/|/^https:\/\/cyfrowa\.tvp\.pl\/video\//},
+        {objectName: 'TVP_PL', urlPattern: /^https?:\/\/(sport)\.tvp\.pl\/\d+\/.*$/},
         {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
         {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
         {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},
