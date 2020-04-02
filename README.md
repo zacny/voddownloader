@@ -13,7 +13,7 @@ Creates a button in top right corner of video, that you can use to download a co
 - [polish regional tv](https://regiony.tvp.pl/)
 - [cyfrowa.tvp.pl](https://cyfrowa.tvp.pl)
 - [tvp sport](https://sport.tvp.pl)
-- [tvp pis](https://wiadomosci.tvp.pl)
+- [tvpis](https://wiadomosci.tvp.pl)
 - [tvp polonia](polonia.tvp.pl)
 - [tvp info](https://www.tvp.info)
 - [tvp parlament](https://www.tvpparlament.pl)
