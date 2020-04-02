@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.12.3
+// @version        6.13.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -11,9 +11,10 @@
 // @author         Przmus, zacny
 // @namespace      http://www.ipla.tv/
 // @source         https://github.com/zacny/voddownloader
-// @include        /^https://(vod|cyfrowa).tvp.pl/video/.*$/
-// @include        /^https?://.*\.tvp.pl/sess/TVPlayer2/embed.*$/
-// @include        /^https?://(sport).tvp.pl/\d{6,}/.*$/
+// @include        /^https://(vod|cyfrowa)\.tvp\.pl/video/.*$/
+// @include        /^https?://.*\.tvp.(pl|info)/sess/TVPlayer2/embed.*$/
+// @include        /^https?://.*\.tvp\.pl/\d{6,}/.*$/
+// @include        https://www.tvpparlament.pl/sess/*
 // @include        https://www.ipla.tv/*
 // @include        https://player.pl/*
 // @include        https://*.cda.pl/*
@@ -214,11 +215,12 @@
 	                'Bardzo niska': {video: 'H264 MPEG-4 AVC, 238 kb/s, 320x240, 25fps, 4:3', index: 7}
 	            },
 	            VOD: {
-	                '720': {video: 'H264 MPEG-4 AVC, 2467 kb/s, 1280x720, 25fps, 16:9', index: 1},
-	                '576': {video: 'H264 MPEG-4 AVC,1810 kb/s, 1024x576, 25fps, 16:9', index: 2},
-	                '480': {video: 'H264 MPEG-4 AVC, 911 kb/s, 854x480, 25fps, 16:9', index: 3},
-	                '360': {video: 'H264 MPEG-4 AVC, 450 kb/s, 640x360, 25fps, 16:9', index: 4},
-	                '240': {video: 'H264 MPEG-4 AVC, 200 kb/s, 426x240, 25fps, 16:9', index: 5}
+	                '1080':{video: 'H264 MPEG-4 AVC, 1920x1080, 25fps, 16:9', index: 1},
+	                '720': {video: 'H264 MPEG-4 AVC, 1280x720, 25fps, 16:9', index: 2},
+	                '576': {video: 'H264 MPEG-4 AVC, 1024x576, 25fps, 16:9', index: 3},
+	                '480': {video: 'H264 MPEG-4 AVC, 854x480, 25fps, 16:9', index: 4},
+	                '360': {video: 'H264 MPEG-4 AVC, 640x360, 25fps, 16:9', index: 5},
+	                '240': {video: 'H264 MPEG-4 AVC, 426x240, 25fps, 16:9', index: 6}
 	            },
 	            TVP: {
 	                '9100000': {video: 'H264 MPEG-4 AVC, 21030 kb/s, 1920x1080, 25fps, 16:9', index: 1},
@@ -1034,36 +1036,6 @@
 	    return $.extend(true, service, properties);
 	}
 	
-	function TvpConfigurator(selector, idParser){
-	    return new Configurator({
-	        observer: {
-	            selector: selector
-	        },
-	        button: {
-	            class: 'tvp_vod_downlaod_button'
-	        },
-	        asyncChains: {
-	            videos: [
-	                new Step({
-	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
-	                    beforeStep: function (input) {
-	                        return idParser();
-	                    }
-	                }),
-	                new Step({
-	                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
-	                        '&@callback=callback',
-	                    responseType: 'jsonp',
-	                    beforeStep: function (json) {
-	                        return Common.getRealVideoId(json);
-	                    },
-	                    afterStep: Common.grapTvpVideoData
-	                })
-	            ]
-	        }
-	    });
-	}
-	
 	var Detector = (function(conf) {
 	    var configuration = conf;
 	
@@ -1225,16 +1197,6 @@
 	        };
 	    };
 	
-	    var removeUnsupportedVideoFormats = function(files){
-	        var result = [];
-	        files.forEach(function (file) {
-	            if (file['type'] === 'any_native') {
-	                result.push(file);
-	            }
-	        });
-	        return result;
-	    };
-	
 	    Common.run = function(properties){
 	        ElementDetector.detect(properties.observer, function () {
 	            DomTamper.createButton(properties);
@@ -1252,7 +1214,70 @@
 	        };
 	    };
 	
-	    Common.getRealVideoId = function(json){
+	    return Common;
+	}(Common || {}));
+	
+	var TVP = (function() {
+	    var dataAttributeParser = function() {
+	        var src = $(properties.observer.selector).attr('data-video-id');
+	        if(src !== undefined){
+	            return {
+	                videoId: src.split("/").pop()
+	            };
+	        }
+	
+	        return urlForwardParser();
+	    };
+	
+	    var urlForwardParser = function() {
+	        var urlMatch = window.location.href.match(/^https?:\/\/.*\.tvp\..*\/(\d{6,})\/.*$/);
+	        if(urlMatch && urlMatch[1]){
+	            return urlMatch[1];
+	        }
+	
+	        return urlParameterParser();
+	    };
+	
+	    var urlParameterParser = function(){
+	        var id = Tool.getUrlParameter('object_id', window.location.href);
+	        if(id){
+	            return id;
+	        }
+	
+	        throw new Exception(config.error.id, window.location.href);
+	    };
+	
+	    var properties = new Configurator({
+	        observer: {
+	            selector: '#JS-TVPlayer2-Wrapper, #player2, .news-video__overlay, .player-video-container, #tvplayer'
+	        },
+	        button: {
+	            class: 'tvp_vod_downlaod_button'
+	        },
+	        asyncChains: {
+	            videos: [
+	                new Step({
+	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
+	                    beforeStep: function (input) {
+	                        return dataAttributeParser();
+	                    }
+	                }),
+	                new Step({
+	                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
+	                        '&@callback=callback',
+	                    responseType: 'jsonp',
+	                    beforeStep: function (input) {
+	                        return getRealVideoId(input);
+	                    },
+	                    afterStep: function(input){
+	                        return grapVideoData(input);
+	                    }
+	                })
+	            ]
+	        }
+	    });
+	
+	    var getRealVideoId = function(json){
 	        var videoId = json.copy_of_object_id !== undefined ?
 	            json.copy_of_object_id : json.video_id;
 	        return {
@@ -1260,7 +1285,7 @@
 	        };
 	    };
 	
-	    Common.grapTvpVideoData = function(data){
+	    var grapVideoData = function(data){
 	        var items = [];
 	        var subtitlesItems = [];
 	        var info = ((data || {}).content || {}).info || {};
@@ -1297,46 +1322,22 @@
 	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
-	    return Common;
-	}(Common || {}));
-	
-	var TVP_VOD = (function() {
-	    var idParser = function() {
-	        var src = $(properties.observer.selector).attr('data-video-id');
-	        if(src !== undefined){
-	            return {
-	                videoId: src.split("/").pop()
-	            };
-	        }
-	
-	        throw new Exception(config.error.id, window.location.href);
-	    };
-	    var properties = new TvpConfigurator('#JS-TVPlayer2-Wrapper, #player2', idParser);
-	
-	    this.setup = function(){
-	        Common.run(properties);
-	    };
-	});
-	
-	var TVP_PL = (function() {
-	    var idParser = function() {
-	        var scripts = $('script[type="text/javascript"]').filter(':not([src])');
-	        for (var i = 0; i < scripts.length; i++) {
-	            var match = $(scripts[i]).text().match(/window.__videoData\W+"_id":\s*(\d+)/m);
-	            if(match && match[1]){
-	                return match[1];
+	    var removeUnsupportedVideoFormats = function(files){
+	        var result = [];
+	        files.forEach(function (file) {
+	            if (file['type'] === 'any_native') {
+	                result.push(file);
 	            }
-	        }
-	
-	        throw new Exception(config.error.id, window.location.href);
+	        });
+	        return result;
 	    };
 	
-	    var properties = new TvpConfigurator('.news-video__overlay', idParser);
 	
 	    this.setup = function(){
 	        Common.run(properties);
 	    };
 	});
+	
 	var TVN = (function() {
 	    var properties = new Configurator({
 	        observer: {
@@ -2223,23 +2224,32 @@
 	
 	var Starter = (function(Starter) {
 	    var sources = [
-	        {objectName: 'TVP_VOD', urlPattern: /^https:\/\/(vod|cyfrowa)\.tvp\.pl\/video\/|^https?:\/\/.*\.tvp.pl\/sess\/TVPlayer2\/embed.*$/},
-	        {objectName: 'TVP_PL', urlPattern: /^https?:\/\/(sport)\.tvp\.pl\/\d+\/.*$/},
-	        {objectName: 'TVN', urlPattern: /^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\//},
-	        {objectName: 'CDA', urlPattern: /^https:\/\/.*\.cda\.pl\//},
-	        {objectName: 'VOD', urlPattern: /^https:\/\/vod.pl\//},
-	        {objectName: 'VOD_IPLA', urlPattern: /^https:\/\/partner\.ipla\.tv\/embed\/|^https:\/\/.*\.redcdn.pl\/file\/o2\/redefine\/partner\//},
-	        {objectName: 'IPLA', urlPattern: /^https:\/\/www\.ipla\.tv\//},
-	        {objectName: 'WP', urlPattern: /^https:\/\/wideo\.wp\.pl\//},
-	        {objectName: 'NINATEKA', urlPattern: /^https:\/\/ninateka.pl\//},
-	        {objectName: 'ARTE', urlPattern: /^https:\/\/www.arte.tv\/.*\/videos\//},
-	        {objectName: 'VOD_FRAME', urlPattern: /^https:\/\/pulsembed\.eu\//},
-	        {objectName: 'TV_TRWAM', urlPattern: /^https:\/\/tv-trwam.pl\/local-vods\//}
+	        {objectName: 'TVP', urlPattern: new RegExp(
+	                '^https:\/\/(vod|cyfrowa)\.tvp\.pl\/video\/.*$|' +
+	                '^https?:\/\/.*\.tvp\.(pl|info)\/sess\/TVPlayer2\/embed.*$|' +
+	                '^https?:\/\/.*\.tvp\.pl\/\\d{6,}\/.*$|' +
+	                '^https?:\/\/w{3}\.tvpparlament\.pl\/sess\/.*'
+	            )
+	        },
+	        {objectName: 'TVN', urlPattern: new RegExp('^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\/')},
+	        {objectName: 'CDA', urlPattern: new RegExp('^https:\/\/.*\.cda\.pl\/')},
+	        {objectName: 'VOD', urlPattern: new RegExp('^https:\/\/vod.pl\/')},
+	        {objectName: 'VOD_IPLA', urlPattern: new RegExp(
+	                '^https:\/\/partner\.ipla\.tv\/embed\/|' +
+	                '^https:\/\/.*\.redcdn\.pl\/file\/o2\/redefine\/partner\/'
+	            )
+	        },
+	        {objectName: 'IPLA', urlPattern: new RegExp('^https:\/\/w{3}\.ipla\.tv\/')},
+	        {objectName: 'WP', urlPattern: new RegExp('^https:\/\/wideo\.wp\.pl\/')},
+	        {objectName: 'NINATEKA', urlPattern: new RegExp('^https:\/\/ninateka.pl\/')},
+	        {objectName: 'ARTE', urlPattern: new RegExp('^https:\/\/w{3}\.arte\.tv\/.*\/videos\/')},
+	        {objectName: 'VOD_FRAME', urlPattern: new RegExp('^https:\/\/pulsembed\.eu\/')},
+	        {objectName: 'TV_TRWAM', urlPattern: new RegExp('^https:\/\/tv-trwam\.pl\/local-vods\/')}
 	    ];
 	
 	    Starter.start = function() {
 	        sources.some(function(source){
-	            if(location.href.match(source.urlPattern)){
+	            if(source.urlPattern.exec(location.href)){
 	                var object = eval('new ' + source.objectName + '()');
 	                console.info('voddownloader: jQuery v' + $().jquery + ', context: ' + source.objectName);
 	                object.setup();
