@@ -17,33 +17,6 @@ https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114/odcinek-1,S01E0
 https://player.pl/programy-online/kuchenne-rewolucje-odcinki,114
 https://player.pl/programy-online/w-dobrym-stylu-odcinki,4667/odcinek-8,S03E08,82113
 
-#TVP_CYF
-https://cyfrowa.tvp.pl/video/podroz-za-jeden-usmiech,odc-1-pechowy-dzien,40674581
-
-#TVP_REG
-https://bialystok.tvp.pl/42868260/szczepienia-na-odre-kto-i-gdzie-moze-sie-zaszczepic
-https://katowice.tvp.pl/42870516/niedoswiadczenie-i-brawura-za-kierownica-ponad-800-wypadkow-z-udzialem-mlodych-kierowcow
-https://lodz.tvp.pl/42871060/splonal-ford-focus-przy-ul-wigury-w-lodzi
-https://rzeszow.tvp.pl/42868475/o-przyszlosci-portow-i-spolek-lotniczych-na-kogresie-w-rzeszowie
-https://bydgoszcz.tvp.pl/623428/zblizenia
-https://kielce.tvp.pl/40236659/28112018
-https://olsztyn.tvp.pl/41351992/wybory-soltysow
-https://szczecin.tvp.pl/42409366/odcinek-22
-https://gdansk.tvp.pl/41784526/odc-17032019
-https://krakow.tvp.pl/40154863/witaminy-i-mineraly
-https://opole.tvp.pl/25141859/odc-4-czas-patriotow
-https://warszawa.tvp.pl/39908283/kolory-wolnosci
-https://gorzow.tvp.pl/42226945/16042019-czy-mozna-bylo-tego-uniknac
-https://lublin.tvp.pl/39026196/16-wrzesnia-2018
-https://poznan.tvp.pl/39250871/29092018
-https://wroclaw.tvp.pl/39862039/01102018
-
-#VOD_TVP
-#same id
-https://vod.tvp.pl/video/stacyjkowo,przewodnik-hektor-odc-123,42273849
-#different id
-https://vod.tvp.pl/video/wiadomosci,17052019-1200,42549669
-
 #VOD
 https://vod.pl/programy-onetu/onet-rano-online-za-darmo/9l14dv6
 https://vod.pl/seriale/upadek/86x3xz5
@@ -76,5 +49,23 @@ https://www.arte.tv/pl/videos/049509-000-A/jharia-kraina-ognia/
 #TV_TRWAM
 https://tv-trwam.pl/local-vods/vod.33673
 
-#TVP_PL
+#TVP
+https://vod.tvp.pl/video/stacyjkowo,przewodnik-hektor-odc-123,42273849
+https://vod.tvp.pl/video/wiadomosci,17052019-1200,42549669
+https://wiadomosci.tvp.pl/47370252/rzad-zaostrza-srodki-w-walce-z-koronawirusem
+https://koronakrolow.vod.tvp.pl/44911025/taka-historia-janko-z-czarnkowa
 https://sport.tvp.pl/47221564/filmy-espn-celtics-i-lakers-serdeczni-wrogowie-cz-1-transmisja-online-stream
+https://cyfrowa.tvp.pl/video/podroz-za-jeden-usmiech,odc-1-pechowy-dzien,40674581
+https://polonia.tvp.pl/47363951/focus-on-poland-31032020
+https://www.tvp.info/47368019/pingwiny-w-czasie-epidemii-koronawirusa-w-usa?copyId=38492188
+https://www.tvpparlament.pl/retransmisje-vod/inne/konferencja-prasowa-premiera-mateusza-morawieckiego-i-ministra-zdrowia-lukasza-szumowskiego/47356777
+
+https://katowice.tvp.pl/42870516/niedoswiadczenie-i-brawura-za-kierownica-ponad-800-wypadkow-z-udzialem-mlodych-kierowcow
+https://kielce.tvp.pl/40236659/28112018
+https://szczecin.tvp.pl/42409366/odcinek-22
+https://gdansk.tvp.pl/41784526/odc-17032019
+https://opole.tvp.pl/25141859/odc-4-czas-patriotow
+https://gorzow.tvp.pl/42226945/16042019-czy-mozna-bylo-tego-uniknac
+https://lublin.tvp.pl/39026196/16-wrzesnia-2018
+https://poznan.tvp.pl/39250871/29092018
+https://wroclaw.tvp.pl/39862039/01102018

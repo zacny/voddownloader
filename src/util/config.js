@@ -87,11 +87,12 @@ const config = {
                 'Bardzo niska': {video: 'H264 MPEG-4 AVC, 238 kb/s, 320x240, 25fps, 4:3', index: 7}
             },
             VOD: {
-                '720': {video: 'H264 MPEG-4 AVC, 2467 kb/s, 1280x720, 25fps, 16:9', index: 1},
-                '576': {video: 'H264 MPEG-4 AVC,1810 kb/s, 1024x576, 25fps, 16:9', index: 2},
-                '480': {video: 'H264 MPEG-4 AVC, 911 kb/s, 854x480, 25fps, 16:9', index: 3},
-                '360': {video: 'H264 MPEG-4 AVC, 450 kb/s, 640x360, 25fps, 16:9', index: 4},
-                '240': {video: 'H264 MPEG-4 AVC, 200 kb/s, 426x240, 25fps, 16:9', index: 5}
+                '1080':{video: 'H264 MPEG-4 AVC, 1920x1080, 25fps, 16:9', index: 1},
+                '720': {video: 'H264 MPEG-4 AVC, 1280x720, 25fps, 16:9', index: 2},
+                '576': {video: 'H264 MPEG-4 AVC, 1024x576, 25fps, 16:9', index: 3},
+                '480': {video: 'H264 MPEG-4 AVC, 854x480, 25fps, 16:9', index: 4},
+                '360': {video: 'H264 MPEG-4 AVC, 640x360, 25fps, 16:9', index: 5},
+                '240': {video: 'H264 MPEG-4 AVC, 426x240, 25fps, 16:9', index: 6}
             },
             TVP: {
                 '9100000': {video: 'H264 MPEG-4 AVC, 21030 kb/s, 1920x1080, 25fps, 16:9', index: 1},
