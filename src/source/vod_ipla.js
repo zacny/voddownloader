@@ -10,22 +10,22 @@ var VOD_IPLA = (function() {
         chainSelector: function(){
             return ['videos', 'subtitles'];
         },
-        asyncChains: {
+        chains: {
             videos: [
                 new Step({
                     urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
                         'dev=pc&os=linux&player=html&app=firefox&build=12345',
-                    beforeStep: function (input) {
+                    before: function (input) {
                         return {media_id: idParser()};
                     },
-                    afterStep: function(data){
+                    after: function(data){
                         return grabVideoData(data);
                     }
                 })
             ],
             subtitles: [
                 new Step({
-                    afterStep: function (output) {
+                    after: function (output) {
                         return parseSubtitleData();
                     }
                 })

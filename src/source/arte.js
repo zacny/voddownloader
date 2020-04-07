@@ -7,14 +7,14 @@ var ARTE = (function() {
         button: {
             class: 'arte_download_button',
         },
-        asyncChains: {
+        chains: {
             videos: [
                 new Step({
                     urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
-                    beforeStep: function (input) {
+                    before: function (input) {
                         return idParser();
                     },
-                    afterStep: function (output) {
+                    after: function (output) {
                         return grabVideoData(output);
                     }
                 })

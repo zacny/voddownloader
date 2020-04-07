@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.13.0
+// @version        6.14.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -28,6 +28,7 @@
 // @include        https://pulsembed.eu/*
 // @include        https://tv-trwam.pl/local-vods/*
 // @exclude        http://www.tvp.pl/sess/*
+// @exclude        /^https?://(bialystok|gorzow|krakow|olsztyn|rzeszow|wroclaw|bydgoszcz|katowice|lublin|opole|szczecin|gdansk|kielce|lodz|poznan|warszawa)\.tvp.\pl/.*$/
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
 // @grant          GM_xmlhttpRequest

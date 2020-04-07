@@ -53,7 +53,7 @@ function Configurator(properties){
                 }
             }
         },
-        asyncChains: {
+        chains: {
             videos: []
         },
         chainSelector: function(){
@@ -72,7 +72,8 @@ function Configurator(properties){
             $.extend(true, aggregatedData, service.cardsData);
             var chains = service.chainSelector();
             chains.forEach(function(chain){
-                 $.extend(true, aggregatedData, data[chain]);
+                var extend = data[chain][data[chain].length - 1].after;
+                $.extend(true, aggregatedData, extend);
             });
             return aggregatedData;
         },

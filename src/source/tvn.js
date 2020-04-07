@@ -7,15 +7,15 @@ var TVN = (function() {
         button: {
             class: 'btn btn-primary tvn_download_button'
         },
-        asyncChains: {
+        chains: {
             videos: [
                 new Step({
                     urlTemplate: 'http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
                         '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
-                    beforeStep: function(input){
+                    before: function(input){
                         return idParser();
                     },
-                    afterStep: function(output) {
+                    after: function(output) {
                         return grabVideoData(output);
                     }
                 })

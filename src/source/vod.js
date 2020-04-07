@@ -6,17 +6,17 @@ var VOD = (function() {
         button: {
             class: 'vod_download_button'
         },
-        asyncChains: {
+        chains: {
             videos: [
                 new Step({
                     urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
                         '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
                         '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +
                         '&x-onet-app=player.front.onetapi.pl&callback=',
-                    beforeStep: function (input) {
+                    before: function (input) {
                         return idParser();
                     },
-                    afterStep: function (output) {
+                    after: function (output) {
                         return grabVideoData(output);
                     }
                 })

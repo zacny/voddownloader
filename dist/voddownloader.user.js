@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.13.0
+// @version        6.14.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -28,6 +28,7 @@
 // @include        https://pulsembed.eu/*
 // @include        https://tv-trwam.pl/local-vods/*
 // @exclude        http://www.tvp.pl/sess/*
+// @exclude        /^https?://(bialystok|gorzow|krakow|olsztyn|rzeszow|wroclaw|bydgoszcz|katowice|lublin|opole|szczecin|gdansk|kielce|lodz|poznan|warszawa)\.tvp.\pl/.*$/
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
 // @grant          GM_xmlhttpRequest
@@ -258,8 +259,8 @@
 	    var step = {
 	        urlTemplateParts: [],
 	        urlTemplate: '',
-	        beforeStep: function(input){return input},
-	        afterStep: function (output) {return output},
+	        before: function(input){return input},
+	        after: function (output) {return output},
 	        resultUrlParams: function (input, template) {
 	            var urlParams = {};
 	            $.each(input, function (key, value) {
@@ -770,7 +771,6 @@
 	             executeAsync(service, setup, options, w);
 	        }
 	        else {
-	            options.temporaryData = {};
 	            callback(service, options, w);
 	        }
 	    };
@@ -794,11 +794,11 @@
 	                    if(setup.responseType === 'jsonp'){
 	                        var match = data.responseText.match(/callback\(([\s\S]*?)\);/);
 	                        if(match && match[1] && !match[1].startsWith('null')){
-	                            options.temporaryData = JSON.parse(match[1]);
+	                            setStepResult(options, {async: JSON.parse(match[1])});
 	                        }
 	                    }
 	                    else {
-	                        options.temporaryData = data.response || {};
+	                        setStepResult(options, {async: data.response || {}});
 	                    }
 	                    callback(service, options, w);
 	                }
@@ -831,40 +831,55 @@
 	
 	    var setupStep = function(service, options){
 	        var currentStep = getCurrentStep(service, options);
-	        prepareStepOutput(currentStep, options);
+	        beforeStep(currentStep, options);
 	        var setup = $.extend(true, {}, currentStep);
-	        setup.resolveUrl = currentStep.resolveUrl(options.urlParams, options.retries);
+	        if(currentStep.isRemote()) {
+	            setup.resolveUrl = currentStep.resolveUrl(getStepResult(options).before, options.retries);
+	        }
 	        return setup;
 	    };
 	
 	    var getCurrentStep = function(service, options){
 	        var chain = options.chainNames[options.chainIndex];
-	        var steps = service.asyncChains[chain];
+	        var steps = service.chains[chain];
 	        return steps[options.stepIndex];
 	    };
 	
-	    var prepareStepOutput = function(currentStep, options){
-	        var stepOutput = {};
-	        var result = currentStep.beforeStep(options.temporaryData);
-	        if(typeof result === 'string' || typeof result == 'number'){
-	            stepOutput[config.urlParamDefaultKey] = result;
+	    var beforeStep = function(currentStep, options){
+	        var stepOutput = currentStep.before(getStepResult(options, true).after || {});
+	        if(currentStep.isRemote()){
+	            if(typeof stepOutput === 'string' || typeof stepOutput == 'number'){
+	                var result = stepOutput;
+	                stepOutput = {};
+	                stepOutput[config.urlParamDefaultKey] = result;
+	            }
 	        }
-	        else if(typeof result === 'object'){
-	            stepOutput = result;
-	        }
+	        setStepResult(options, {before: stepOutput});
+	    };
 	
-	        if(options.urlParams){
-	            $.extend(true, options.urlParams, stepOutput);
+	    var getStepResult = function(options, previous){
+	        var chain = options.chainNames[options.chainIndex];
+	        if(!options.results){
+	            options.results = {};
 	        }
-	        else {
-	            options.urlParams = stepOutput;
+	        if(!options.results[chain]){
+	            options.results[chain] = [];
 	        }
-	        setChainResult(options)
+	        if(!options.results[chain][options.stepIndex]){
+	            options.results[chain].push({});
+	        }
+	        var stepIndex = previous && options.stepIndex > 0 ? options.stepIndex - 1 : options.stepIndex;
+	        return options.results[chain][stepIndex];
+	    };
+	
+	    var setStepResult = function(options, object){
+	        var chain = options.chainNames[options.chainIndex];
+	        options.results[chain][options.stepIndex] = $.extend(true, getStepResult(options), object);
 	    };
 	
 	    var hasNextStep = function(service, options){
 	        var chain = options.chainNames[options.chainIndex];
-	        var steps = service.asyncChains[chain];
+	        var steps = service.chains[chain];
 	        return steps.length - 1 > options.stepIndex;
 	    };
 	
@@ -872,23 +887,7 @@
 	        return options.chainNames.length - 1 > options.chainIndex;
 	    };
 	
-	    var setChainResult = function(options){
-	        var chain = options.chainNames[options.chainIndex];
-	        if(!options.hasOwnProperty('results')){
-	            options.results = {};
-	        }
-	        var chainResult = options.results;
-	        if(chainResult[chain]){
-	            $.extend(true, chainResult[chain], options.temporaryData);
-	        }
-	        else {
-	            chainResult[chain] = options.temporaryData;
-	        }
-	        options.temporaryData = {};
-	    };
-	
 	    var pushChain = function(service, options){
-	        setChainResult(options);
 	        if(hasNextChain(service, options)){
 	            options.chainIndex += 1;
 	            options.stepIndex = 0;
@@ -907,9 +906,10 @@
 	
 	    var afterStep = function(service, options) {
 	        var currentStep = getCurrentStep(service, options);
-	        var output = currentStep.afterStep(options.temporaryData);
+	        var previousResult = currentStep.isRemote() ? getStepResult(options).async : getStepResult(options).before;
+	        var output = currentStep.after(previousResult || {});
 	        options.retries = 0;
-	        options.temporaryData = output;
+	        setStepResult(options, {after: output});
 	    };
 	
 	    var callback = function(service, options, w){
@@ -1003,7 +1003,7 @@
 	                }
 	            }
 	        },
-	        asyncChains: {
+	        chains: {
 	            videos: []
 	        },
 	        chainSelector: function(){
@@ -1022,7 +1022,8 @@
 	            $.extend(true, aggregatedData, service.cardsData);
 	            var chains = service.chainSelector();
 	            chains.forEach(function(chain){
-	                 $.extend(true, aggregatedData, data[chain]);
+	                var extend = data[chain][data[chain].length - 1].after;
+	                $.extend(true, aggregatedData, extend);
 	            });
 	            return aggregatedData;
 	        },
@@ -1254,11 +1255,11 @@
 	        button: {
 	            class: 'tvp_vod_downlaod_button'
 	        },
-	        asyncChains: {
+	        chains: {
 	            videos: [
 	                new Step({
 	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
-	                    beforeStep: function (input) {
+	                    before: function (input) {
 	                        return dataAttributeParser();
 	                    }
 	                }),
@@ -1266,10 +1267,10 @@
 	                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
 	                        '&@callback=callback',
 	                    responseType: 'jsonp',
-	                    beforeStep: function (input) {
+	                    before: function (input) {
 	                        return getRealVideoId(input);
 	                    },
-	                    afterStep: function(input){
+	                    after: function(input){
 	                        return grapVideoData(input);
 	                    }
 	                })
@@ -1347,15 +1348,15 @@
 	        button: {
 	            class: 'btn btn-primary tvn_download_button'
 	        },
-	        asyncChains: {
+	        chains: {
 	            videos: [
 	                new Step({
 	                    urlTemplate: 'http://player.pl/api/?platform=ConnectedTV&terminal=Panasonic&format=json' +
 	                        '&authKey=064fda5ab26dc1dd936f5c6e84b7d3c2&v=3.1&m=getItem&id=#videoId',
-	                    beforeStep: function(input){
+	                    before: function(input){
 	                        return idParser();
 	                    },
-	                    afterStep: function(output) {
+	                    after: function(output) {
 	                        return grabVideoData(output);
 	                    }
 	                })
@@ -1462,7 +1463,7 @@
 	        chainSelector: function(){
 	            return ['videos', 'subtitles'];
 	        },
-	        asyncChains: {
+	        chains: {
 	            videos: [
 	                new Step({
 	                    urlTemplateParts: [
@@ -1471,10 +1472,10 @@
 	                    ],
 	                    urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&~&media_id=#videoId',
 	                    retryErrorCodes: [404],
-	                    beforeStep: function (input) {
+	                    before: function (input) {
 	                        return grabVideoIdFromUrl();
 	                    },
-	                    afterStep: function(data){
+	                    after: function(data){
 	                        return grabVideoData(data);
 	                    }
 	                })
@@ -1486,7 +1487,7 @@
 	                    methodParam: function(){
 	                        return getParamsForSubtitles();
 	                    },
-	                    afterStep: Common.grabIplaSubtitlesData
+	                    after: Common.grabIplaSubtitlesData
 	                })
 	            ]
 	        }
@@ -1586,17 +1587,17 @@
 	        button: {
 	            class: 'vod_download_button'
 	        },
-	        asyncChains: {
+	        chains: {
 	            videos: [
 	                new Step({
 	                    urlTemplate: 'https://player-api.dreamlab.pl/?body[id]=#videoId&body[jsonrpc]=2.0' +
 	                        '&body[method]=get_asset_detail&body[params][ID_Publikacji]=#videoId' +
 	                        '&body[params][Service]=vod.onet.pl&content-type=application/jsonp' +
 	                        '&x-onet-app=player.front.onetapi.pl&callback=',
-	                    beforeStep: function (input) {
+	                    before: function (input) {
 	                        return idParser();
 	                    },
-	                    afterStep: function (output) {
+	                    after: function (output) {
 	                        return grabVideoData(output);
 	                    }
 	                })
@@ -1705,22 +1706,22 @@
 	        chainSelector: function(){
 	            return ['videos', 'subtitles'];
 	        },
-	        asyncChains: {
+	        chains: {
 	            videos: [
 	                new Step({
 	                    urlTemplate: 'https://distro.redefine.pl/partner_api/v1/2yRS5K/media/#media_id/vod/player_data?' +
 	                        'dev=pc&os=linux&player=html&app=firefox&build=12345',
-	                    beforeStep: function (input) {
+	                    before: function (input) {
 	                        return {media_id: idParser()};
 	                    },
-	                    afterStep: function(data){
+	                    after: function(data){
 	                        return grabVideoData(data);
 	                    }
 	                })
 	            ],
 	            subtitles: [
 	                new Step({
-	                    afterStep: function (output) {
+	                    after: function (output) {
 	                        return parseSubtitleData();
 	                    }
 	                })
@@ -1806,14 +1807,14 @@
 	        button: {
 	            class: 'wp_download_button material__category'
 	        },
-	        asyncChains: {
+	        chains: {
 	            videos: [
 	                new Step({
 	                    urlTemplate: 'https://wideo.wp.pl/player/mid,#videoId,embed.json',
-	                    beforeStep: function (input) {
+	                    before: function (input) {
 	                        return idParser();
 	                    },
-	                    afterStep: function (output) {
+	                    after: function (output) {
 	                        return grabVideoData(output);
 	                    }
 	                })
@@ -1867,49 +1868,50 @@
 	        },
 	        button: {
 	            class: 'cda_download_button',
-	            click: function(){
-	                clickButton();
-	            }
+	        },
+	        chains: {
+	            videos: [
+	                new Step({
+	                    before: function(input){
+	                        return getDestinationUrl();
+	                    },
+	                    after: function (input) {
+	                        return grabVideoData(input);
+	                    }
+	                })
+	            ]
 	        }
 	    });
 	
-	    var clickButton = function(){
-	        var w = window.open();
-	        try {
-	            var url = $("video.pb-video-player").attr('src');
-	            if(url !== undefined){
-	                if(!url.match(/blank\.mp4/)){
-	                    prepareResult(url, w);
-	                }
-	                else if(l !== undefined){
-	                    prepareResult(l, w);
-	                }
-	                else {
-	                    throw new Exception(config.error.id, window.location.href);
-	                }
+	    var getDestinationUrl = function(){
+	        var url = $("video.pb-video-player").attr('src');
+	        if(url !== undefined){
+	            if(!url.match(/blank\.mp4/)){
+	                return url;
 	            }
-	        }catch(e){
-	            DomTamper.handleError(e, w);
+	            else if(l !== undefined){
+	                return l;
+	            }
 	        }
+	        throw new Exception(config.error.id, window.location.href);
 	    };
 	
-	    var prepareResult = function(url, w) {
-	        var cardsData = properties.cardsData;
+	    var grabVideoData = function(data){
+	        var items = [];
 	        var title = $('meta[property="og:title"]');
 	        var quality = $('.quality-btn-active');
-	        cardsData.title = title.length > 0 ? title.attr('content').trim() : 'brak danych';
 	        var videoDesc = quality.length > 0 ? quality.text() : '-';
-	        cardsData.cards['videos'].items = [
-	            Tool.mapDescription({
-	                source: 'CDA',
-	                key: videoDesc,
-	                video: videoDesc,
-	                audio: '-',
-	                url: url
-	            })
-	        ];
-	
-	        DomTamper.createDocument(cardsData, w);
+	        items.push(Tool.mapDescription({
+	            source: 'CDA',
+	            key: videoDesc,
+	            video: videoDesc,
+	            audio: '-',
+	            url: data
+	        }));
+	        return {
+	            title: title.length > 0 ? title.attr('content').trim() : 'brak danych',
+	            cards: {videos: {items: items}}
+	        };
 	    };
 	
 	    this.setup = function(){
@@ -1924,59 +1926,68 @@
 	        },
 	        button: {
 	            class: 'ninateka_download_button',
-	            click: function(){
-	                clickButton();
-	            }
+	        },
+	        chains: {
+	            videos: [
+	                new Step({
+	                    before: function(input){
+	                        return getVideoUrls();
+	                    },
+	                    after: function (input) {
+	                        return grabVideoData(input);
+	                    }
+	                })
+	            ]
 	        }
 	    });
 	
-	    var prepareResult = function(url, w) {
-	        var title = $('meta[name="title"]');
-	        var cardsData = properties.cardsData;
-	        cardsData.title = title.length > 0 ? title.attr('content').trim() : 'brak danych';
-	        cardsData.cards['videos'].items = [
-	            Tool.mapDescription({
-	                source: 'NINATEKA',
-	                key: 'def',
-	                url: url
-	            })
-	        ];
-	        DomTamper.createDocument(cardsData, w);
-	    };
-	
-	    var getMp4Source = function(w, sources){
-	        for(var i = 0; i < sources.length; i++){
-	            if(sources[i].type && sources[i].type.match(/mp4/g)){
-	                prepareResult(sources[i].src, w);
-	                return;
+	    var grabVideoData = function(results){
+	        var items = [];
+	        var title = $('meta[name="title"]').attr('content').trim();
+	        if(results && results.length > 0){
+	            $.each(results, function(index, value ) {
+	                items.push(Tool.mapDescription({
+	                    source: 'NINATEKA',
+	                    key: 'def',
+	                    url: value
+	                }));
+	            });
+	            return {
+	                title: title.length > 0 ? title : 'brak danych',
+	                cards: {videos: {items: items}}
 	            }
 	        }
-	
-	        throw new Exception(config.error.id, window.location.href);
+	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
-	    var clickButton = function(){
-	        var w = window.open();
-	        try {
-	            var videoPlayer = $('#videoPlayer').data('player-setup');
-	            var sources = (videoPlayer || {}).sources || {};
-	            if(sources.length > 0){
-	                getMp4Source(w, sources);
-	            }
-	            else {
-	                var scripts = $('script[type="text/javascript"]').filter(':not([src])');
-	                for (var i = 0; i < scripts.length; i++) {
-	                    var match = $(scripts[i]).text().match(/fn_\S+\(playerOptionsWithMainSource,\s*\d+\)\.sources/g);
-	                    if(match && match[0]){
-	                        sources = eval(match[0]);
-	                        getMp4Source(w, sources);
-	                        break;
-	                    }
+	    var getVideoUrls = function(){
+	        var videoPlayer = $('#videoPlayer').data('player-setup');
+	        var sources = (videoPlayer || {}).sources || [];
+	        if(sources.length == 0){
+	            var scripts = $('script[type="text/javascript"]').filter(':not([src])');
+	            for (var i = 0; i < scripts.length; i++) {
+	                var match = $(scripts[i]).text().match(/fn_\S+\(playerOptionsWithMainSource,\s*\d+\)\.sources/g);
+	                if(match && match[0]){
+	                    sources = eval(match[0]);
+	                    break;
 	                }
 	            }
-	        }catch(e){
-	            DomTamper.handleError(e, w);
 	        }
+	        return getMp4Source(sources);
+	    };
+	
+	    var getMp4Source = function(sources){
+	        var results = [];
+	        for(var i = 0; i < sources.length; i++){
+	            if(sources[i].type && sources[i].type.match(/mp4/g)){
+	                results.push(sources[i].src);
+	            }
+	        }
+	        if(results.length > 0){
+	            return results
+	        }
+	
+	        throw new Exception(config.error.noSource, window.location.href);
 	    };
 	
 	    this.setup = function(){
@@ -1993,14 +2004,14 @@
 	        button: {
 	            class: 'arte_download_button',
 	        },
-	        asyncChains: {
+	        chains: {
 	            videos: [
 	                new Step({
 	                    urlTemplate: 'https://api.arte.tv/api/player/v1/config/#langCode/#videoId',
-	                    beforeStep: function (input) {
+	                    before: function (input) {
 	                        return idParser();
 	                    },
-	                    afterStep: function (output) {
+	                    after: function (output) {
 	                        return grabVideoData(output);
 	                    }
 	                })
@@ -2088,7 +2099,7 @@
 	        button: {
 	            class: 'trwam_download_button',
 	        },
-	        asyncChains: {
+	        chains: {
 	            videos: [
 	                new Step({
 	                    urlTemplate: 'https://api-trwam.app.insysgo.pl/v1/Tile/GetTiles',
@@ -2097,14 +2108,14 @@
 	                    methodParam: function(){
 	                        return getParamsForVideo();
 	                    },
-	                    afterStep: function(json) {
+	                    after: function(json) {
 	                        return getCodename(json);
 	                    }
 	                }),
 	                new Step({
 	                    urlTemplate: 'https://api-trwam.app.insysgo.pl/v1/Player/AcquireContent?platformCodename=www&' +
 	                        'codename=#codename',
-	                    afterStep: function(output) {
+	                    after: function(output) {
 	                        return grabVideoData(output);
 	                    }
 	                })
@@ -2251,7 +2262,7 @@
 	        sources.some(function(source){
 	            if(source.urlPattern.exec(location.href)){
 	                var object = eval('new ' + source.objectName + '()');
-	                console.info('voddownloader: jQuery v' + $().jquery + ', context: ' + source.objectName);
+	                console.info('voddownloader: context: ' + source.objectName + ', url: ' + location.href);
 	                object.setup();
 	                return true;
 	            }

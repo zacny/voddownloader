@@ -8,7 +8,7 @@ var TV_TRWAM = (function() {
         button: {
             class: 'trwam_download_button',
         },
-        asyncChains: {
+        chains: {
             videos: [
                 new Step({
                     urlTemplate: 'https://api-trwam.app.insysgo.pl/v1/Tile/GetTiles',
@@ -17,14 +17,14 @@ var TV_TRWAM = (function() {
                     methodParam: function(){
                         return getParamsForVideo();
                     },
-                    afterStep: function(json) {
+                    after: function(json) {
                         return getCodename(json);
                     }
                 }),
                 new Step({
                     urlTemplate: 'https://api-trwam.app.insysgo.pl/v1/Player/AcquireContent?platformCodename=www&' +
                         'codename=#codename',
-                    afterStep: function(output) {
+                    after: function(output) {
                         return grabVideoData(output);
                     }
                 })

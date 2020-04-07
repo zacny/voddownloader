@@ -7,14 +7,14 @@ var WP = (function() {
         button: {
             class: 'wp_download_button material__category'
         },
-        asyncChains: {
+        chains: {
             videos: [
                 new Step({
                     urlTemplate: 'https://wideo.wp.pl/player/mid,#videoId,embed.json',
-                    beforeStep: function (input) {
+                    before: function (input) {
                         return idParser();
                     },
-                    afterStep: function (output) {
+                    after: function (output) {
                         return grabVideoData(output);
                     }
                 })

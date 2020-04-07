@@ -11,7 +11,7 @@ var IPLA = (function() {
         chainSelector: function(){
             return ['videos', 'subtitles'];
         },
-        asyncChains: {
+        chains: {
             videos: [
                 new Step({
                     urlTemplateParts: [
@@ -20,10 +20,10 @@ var IPLA = (function() {
                     ],
                     urlTemplate: 'https://getmedia.redefine.pl/vods/get_vod/?cpid=1&~&media_id=#videoId',
                     retryErrorCodes: [404],
-                    beforeStep: function (input) {
+                    before: function (input) {
                         return grabVideoIdFromUrl();
                     },
-                    afterStep: function(data){
+                    after: function(data){
                         return grabVideoData(data);
                     }
                 })
@@ -35,7 +35,7 @@ var IPLA = (function() {
                     methodParam: function(){
                         return getParamsForSubtitles();
                     },
-                    afterStep: Common.grabIplaSubtitlesData
+                    after: Common.grabIplaSubtitlesData
                 })
             ]
         }

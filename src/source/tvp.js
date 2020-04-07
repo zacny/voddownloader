@@ -39,11 +39,11 @@ var TVP = (function() {
         button: {
             class: 'tvp_vod_downlaod_button'
         },
-        asyncChains: {
+        chains: {
             videos: [
                 new Step({
                     urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
-                    beforeStep: function (input) {
+                    before: function (input) {
                         return dataAttributeParser();
                     }
                 }),
@@ -51,10 +51,10 @@ var TVP = (function() {
                     urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
                         '&@callback=callback',
                     responseType: 'jsonp',
-                    beforeStep: function (input) {
+                    before: function (input) {
                         return getRealVideoId(input);
                     },
-                    afterStep: function(input){
+                    after: function(input){
                         return grapVideoData(input);
                     }
                 })
