@@ -27,7 +27,7 @@ var Starter = (function(Starter) {
         sources.some(function(source){
             if(source.urlPattern.exec(location.href)){
                 var object = eval('new ' + source.objectName + '()');
-                console.info('voddownloader: jQuery v' + $().jquery + ', context: ' + source.objectName);
+                console.info('voddownloader: context: ' + source.objectName + ', url: ' + location.href);
                 object.setup();
                 return true;
             }

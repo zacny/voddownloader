@@ -6,7 +6,6 @@ var Executor = (function(Executor){
              executeAsync(service, setup, options, w);
         }
         else {
-            options.temporaryData = {};
             callback(service, options, w);
         }
     };
@@ -30,11 +29,11 @@ var Executor = (function(Executor){
                     if(setup.responseType === 'jsonp'){
                         var match = data.responseText.match(/callback\(([\s\S]*?)\);/);
                         if(match && match[1] && !match[1].startsWith('null')){
-                            options.temporaryData = JSON.parse(match[1]);
+                            setStepResult(options, {async: JSON.parse(match[1])});
                         }
                     }
                     else {
-                        options.temporaryData = data.response || {};
+                        setStepResult(options, {async: data.response || {}});
                     }
                     callback(service, options, w);
                 }
@@ -67,40 +66,55 @@ var Executor = (function(Executor){
 
     var setupStep = function(service, options){
         var currentStep = getCurrentStep(service, options);
-        prepareStepOutput(currentStep, options);
+        beforeStep(currentStep, options);
         var setup = $.extend(true, {}, currentStep);
-        setup.resolveUrl = currentStep.resolveUrl(options.urlParams, options.retries);
+        if(currentStep.isRemote()) {
+            setup.resolveUrl = currentStep.resolveUrl(getStepResult(options).before, options.retries);
+        }
         return setup;
     };
 
     var getCurrentStep = function(service, options){
         var chain = options.chainNames[options.chainIndex];
-        var steps = service.asyncChains[chain];
+        var steps = service.chains[chain];
         return steps[options.stepIndex];
     };
 
-    var prepareStepOutput = function(currentStep, options){
-        var stepOutput = {};
-        var result = currentStep.beforeStep(options.temporaryData);
-        if(typeof result === 'string' || typeof result == 'number'){
-            stepOutput[config.urlParamDefaultKey] = result;
+    var beforeStep = function(currentStep, options){
+        var stepOutput = currentStep.before(getStepResult(options, true).after || {});
+        if(currentStep.isRemote()){
+            if(typeof stepOutput === 'string' || typeof stepOutput == 'number'){
+                var result = stepOutput;
+                stepOutput = {};
+                stepOutput[config.urlParamDefaultKey] = result;
+            }
         }
-        else if(typeof result === 'object'){
-            stepOutput = result;
-        }
+        setStepResult(options, {before: stepOutput});
+    };
 
-        if(options.urlParams){
-            $.extend(true, options.urlParams, stepOutput);
+    var getStepResult = function(options, previous){
+        var chain = options.chainNames[options.chainIndex];
+        if(!options.results){
+            options.results = {};
         }
-        else {
-            options.urlParams = stepOutput;
+        if(!options.results[chain]){
+            options.results[chain] = [];
         }
-        setChainResult(options)
+        if(!options.results[chain][options.stepIndex]){
+            options.results[chain].push({});
+        }
+        var stepIndex = previous && options.stepIndex > 0 ? options.stepIndex - 1 : options.stepIndex;
+        return options.results[chain][stepIndex];
+    };
+
+    var setStepResult = function(options, object){
+        var chain = options.chainNames[options.chainIndex];
+        options.results[chain][options.stepIndex] = $.extend(true, getStepResult(options), object);
     };
 
     var hasNextStep = function(service, options){
         var chain = options.chainNames[options.chainIndex];
-        var steps = service.asyncChains[chain];
+        var steps = service.chains[chain];
         return steps.length - 1 > options.stepIndex;
     };
 
@@ -108,23 +122,7 @@ var Executor = (function(Executor){
         return options.chainNames.length - 1 > options.chainIndex;
     };
 
-    var setChainResult = function(options){
-        var chain = options.chainNames[options.chainIndex];
-        if(!options.hasOwnProperty('results')){
-            options.results = {};
-        }
-        var chainResult = options.results;
-        if(chainResult[chain]){
-            $.extend(true, chainResult[chain], options.temporaryData);
-        }
-        else {
-            chainResult[chain] = options.temporaryData;
-        }
-        options.temporaryData = {};
-    };
-
     var pushChain = function(service, options){
-        setChainResult(options);
         if(hasNextChain(service, options)){
             options.chainIndex += 1;
             options.stepIndex = 0;
@@ -143,9 +141,10 @@ var Executor = (function(Executor){
 
     var afterStep = function(service, options) {
         var currentStep = getCurrentStep(service, options);
-        var output = currentStep.afterStep(options.temporaryData);
+        var previousResult = currentStep.isRemote() ? getStepResult(options).async : getStepResult(options).before;
+        var output = currentStep.after(previousResult || {});
         options.retries = 0;
-        options.temporaryData = output;
+        setStepResult(options, {after: output});
     };
 
     var callback = function(service, options, w){

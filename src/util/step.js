@@ -3,9 +3,9 @@ var Step = (function(properties){
         urlTemplateParts: [],
         urlTemplate: '',
         /** Will be done before call. It should return an object ready to use by resolveUrl function. **/
-        beforeStep: function(input){return input},
+        before: function(input){return input},
         /** Will be done after call **/
-        afterStep: function (output) {return output},
+        after: function (output) {return output},
         /** Processing parameters of url before step */
         resultUrlParams: function (input, template) {
             var urlParams = {};
