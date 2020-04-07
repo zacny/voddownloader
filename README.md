@@ -4,14 +4,20 @@ This is a script for [Tampermonkey](https://tampermonkey.net/index.php ).
 Creates a button in top right corner of video, that you can use to download a content of it.
 
 #### currently supported vod services
-- [vod.tvp.pl](https://vod.tvp.pl/)
 - [ipla.tv](https://www.ipla.tv)
 - [player.pl](https://player.pl/)
 - [vod.pl](https://vod.pl/)
 - [vod.pl - ipla bridge](https://vod.pl/cyfrowy-polsat-iplatv)
 - [vod.pl - player bridge](https://vod.pl/playerpl-promocja)
+- [vod.tvp.pl](https://vod.tvp.pl/)
 - [polish regional tv](https://regiony.tvp.pl/)
 - [cyfrowa.tvp.pl](https://cyfrowa.tvp.pl)
+- [tvp sport](https://sport.tvp.pl)
+- [tvpis](https://wiadomosci.tvp.pl)
+- [tvp polonia](polonia.tvp.pl)
+- [tvp info](https://www.tvp.info)
+- [tvp parlament](https://www.tvpparlament.pl)
+- [other tvp subdomains](https://koronakrolow.vod.tvp.pl)
 - [arte.tv](https://www.arte.tv)
 - [ninateka.pl](http://ninateka.pl)
 - [video.wp.pl](https://video.wp.pl)
