@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.14.0
+// @version        6.14.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1721,8 +1721,8 @@
 	            ],
 	            subtitles: [
 	                new Step({
-	                    after: function (output) {
-	                        return parseSubtitleData();
+	                    after: function (input) {
+	                        return Common.grabIplaSubtitlesData(getJson());
 	                    }
 	                })
 	            ]
@@ -1780,10 +1780,6 @@
 	    var getMediaId = function(){
 	        var match = $('script:not(:empty)').text().match(/mediaId: "(\w+)",/);
 	        return match[1];
-	    };
-	
-	    var parseSubtitleData = function(){
-	        return Common.grabIplaSubtitlesData(getJson());
 	    };
 	
 	    this.setup = function(){
