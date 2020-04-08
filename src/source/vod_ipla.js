@@ -25,8 +25,8 @@ var VOD_IPLA = (function() {
             ],
             subtitles: [
                 new Step({
-                    after: function (output) {
-                        return parseSubtitleData();
+                    after: function (input) {
+                        return Common.grabIplaSubtitlesData(getJson());
                     }
                 })
             ]
@@ -84,10 +84,6 @@ var VOD_IPLA = (function() {
     var getMediaId = function(){
         var match = $('script:not(:empty)').text().match(/mediaId: "(\w+)",/);
         return match[1];
-    };
-
-    var parseSubtitleData = function(){
-        return Common.grabIplaSubtitlesData(getJson());
     };
 
     this.setup = function(){
