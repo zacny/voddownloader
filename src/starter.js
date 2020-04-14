@@ -3,7 +3,7 @@ var Starter = (function(Starter) {
         {objectName: 'TVP', urlPattern: new RegExp(
                 '^https:\/\/(vod|cyfrowa)\.tvp\.pl\/video\/.*$|' +
                 '^https?:\/\/.*\.tvp\.(pl|info)\/sess\/TVPlayer2\/embed.*$|' +
-                '^https?:\/\/.*\.tvp\.pl\/\\d{6,}\/.*$|' +
+                '^https?:\/\/((?!wiadomosci).)*\.tvp\.pl\/\\d{6,}\/.*$|' +
                 '^https?:\/\/w{3}\.tvpparlament\.pl\/sess\/.*'
             )
         },
