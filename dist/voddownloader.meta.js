@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.14.1
+// @version        6.14.2
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -13,7 +13,7 @@
 // @source         https://github.com/zacny/voddownloader
 // @include        /^https://(vod|cyfrowa)\.tvp\.pl/video/.*$/
 // @include        /^https?://.*\.tvp.(pl|info)/sess/TVPlayer2/embed.*$/
-// @include        /^https?://.*\.tvp\.pl/\d{6,}/.*$/
+// @include        /^https?://((?!wiadomosci).)*\.tvp\.pl/\d{6,}/.*$/
 // @include        https://www.tvpparlament.pl/sess/*
 // @include        https://www.ipla.tv/*
 // @include        https://player.pl/*
@@ -29,6 +29,7 @@
 // @include        https://tv-trwam.pl/local-vods/*
 // @exclude        http://www.tvp.pl/sess/*
 // @exclude        /^https?://(bialystok|gorzow|krakow|olsztyn|rzeszow|wroclaw|bydgoszcz|katowice|lublin|opole|szczecin|gdansk|kielce|lodz|poznan|warszawa)\.tvp.\pl/.*$/
+// @exclude        /^https?://.*\.vod\.tvp\.pl/\d{6,}/.*$/
 // @exclude        https://www.cda.pl/iframe/*
 // @grant          GM_getResourceText
 // @grant          GM_xmlhttpRequest

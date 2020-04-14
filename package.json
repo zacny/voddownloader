@@ -1,6 +1,6 @@
 {
   "name": "voddownloader",
-  "version": "6.14.1",
+  "version": "6.14.2",
   "description": "test",
   "main": "src/index.js",
   "dependencies": {
@@ -65,7 +65,7 @@
       "include": [
         "/^https://(vod|cyfrowa)\\.tvp\\.pl/video/.*$/",
         "/^https?://.*\\.tvp.(pl|info)/sess/TVPlayer2/embed.*$/",
-        "/^https?://.*\\.tvp\\.pl/\\d{6,}/.*$/",
+        "/^https?://((?!wiadomosci).)*\\.tvp\\.pl/\\d{6,}/.*$/",
         "https://www.tvpparlament.pl/sess/*",
         "https://www.ipla.tv/*",
         "https://player.pl/*",
@@ -83,6 +83,7 @@
       "exclude": [
         "http://www.tvp.pl/sess/*",
         "/^https?://(bialystok|gorzow|krakow|olsztyn|rzeszow|wroclaw|bydgoszcz|katowice|lublin|opole|szczecin|gdansk|kielce|lodz|poznan|warszawa)\\.tvp.\\pl/.*$/",
+        "/^https?://.*\\.vod\\.tvp\\.pl/\\d{6,}/.*$/",
         "https://www.cda.pl/iframe/*"
       ],
       "grant": [
