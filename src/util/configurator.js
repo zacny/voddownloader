@@ -82,7 +82,7 @@ function Configurator(properties){
         inject: function(){
             var icon = $('<i>').addClass('fas fa-video')
             var div = $('<div>')
-                .attr('id', service.injection.id).attr('title', 'pobierz video')
+                .attr('id', service.injection.id).attr('title', 'informacje o wideo')
                 .append(icon).addClass('video_button').addClass(service.injection.class);
             $(service.observer.selector).hover(() => div.show(), () => div.hide());
             return div;

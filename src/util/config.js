@@ -28,14 +28,14 @@ const config = {
         id: {
             caption: 'Nie udało się odnaleźć idetyfikatora.',
             template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: ${0} \
-                zakończył się niepowodzeniem. Może to oznaczać błąd skryptu.`,
+                zakończył się niepowodzeniem. Może to oznaczać błąd skryptu lub zmiany w portalu.`,
         },
         tvnId: {
             caption: 'Nie udało się odnaleźć idetyfikatora.',
             template: Tool.template`Algorytm rozpoznawania identyfikatora wideo na stronie: ${0} \
                 zakończył się niepowodzeniem.\nJeżeli jest to główna strona programu oznacza to, \
                 że nie udało się odnaleźć identyfikatora ostatniego odcinka. Wejdź na stronę odcinka \
-                i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu.`,
+                i spróbuj ponownie.\nMoże to również oznaczać błąd skryptu lub zmiany w portalu.`,
         },
         call: {
             caption: 'Błąd pobierania informacji o materiale.',
@@ -43,10 +43,12 @@ const config = {
                 Zgłoś problem autorom skryptu.`,
         },
         noSource: {
-            caption: 'Nie udało się odnaleźć źródeł do materiału.',
-            template: Tool.template`Materiał ze strony ${0} nie posiada zdefiniowanych źródeł, które mogłyby zostać \
-                wyświetlone. \nMoże to oznaczać, że nie jest on publicznie dostępny, dostępne źródła nie mogą zostać \
-                wyświetlone w przeglądarce bez dodatkowego oprogramowania lub jest umieszczony w płatnej strefie.`,
+            caption: 'Nie udało się odnaleźć metadanych tego materiału.',
+            template: Tool.template`Materiał ze strony ${0} nie posiada zdefiniowanych metadanych potrzebnych do \
+                działania skryptu lub są one nieprawdłowe.\n
+                Może to oznaczać, że nie jest to materiał publicznie dostępny, nie posiada zdefiniowanych źródeł lub nie \
+                mogą one zostać wyświetlone w przeglądarce bez dodatkowego oprogramowania albo jest to materiał \
+                umieszczony w płatnej strefie.`,
             type: 'info'
         },
         timeout: {
