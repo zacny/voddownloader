@@ -1,7 +1,7 @@
 var ElementDetector = (function(ElementDetector){
-    ElementDetector.detect = function(observer, callback){
+    ElementDetector.detect = function(properties, callback){
         var detector = new Detector({
-            observer: observer,
+            properties: properties,
             successCallback: callback
         });
         detector.observe();

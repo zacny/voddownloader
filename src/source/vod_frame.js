@@ -13,9 +13,9 @@ var VOD_FRAME = (function() {
     var setupDetector = function(srcArray, data){
         var selectors = createArrySelectors(srcArray);
         var multiSelector = createMultiSelector(selectors);
-        var observer = Common.createObserver('div.iplaContainer', multiSelector);
+        var properties = Common.createProperties('div.iplaContainer', multiSelector);
 
-        ElementDetector.detect(observer, function() {
+        ElementDetector.detect(properties, function() {
             selectors.forEach(function(element){
                 if($(element.frameSelector).length > 0){
                     MessageReceiver.postUntilConfirmed({

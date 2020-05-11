@@ -1,4 +1,4 @@
-/** Icons preview: https://fontawesome.com/v4.7.0/icons **/
+/** Icons preview: https://fontawesome.com/v5.8.2/icons **/
 var DomTamper = (function(DomTamper){
 
     DomTamper.injectStyle = function(w, name){
@@ -10,7 +10,7 @@ var DomTamper = (function(DomTamper){
         }
     };
 
-    var injectStylesheet = function (w, setting) {
+    DomTamper.injectStylesheet = function (w, setting) {
         var head = $(w.document.head);
         if(!head.find('link[name="' + setting.id + '"]').length){
             var stylesheet = $('<link>').attr('name', setting.id).attr('type', 'text/css').attr('rel', 'stylesheet')
@@ -20,9 +20,9 @@ var DomTamper = (function(DomTamper){
     };
 
     var prepareHead = function(w){
-        injectStylesheet(w, config.include.fontawesome);
-        injectStylesheet(w, config.include.bootstrap);
-        injectStylesheet(w, config.include.mdb);
+        DomTamper.injectStylesheet(w, config.include.fontawesome);
+        DomTamper.injectStylesheet(w, config.include.bootstrap);
+        DomTamper.injectStylesheet(w, config.include.mdb);
         DomTamper.injectStyle(w, 'content_css');
     };
 
@@ -138,12 +138,15 @@ var DomTamper = (function(DomTamper){
         return card;
     };
 
+    DomTamper.removeButton = function(properties){
+        $(properties.injection.selector).find('#' + properties.injection.id).remove();
+    };
+
     DomTamper.createButton = function(properties){
-        properties.observer.get().find('#'+properties.button.id).remove();
-        var button = $('<input>').attr('id', properties.button.id).attr('type', 'button')
-            .attr('style', properties.button.style).attr('value', 'Pobierz video').addClass(properties.button.class);
-        button.bind('click', properties.button.click);
-        properties.observer.get().append(button);
+        DomTamper.removeButton(properties);
+        var element = properties.inject();
+        element.bind('click', properties.click);
+        $(properties.injection.selector).append(element);
     };
 
     DomTamper.createLoader = function(w){

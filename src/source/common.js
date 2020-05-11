@@ -15,18 +15,24 @@ var Common = (function(Common) {
     };
 
     Common.run = function(properties){
-        ElementDetector.detect(properties.observer, function () {
+        DomTamper.injectStylesheet(window, config.include.fontawesome);
+        HistoryTamper.onLocationChange(function () {
+            DomTamper.removeButton(properties);
+        });
+        ElementDetector.detect(properties, function () {
             DomTamper.createButton(properties);
         });
     };
 
-    Common.createObserver = function(anchor, selector, mode) {
+    Common.createProperties = function(anchor, selector, mode) {
         return {
-            anchor: anchor,
-            mode: mode ? mode : 'added',
-            selector: selector,
-            exist: function() {
-                return $(this.selector).length > 0;
+            observer: {
+                anchor: anchor,
+                mode: mode ? mode : 'added',
+                selector: selector,
+            },
+            ready: function() {
+                return $(this.observer.selector).length > 0;
             }
         };
     };

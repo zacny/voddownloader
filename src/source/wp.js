@@ -4,8 +4,8 @@ var WP = (function() {
             anchor: 'body',
             selector: 'div.npp-container'
         },
-        button: {
-            class: 'wp_download_button material__category'
+        injection: {
+            class: 'small_padding white'
         },
         chains: {
             videos: [

@@ -85,8 +85,9 @@ function utilPartAttach() {
     return gulp.src(config.util_dir + '/*.js')
         .pipe(order([
             'exception.js', 'tool.js', 'config.js', 'step.js', 'notification.js',
-            'pluginSettingsDetector.js', 'domTamper.js', 'accordion.js', 'executor.js',
-            'configurator.js', 'detector.js', 'elementDetector.js', 'unloader.js', 'messageReceiver.js'
+            'pluginSettingsDetector.js', 'domTamper.js', 'historyTamper.js',
+            'accordion.js', 'executor.js', 'configurator.js', 'detector.js',
+            'elementDetector.js', 'unloader.js', 'messageReceiver.js'
         ]))
         .pipe(concat('utils.js'))
         .pipe(gulp.dest(config.tmp_dir));

@@ -4,9 +4,6 @@ var ARTE = (function() {
             anchor: 'div.video-thumbnail',
             selector: 'div.avp-player'
         },
-        button: {
-            class: 'arte_download_button',
-        },
         chains: {
             videos: [
                 new Step({

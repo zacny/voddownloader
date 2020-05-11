@@ -3,8 +3,8 @@ var NINATEKA = (function() {
         observer: {
             selector: '#videoPlayer, #player'
         },
-        button: {
-            class: 'ninateka_download_button',
+        injection: {
+            class: 'small_padding'
         },
         chains: {
             videos: [

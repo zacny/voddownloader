@@ -2,11 +2,10 @@ var IPLA = (function() {
     var properties = new Configurator({
         observer: {
             anchor: 'app-root',
-            selector: 'div.player-wrapper, div.promo-box:visible,' +
-                ' div.player-error-presentation:visible'
+            selector: 'div.player-wrapper, div.promo-box:visible, div.player-error-presentation:visible'
         },
-        button: {
-            class: 'ipla_download_button'
+        injection: {
+            class: 'small_padding'
         },
         chainSelector: function(){
             return ['videos', 'subtitles'];
