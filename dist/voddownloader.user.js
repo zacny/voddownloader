@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.15.1
+// @version        6.15.2
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -858,8 +858,8 @@
 	        var stepParams = $.isEmptyObject(setup.methodParam()) ? '' : JSON.stringify(setup.methodParam());
 	        var params = [
 	            'color:green', options.retries+1, 'color:black', ':',
-	            'color:blue', step,  'color:red', setup.isRemote ? setup.method : '---',
-	            'color:black;font-weight: bold', setup.resolveUrl.url, 'color:magenta', stepParams
+	            'color:blue', step,  'color:red', setup.isRemote() ? setup.method : '---',
+	            'color:black;font-weight: bold', setup.isRemote() ? setup.resolveUrl.url : '---', 'color:magenta', stepParams
 	        ];
 	        Tool.formatConsoleMessage('%c%s%c%s%c%s%c %s %c %s %c%s', params);
 	    };

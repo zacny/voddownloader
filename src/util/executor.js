@@ -58,8 +58,8 @@ var Executor = (function(Executor){
         var stepParams = $.isEmptyObject(setup.methodParam()) ? '' : JSON.stringify(setup.methodParam());
         var params = [
             'color:green', options.retries+1, 'color:black', ':',
-            'color:blue', step,  'color:red', setup.isRemote ? setup.method : '---',
-            'color:black;font-weight: bold', setup.resolveUrl.url, 'color:magenta', stepParams
+            'color:blue', step,  'color:red', setup.isRemote() ? setup.method : '---',
+            'color:black;font-weight: bold', setup.isRemote() ? setup.resolveUrl.url : '---', 'color:magenta', stepParams
         ];
         Tool.formatConsoleMessage('%c%s%c%s%c%s%c %s %c %s %c%s', params);
     };
