@@ -1,10 +1,10 @@
 var CDA = (function() {
     var properties = new Configurator({
         observer: {
-            selector: '.pb-video-player-wrap'
+            selector: '.pb-player-content'
         },
-        button: {
-            class: 'cda_download_button',
+        injection: {
+            class: 'right'
         },
         chains: {
             videos: [
@@ -27,7 +27,7 @@ var CDA = (function() {
             if(!url.match(/blank\.mp4/)){
                 return url;
             }
-            /** Flash pleyar - l is an existing variable on page */
+            /** Flash player - l is an existing variable on page */
             else if(l !== undefined){
                 return l;
             }

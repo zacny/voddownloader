@@ -3,8 +3,8 @@ var VOD = (function() {
         observer: {
             selector: '#v_videoPlayer'
         },
-        button: {
-            class: 'vod_download_button'
+        injection: {
+            class: 'right'
         },
         chains: {
             videos: [
@@ -90,9 +90,9 @@ var VOD = (function() {
     var workWithSubService = function(){
         var src = 'https://pulsembed.eu';
         var frameSelector = 'iframe[src^="' + src + '"]';
-        var observer = Common.createObserver('div.pulsembed_embed', frameSelector);
+        var properties = Common.createProperties('div.pulsembed_embed', frameSelector);
 
-        ElementDetector.detect(observer, function () {
+        ElementDetector.detect(properties, function () {
             MessageReceiver.postUntilConfirmed({
                 windowReference: $(frameSelector).get(0).contentWindow,
                 origin: src,

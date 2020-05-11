@@ -4,9 +4,6 @@ var VOD_IPLA = (function() {
             anchor: 'body',
             selector: '#player-wrapper, #playerContainer'
         },
-        button: {
-            class: 'vod_ipla_downlaod_button'
-        },
         chainSelector: function(){
             return ['videos', 'subtitles'];
         },

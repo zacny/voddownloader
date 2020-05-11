@@ -36,8 +36,8 @@ var TVP = (function() {
              */
             selector: '#JS-TVPlayer2-Wrapper, #player2, .news-video__overlay, .player-video-container, #tvplayer'
         },
-        button: {
-            class: 'tvp_vod_downlaod_button'
+        injection: {
+            class: 'white'
         },
         chains: {
             videos: [

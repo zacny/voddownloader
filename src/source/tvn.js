@@ -2,10 +2,17 @@ var TVN = (function() {
     var properties = new Configurator({
         observer: {
             anchor: 'body',
-            selector: '#player-container, div.custom-alert-inner-wrapper'
+            selector: 'div.cover-buttons > a[href="#"], #player-container, div.custom-alert-inner-wrapper'
         },
-        button: {
-            class: 'btn btn-primary tvn_download_button'
+        injection: {
+            selector: 'div.right-side'
+        },
+        inject: function(){
+            var icon = $('<i>').addClass('fas fa-video');
+            var button = $('<div>')
+                .attr('id', properties.injection.id).attr('title', 'pobierz video')
+                .append(icon).addClass('btn btn-login');
+            return button;
         },
         chains: {
             videos: [

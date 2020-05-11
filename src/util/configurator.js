@@ -3,27 +3,12 @@ function Configurator(properties){
         observer: {
             anchor: undefined,
             mode: 'added',
-            selector: undefined,
-            get: function(){
-                return $(service.observer.selector);
-            },
-            exist: function(){
-                return $(service.observer.selector).length > 0;
-            }
+            selector: undefined
         },
-        button: {
+        injection: {
+            selector: properties.observer.selector,
             id: 'direct-download',
-            style: '',
             class: '',
-            click: function(){
-                var chainNames = service.chainSelector();
-                Executor.chain(service, {
-                    stepIndex: 0,
-                    chainIndex: 0,
-                    retries: 0,
-                    chainNames: chainNames
-                });
-            }
         },
         cardsData: {
             title: '',
@@ -81,7 +66,27 @@ function Configurator(properties){
             var aggregatedData = service.aggregate(data);
             service.formatter(aggregatedData);
             DomTamper.createDocument(aggregatedData, w);
-        }
+        },
+        ready: function(){
+            return $(service.observer.selector).length > 0;
+        },
+        click: function(){
+            var chainNames = service.chainSelector();
+            Executor.chain(service, {
+                stepIndex: 0,
+                chainIndex: 0,
+                retries: 0,
+                chainNames: chainNames
+            });
+        },
+        inject: function(){
+            var icon = $('<i>').addClass('fas fa-video')
+            var div = $('<div>')
+                .attr('id', service.injection.id).attr('title', 'pobierz video')
+                .append(icon).addClass('video_button').addClass(service.injection.class);
+            $(service.observer.selector).hover(() => div.show(), () => div.hide());
+            return div;
+        },
     };
 
     return $.extend(true, service, properties);

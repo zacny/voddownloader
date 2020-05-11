@@ -5,8 +5,8 @@ var TV_TRWAM = (function() {
             mode: 'removed',
             selector: 'div[data-name="playerWindowPlace"]'
         },
-        button: {
-            class: 'trwam_download_button',
+        injection: {
+            class: 'white'
         },
         chains: {
             videos: [

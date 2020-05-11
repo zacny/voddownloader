@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.14.2
+// @version        6.15.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -82,7 +82,7 @@
 	    Tool.downloadFile = function(fileUrl, title){
 	        var extension = Tool.deleteParametersFromUrl(fileUrl.split('.').pop());
 	        var movieTitle = (title !== undefined && title !== '' ) ? title : 'nieznany';
-	        movieTitle = movieTitle.replace(new RegExp(config.windowsNotAllowedFileNameCharsMask), '');
+	        movieTitle = movieTitle.replace(new RegExp(config.notAllowedFileNameCharsMask), '');
 	        var name = movieTitle + '.' + extension;
 	        GM_download(fileUrl, name);
 	    };
@@ -139,7 +139,7 @@
 	    urlParamPattern: '#',
 	    urlParamDefaultKey: 'videoId',
 	    urlPartPattern: '~',
-	    windowsNotAllowedFileNameCharsMask: '[\\/:\*\?"<>|]+',
+	    notAllowedFileNameCharsMask: '[\\/:\*\?"<>\|]+',
 	    include: {
 	        fontawesome: {
 	            id: 'fontawesome',
@@ -404,7 +404,7 @@
 	        }
 	    };
 	
-	    var injectStylesheet = function (w, setting) {
+	    DomTamper.injectStylesheet = function (w, setting) {
 	        var head = $(w.document.head);
 	        if(!head.find('link[name="' + setting.id + '"]').length){
 	            var stylesheet = $('<link>').attr('name', setting.id).attr('type', 'text/css').attr('rel', 'stylesheet')
@@ -414,9 +414,9 @@
 	    };
 	
 	    var prepareHead = function(w){
-	        injectStylesheet(w, config.include.fontawesome);
-	        injectStylesheet(w, config.include.bootstrap);
-	        injectStylesheet(w, config.include.mdb);
+	        DomTamper.injectStylesheet(w, config.include.fontawesome);
+	        DomTamper.injectStylesheet(w, config.include.bootstrap);
+	        DomTamper.injectStylesheet(w, config.include.mdb);
 	        DomTamper.injectStyle(w, 'content_css');
 	    };
 	
@@ -532,12 +532,15 @@
 	        return card;
 	    };
 	
+	    DomTamper.removeButton = function(properties){
+	        $(properties.injection.selector).find('#' + properties.injection.id).remove();
+	    };
+	
 	    DomTamper.createButton = function(properties){
-	        properties.observer.get().find('#'+properties.button.id).remove();
-	        var button = $('<input>').attr('id', properties.button.id).attr('type', 'button')
-	            .attr('style', properties.button.style).attr('value', 'Pobierz video').addClass(properties.button.class);
-	        button.bind('click', properties.button.click);
-	        properties.observer.get().append(button);
+	        DomTamper.removeButton(properties);
+	        var element = properties.inject();
+	        element.bind('click', properties.click);
+	        $(properties.injection.selector).append(element);
 	    };
 	
 	    DomTamper.createLoader = function(w){
@@ -592,6 +595,34 @@
 	
 	    return DomTamper;
 	}(DomTamper || {}));
+	
+	var HistoryTamper = (function(HistoryTamper){
+	    HistoryTamper.onLocationChange = function(locationChangeCallback){
+	        history.pushState = ( f => function pushState(){
+	            var ret = f.apply(this, arguments);
+	            window.dispatchEvent(new Event('pushstate'));
+	            window.dispatchEvent(new Event('locationchange'));
+	            return ret;
+	        })(history.pushState);
+	
+	        history.replaceState = ( f => function replaceState(){
+	            var ret = f.apply(this, arguments);
+	            window.dispatchEvent(new Event('replacestate'));
+	            window.dispatchEvent(new Event('locationchange'));
+	            return ret;
+	        })(history.replaceState);
+	
+	        window.addEventListener('popstate',()=>{
+	            window.dispatchEvent(new Event('locationchange'))
+	        });
+	
+	        window.addEventListener('locationchange', function(){
+	            locationChangeCallback();
+	        });
+	    };
+	
+	    return HistoryTamper;
+	}(HistoryTamper || {}));
 	
 	var Accordion = (function(Accordion) {
 	    Accordion.create = function(w, data){
@@ -954,27 +985,12 @@
 	        observer: {
 	            anchor: undefined,
 	            mode: 'added',
-	            selector: undefined,
-	            get: function(){
-	                return $(service.observer.selector);
-	            },
-	            exist: function(){
-	                return $(service.observer.selector).length > 0;
-	            }
+	            selector: undefined
 	        },
-	        button: {
+	        injection: {
+	            selector: properties.observer.selector,
 	            id: 'direct-download',
-	            style: '',
 	            class: '',
-	            click: function(){
-	                var chainNames = service.chainSelector();
-	                Executor.chain(service, {
-	                    stepIndex: 0,
-	                    chainIndex: 0,
-	                    retries: 0,
-	                    chainNames: chainNames
-	                });
-	            }
 	        },
 	        cardsData: {
 	            title: '',
@@ -1032,7 +1048,27 @@
 	            var aggregatedData = service.aggregate(data);
 	            service.formatter(aggregatedData);
 	            DomTamper.createDocument(aggregatedData, w);
-	        }
+	        },
+	        ready: function(){
+	            return $(service.observer.selector).length > 0;
+	        },
+	        click: function(){
+	            var chainNames = service.chainSelector();
+	            Executor.chain(service, {
+	                stepIndex: 0,
+	                chainIndex: 0,
+	                retries: 0,
+	                chainNames: chainNames
+	            });
+	        },
+	        inject: function(){
+	            var icon = $('<i>').addClass('fas fa-video')
+	            var div = $('<div>')
+	                .attr('id', service.injection.id).attr('title', 'pobierz video')
+	                .append(icon).addClass('video_button').addClass(service.injection.class);
+	            $(service.observer.selector).hover(() => div.show(), () => div.hide());
+	            return div;
+	        },
 	    };
 	
 	    return $.extend(true, service, properties);
@@ -1042,16 +1078,16 @@
 	    var configuration = conf;
 	
 	    var logObservation = function(){
-	        var observer = configuration.observer;
-	        var existColor = observer.exist() ? 'color:green' : 'color:red';
+	        var observer = configuration.properties.observer;
+	        var color = configuration.properties.ready() ? 'color:green' : 'color:red';
 	        var anchor = observer.anchor ? observer.anchor + '->' : '';
-	        var params = [existColor, anchor + observer.selector, 'color:black'];
+	        var params = [color, anchor + observer.selector, 'color:black'];
 	        Tool.formatConsoleMessage('[%c%s%c]', params);
 	    };
 	
 	    this.observe = function(){
-	        var observer = configuration.observer;
-	        if(observer.exist()){
+	        var observer = configuration.properties.observer;
+	        if(configuration.properties.ready()){
 	            logObservation();
 	            configuration.successCallback();
 	        }
@@ -1065,9 +1101,9 @@
 	});
 	
 	var ElementDetector = (function(ElementDetector){
-	    ElementDetector.detect = function(observer, callback){
+	    ElementDetector.detect = function(properties, callback){
 	        var detector = new Detector({
-	            observer: observer,
+	            properties: properties,
 	            successCallback: callback
 	        });
 	        detector.observe();
@@ -1200,18 +1236,24 @@
 	    };
 	
 	    Common.run = function(properties){
-	        ElementDetector.detect(properties.observer, function () {
+	        DomTamper.injectStylesheet(window, config.include.fontawesome);
+	        HistoryTamper.onLocationChange(function () {
+	            DomTamper.removeButton(properties);
+	        });
+	        ElementDetector.detect(properties, function () {
 	            DomTamper.createButton(properties);
 	        });
 	    };
 	
-	    Common.createObserver = function(anchor, selector, mode) {
+	    Common.createProperties = function(anchor, selector, mode) {
 	        return {
-	            anchor: anchor,
-	            mode: mode ? mode : 'added',
-	            selector: selector,
-	            exist: function() {
-	                return $(this.selector).length > 0;
+	            observer: {
+	                anchor: anchor,
+	                mode: mode ? mode : 'added',
+	                selector: selector,
+	            },
+	            ready: function() {
+	                return $(this.observer.selector).length > 0;
 	            }
 	        };
 	    };
@@ -1253,8 +1295,8 @@
 	        observer: {
 	            selector: '#JS-TVPlayer2-Wrapper, #player2, .news-video__overlay, .player-video-container, #tvplayer'
 	        },
-	        button: {
-	            class: 'tvp_vod_downlaod_button'
+	        injection: {
+	            class: 'white'
 	        },
 	        chains: {
 	            videos: [
@@ -1344,10 +1386,17 @@
 	    var properties = new Configurator({
 	        observer: {
 	            anchor: 'body',
-	            selector: '#player-container, div.custom-alert-inner-wrapper'
+	            selector: 'div.cover-buttons > a[href="#"], #player-container, div.custom-alert-inner-wrapper'
 	        },
-	        button: {
-	            class: 'btn btn-primary tvn_download_button'
+	        injection: {
+	            selector: 'div.right-side'
+	        },
+	        inject: function(){
+	            var icon = $('<i>').addClass('fas fa-video');
+	            var button = $('<div>')
+	                .attr('id', properties.injection.id).attr('title', 'pobierz video')
+	                .append(icon).addClass('btn btn-login');
+	            return button;
 	        },
 	        chains: {
 	            videos: [
@@ -1455,11 +1504,10 @@
 	    var properties = new Configurator({
 	        observer: {
 	            anchor: 'app-root',
-	            selector: 'div.player-wrapper, div.promo-box:visible,' +
-	                ' div.player-error-presentation:visible'
+	            selector: 'div.player-wrapper, div.promo-box:visible, div.player-error-presentation:visible'
 	        },
-	        button: {
-	            class: 'ipla_download_button'
+	        injection: {
+	            class: 'small_padding'
 	        },
 	        chainSelector: function(){
 	            return ['videos', 'subtitles'];
@@ -1585,8 +1633,8 @@
 	        observer: {
 	            selector: '#v_videoPlayer'
 	        },
-	        button: {
-	            class: 'vod_download_button'
+	        injection: {
+	            class: 'right'
 	        },
 	        chains: {
 	            videos: [
@@ -1672,9 +1720,9 @@
 	    var workWithSubService = function(){
 	        var src = 'https://pulsembed.eu';
 	        var frameSelector = 'iframe[src^="' + src + '"]';
-	        var observer = Common.createObserver('div.pulsembed_embed', frameSelector);
+	        var properties = Common.createProperties('div.pulsembed_embed', frameSelector);
 	
-	        ElementDetector.detect(observer, function () {
+	        ElementDetector.detect(properties, function () {
 	            MessageReceiver.postUntilConfirmed({
 	                windowReference: $(frameSelector).get(0).contentWindow,
 	                origin: src,
@@ -1700,9 +1748,6 @@
 	        observer: {
 	            anchor: 'body',
 	            selector: '#player-wrapper, #playerContainer'
-	        },
-	        button: {
-	            class: 'vod_ipla_downlaod_button'
 	        },
 	        chainSelector: function(){
 	            return ['videos', 'subtitles'];
@@ -1801,8 +1846,8 @@
 	            anchor: 'body',
 	            selector: 'div.npp-container'
 	        },
-	        button: {
-	            class: 'wp_download_button material__category'
+	        injection: {
+	            class: 'small_padding white'
 	        },
 	        chains: {
 	            videos: [
@@ -1861,10 +1906,10 @@
 	var CDA = (function() {
 	    var properties = new Configurator({
 	        observer: {
-	            selector: '.pb-video-player-wrap'
+	            selector: '.pb-player-content'
 	        },
-	        button: {
-	            class: 'cda_download_button',
+	        injection: {
+	            class: 'right'
 	        },
 	        chains: {
 	            videos: [
@@ -1921,8 +1966,8 @@
 	        observer: {
 	            selector: '#videoPlayer, #player'
 	        },
-	        button: {
-	            class: 'ninateka_download_button',
+	        injection: {
+	            class: 'small_padding'
 	        },
 	        chains: {
 	            videos: [
@@ -1997,9 +2042,6 @@
 	        observer: {
 	            anchor: 'div.video-thumbnail',
 	            selector: 'div.avp-player'
-	        },
-	        button: {
-	            class: 'arte_download_button',
 	        },
 	        chains: {
 	            videos: [
@@ -2093,8 +2135,8 @@
 	            mode: 'removed',
 	            selector: 'div[data-name="playerWindowPlace"]'
 	        },
-	        button: {
-	            class: 'trwam_download_button',
+	        injection: {
+	            class: 'white'
 	        },
 	        chains: {
 	            videos: [
@@ -2197,9 +2239,9 @@
 	    var setupDetector = function(srcArray, data){
 	        var selectors = createArrySelectors(srcArray);
 	        var multiSelector = createMultiSelector(selectors);
-	        var observer = Common.createObserver('div.iplaContainer', multiSelector);
+	        var properties = Common.createProperties('div.iplaContainer', multiSelector);
 	
-	        ElementDetector.detect(observer, function() {
+	        ElementDetector.detect(properties, function() {
 	            selectors.forEach(function(element){
 	                if($(element.frameSelector).length > 0){
 	                    MessageReceiver.postUntilConfirmed({
