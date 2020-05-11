@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.15.0
+// @version        6.15.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -84,6 +84,7 @@
 	        var movieTitle = (title !== undefined && title !== '' ) ? title : 'nieznany';
 	        movieTitle = movieTitle.replace(new RegExp(config.notAllowedFileNameCharsMask), '');
 	        var name = movieTitle + '.' + extension;
+	        name = name.replace(/\s+/g, ' ');
 	        GM_download(fileUrl, name);
 	    };
 	
@@ -139,7 +140,7 @@
 	    urlParamPattern: '#',
 	    urlParamDefaultKey: 'videoId',
 	    urlPartPattern: '~',
-	    notAllowedFileNameCharsMask: '[\\/:\*\?"<>\|]+',
+	    notAllowedFileNameCharsMask: '[\\/:\*\?"<>|]+',
 	    include: {
 	        fontawesome: {
 	            id: 'fontawesome',
