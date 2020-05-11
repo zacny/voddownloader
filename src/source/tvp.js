@@ -45,15 +45,15 @@ var TVP = (function() {
                     urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
                     before: function (input) {
                         return dataAttributeParser();
+                    },
+                    after: function (input, result) {
+                        return getRealVideoId(input, result.before.videoId);
                     }
                 }),
                 new Step({
                     urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
                         '&@callback=callback',
                     responseType: 'jsonp',
-                    before: function (input) {
-                        return getRealVideoId(input);
-                    },
                     after: function(input){
                         return grapVideoData(input);
                     }
@@ -62,9 +62,9 @@ var TVP = (function() {
         }
     });
 
-    var getRealVideoId = function(json){
-        var videoId = json.copy_of_object_id !== undefined ?
-            json.copy_of_object_id : json.video_id;
+    var getRealVideoId = function(json, videoId){
+        var videoId = (json || {}).copy_of_object_id !== undefined ?
+            json.copy_of_object_id : videoId;
         return {
             videoId: videoId
         };

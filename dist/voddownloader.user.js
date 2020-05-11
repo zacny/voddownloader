@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.15.2
+// @version        6.15.3
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -881,7 +881,7 @@
 	    };
 	
 	    var beforeStep = function(currentStep, options){
-	        var stepOutput = currentStep.before(getStepResult(options, true).after || {});
+	        var stepOutput = currentStep.before(getStepResult(options, true).after || {}, getStepResult(options, true));
 	        if(currentStep.isRemote()){
 	            if(typeof stepOutput === 'string' || typeof stepOutput == 'number'){
 	                var result = stepOutput;
@@ -942,7 +942,7 @@
 	    var afterStep = function(service, options) {
 	        var currentStep = getCurrentStep(service, options);
 	        var previousResult = currentStep.isRemote() ? getStepResult(options).async : getStepResult(options).before;
-	        var output = currentStep.after(previousResult || {});
+	        var output = currentStep.after(previousResult || {}, getStepResult(options));
 	        options.retries = 0;
 	        setStepResult(options, {after: output});
 	    };
@@ -1307,15 +1307,15 @@
 	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
 	                    before: function (input) {
 	                        return dataAttributeParser();
+	                    },
+	                    after: function (input, result) {
+	                        return getRealVideoId(input, result.before.videoId);
 	                    }
 	                }),
 	                new Step({
 	                    urlTemplate: 'https://vod.tvp.pl/sess/TVPlayer2/api.php?id=#videoId&@method=getTvpConfig' +
 	                        '&@callback=callback',
 	                    responseType: 'jsonp',
-	                    before: function (input) {
-	                        return getRealVideoId(input);
-	                    },
 	                    after: function(input){
 	                        return grapVideoData(input);
 	                    }
@@ -1324,9 +1324,9 @@
 	        }
 	    });
 	
-	    var getRealVideoId = function(json){
-	        var videoId = json.copy_of_object_id !== undefined ?
-	            json.copy_of_object_id : json.video_id;
+	    var getRealVideoId = function(json, videoId){
+	        var videoId = (json || {}).copy_of_object_id !== undefined ?
+	            json.copy_of_object_id : videoId;
 	        return {
 	            videoId: videoId
 	        };
