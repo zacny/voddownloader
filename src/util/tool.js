@@ -20,6 +20,7 @@ var Tool = (function(Tool) {
         var movieTitle = (title !== undefined && title !== '' ) ? title : 'nieznany';
         movieTitle = movieTitle.replace(new RegExp(config.notAllowedFileNameCharsMask), '');
         var name = movieTitle + '.' + extension;
+        name = name.replace(/\s+/g, ' ');
         GM_download(fileUrl, name);
     };
 
