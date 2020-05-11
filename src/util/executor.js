@@ -81,7 +81,7 @@ var Executor = (function(Executor){
     };
 
     var beforeStep = function(currentStep, options){
-        var stepOutput = currentStep.before(getStepResult(options, true).after || {});
+        var stepOutput = currentStep.before(getStepResult(options, true).after || {}, getStepResult(options, true));
         if(currentStep.isRemote()){
             if(typeof stepOutput === 'string' || typeof stepOutput == 'number'){
                 var result = stepOutput;
@@ -142,7 +142,7 @@ var Executor = (function(Executor){
     var afterStep = function(service, options) {
         var currentStep = getCurrentStep(service, options);
         var previousResult = currentStep.isRemote() ? getStepResult(options).async : getStepResult(options).before;
-        var output = currentStep.after(previousResult || {});
+        var output = currentStep.after(previousResult || {}, getStepResult(options));
         options.retries = 0;
         setStepResult(options, {after: output});
     };
