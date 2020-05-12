@@ -6,6 +6,11 @@
     font: 18px Arial, Helvetica, sans-serif;
     z-index: 5001;
     padding: 10px 10px;
+    color: #fff;
+}
+
+.video_button i {
+    color: #fff !important;
 }
 
 .right {
@@ -14,10 +19,6 @@
 
 .small_padding {
     padding: 5px 10px !important;
-}
-
-.white {
-    color: #fff;
 }
 /* common style for buttons */
 .playerBox-x, .js-video {

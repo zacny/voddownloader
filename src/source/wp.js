@@ -5,7 +5,7 @@ var WP = (function() {
             selector: 'div.npp-container'
         },
         injection: {
-            class: 'small_padding white'
+            class: 'small_padding'
         },
         chains: {
             videos: [

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.15.3
+// @version        6.15.4
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1298,9 +1298,6 @@
 	        observer: {
 	            selector: '#JS-TVPlayer2-Wrapper, #player2, .news-video__overlay, .player-video-container, #tvplayer'
 	        },
-	        injection: {
-	            class: 'white'
-	        },
 	        chains: {
 	            videos: [
 	                new Step({
@@ -1850,7 +1847,7 @@
 	            selector: 'div.npp-container'
 	        },
 	        injection: {
-	            class: 'small_padding white'
+	            class: 'small_padding'
 	        },
 	        chains: {
 	            videos: [
@@ -2137,9 +2134,6 @@
 	            anchor: '#ipott',
 	            mode: 'removed',
 	            selector: 'div[data-name="playerWindowPlace"]'
-	        },
-	        injection: {
-	            class: 'white'
 	        },
 	        chains: {
 	            videos: [
