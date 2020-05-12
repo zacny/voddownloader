@@ -18,9 +18,8 @@ var Tool = (function(Tool) {
     Tool.downloadFile = function(fileUrl, title){
         var extension = Tool.deleteParametersFromUrl(fileUrl.split('.').pop());
         var movieTitle = (title !== undefined && title !== '' ) ? title : 'nieznany';
-        movieTitle = movieTitle.replace(new RegExp(config.notAllowedFileNameCharsMask), '');
+        movieTitle = movieTitle.replace(config.notAllowedFileNameCharsMask, '').replace(/\s+/g, ' ');
         var name = movieTitle + '.' + extension;
-        name = name.replace(/\s+/g, ' ');
         GM_download(fileUrl, name);
     };
 
