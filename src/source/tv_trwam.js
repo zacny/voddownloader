@@ -5,9 +5,6 @@ var TV_TRWAM = (function() {
             mode: 'removed',
             selector: 'div[data-name="playerWindowPlace"]'
         },
-        injection: {
-            class: 'white'
-        },
         chains: {
             videos: [
                 new Step({
