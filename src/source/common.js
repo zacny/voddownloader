@@ -15,7 +15,6 @@ var Common = (function(Common) {
     };
 
     Common.run = function(properties){
-        DomTamper.injectStylesheet(window, config.include.fontawesome);
         HistoryTamper.onLocationChange(function () {
             DomTamper.removeButton(properties);
         });
