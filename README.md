@@ -1,7 +1,7 @@
 # voddownloader
 
 This is a script for [Tampermonkey](https://tampermonkey.net/index.php ). 
-Creates a button in top right corner of video, that you can use to download a content of it.
+Creates an icon in top corner of video or somewhere else on the page (depends on the service). You can use it to download a an information about video, content or subtitles.
 
 #### currently supported vod services
 - [ipla.tv](https://www.ipla.tv)
@@ -23,6 +23,9 @@ Creates a button in top right corner of video, that you can use to download a co
 - [video.wp.pl](https://video.wp.pl)
 - [cda.pl](https://www.cda.pl)
 - [trwam](https://tv-trwam.pl/local-vods)
+
+### Screenshots
+
 
 ## Installation
 
