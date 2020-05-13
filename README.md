@@ -25,7 +25,10 @@ Creates an icon in top corner of video or somewhere else on the page (depends on
 - [trwam](https://tv-trwam.pl/local-vods)
 
 ### Screenshots
-
+![vod](screenshots/vod.png?raw=true "vod")
+![ipla](screenshots/ipla.png?raw=true "ipla")
+![tvn](screenshots/tvn.png?raw=true "tvn")
+![info](screenshots/info.png?raw=true "info")
 
 ## Installation
 
