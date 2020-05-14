@@ -1,7 +1,7 @@
 # voddownloader
 
 This is a script for [Tampermonkey](https://tampermonkey.net/index.php ). 
-Creates an icon in top corner of video or somewhere else on the page (depends on the service). You can use it to download a an information about video, content or subtitles.
+Creates an icon in top corner of video or somewhere else on the page (depends on the service). You can use it to download informations about video, content or subtitles.
 
 #### currently supported vod services
 - [ipla.tv](https://www.ipla.tv)
