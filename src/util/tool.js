@@ -15,11 +15,15 @@ var Tool = (function(Tool) {
         console.log.apply(this, $.merge([message], params));
     };
 
+    var removeNotAllowedFileNameChars = function(input){
+        var regexp = new RegExp('[\/:*?"<>|]+', 'g');
+        return input.replace(regexp, '').replace(/\s+/g, ' ');
+    };
+
     Tool.downloadFile = function(fileUrl, title){
         var extension = Tool.deleteParametersFromUrl(fileUrl.split('.').pop());
         var movieTitle = (title !== undefined && title !== '' ) ? title : 'nieznany';
-        movieTitle = movieTitle.replace(config.notAllowedFileNameCharsMask, '').replace(/\s+/g, ' ');
-        var name = movieTitle + '.' + extension;
+        var name = removeNotAllowedFileNameChars(movieTitle) + '.' + extension;
         GM_download(fileUrl, name);
     };
 
