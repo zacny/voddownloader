@@ -8,7 +8,6 @@ const config = {
     urlParamPattern: '#',
     urlParamDefaultKey: 'videoId',
     urlPartPattern: '~',
-    notAllowedFileNameCharsMask: '/[\\/:\*\?"<>|]+/g',
     include: {
         fontawesome: {
             id: 'fontawesome',
