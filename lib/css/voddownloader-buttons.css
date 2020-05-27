@@ -20,6 +20,10 @@
 .small_padding {
     padding: 5px 10px !important;
 }
+
+.player-video-container .video_button {
+    padding: 20px 20px !important;
+}
 /* common style for buttons */
 .playerBox-x, .js-video {
     position: relative;
