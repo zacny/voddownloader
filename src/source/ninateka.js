@@ -20,20 +20,33 @@ var NINATEKA = (function() {
         }
     });
 
-    var grabVideoData = function(results){
-        var items = [];
+    var grabVideoData = function(sources){
+        var videoItems = [];
+        var streamItems = [];
         var title = $('meta[name="title"]').attr('content').trim();
-        if(results && results.length > 0){
-            $.each(results, function(index, value ) {
-                items.push(Tool.mapDescription({
-                    source: 'NINATEKA',
-                    key: 'def',
-                    url: value
-                }));
+        if(sources && sources.length > 0){
+            $.each(sources, function(i, v ) {
+                if(sources[i].type && sources[i].type.match(/mp4/g)){
+                    videoItems.push(Tool.mapDescription({
+                        source: 'NINATEKA',
+                        key: v.type,
+                        url: v.src
+                    }));
+                }
+                else if(sources[i].type && (sources[i].type.match(/dash\+xml/g) || sources[i].type.match(/mpegURL/g))){
+                    streamItems.push(Tool.mapDescription({
+                        source: 'NINATEKA',
+                        key: v.type,
+                        url: v.src
+                    }));
+                }
             });
             return {
                 title: title.length > 0 ? title : 'brak danych',
-                cards: {videos: {items: items}}
+                cards: {
+                    videos: {items: videoItems},
+                    streams: {items: streamItems}
+                }
             }
         }
         throw new Exception(config.error.noSource, window.location.href);
@@ -52,21 +65,7 @@ var NINATEKA = (function() {
                 }
             }
         }
-        return getMp4Source(sources);
-    };
-
-    var getMp4Source = function(sources){
-        var results = [];
-        for(var i = 0; i < sources.length; i++){
-            if(sources[i].type && sources[i].type.match(/mp4/g)){
-                results.push(sources[i].src);
-            }
-        }
-        if(results.length > 0){
-            return results
-        }
-
-        throw new Exception(config.error.noSource, window.location.href);
+        return sources;
     };
 
     this.setup = function(){

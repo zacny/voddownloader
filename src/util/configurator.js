@@ -30,10 +30,20 @@ function Configurator(properties){
                     icon: 'fa-file-alt', label: 'Napisy', collapse: false, items: [],
                     info: [
                         {name: 'description', desc: 'opis'},
-                        {name: 'format', desc: 'format'},
+                        {name: 'format', desc: 'format'}
                     ],
                     actions: [
                         {label: 'Pobierz', icon: 'fa-download'}
+                    ]
+                },
+                streams: {
+                    icon: 'fa-stream', label: 'Strumienie', collapse: false, items: [],
+                    info: [
+                        {name: 'description', desc: 'opis'},
+                        {name: 'format', desc: 'format'}
+                    ],
+                    actions: [
+                        {label: 'Kopiuj', icon: 'fa-clone'}
                     ]
                 }
             }
@@ -51,10 +61,12 @@ function Configurator(properties){
             data.cards['subtitles'].items.sort(function (a, b) {
                 return ('' + a.format).localeCompare(b.format);
             });
+            data.cards['streams'].items.sort(function (a, b) {
+                return ('' + a.format).localeCompare(b.format);
+            });
         },
         aggregate: function(data){
-            var aggregatedData = {};
-            $.extend(true, aggregatedData, service.cardsData);
+            var aggregatedData = $.extend(true, {}, service.cardsData);
             var chains = service.chainSelector();
             chains.forEach(function(chain){
                 var extend = data[chain][data[chain].length - 1].after;

@@ -64,6 +64,7 @@ const config = {
     },
     description: {
         defaults: {
+            index: 99,
             language: 'polski',
             audio:  'MPEG ACC'
         },
@@ -111,7 +112,9 @@ const config = {
                 '300': {video: 'H264 MPEG-4 AVC,  357 kb/s, 384x216, 25fps, 16:9', index: 4}
             },
             NINATEKA: {
-                def: {video: 'H264 MPEG-4 AVC,  900 kb/s, 640x360, 25fps, 16:9', index: 1}
+                'video/mp4': {video: 'H264 MPEG-4 AVC,  900 kb/s, 640x360, 25fps, 16:9', index: 1},
+                'application/x-mpegURL': {description: "H264 MPEG-4 video stream with multiple resolutions", format: "HLS", index: 2},
+                'application/dash+xml': {description: "MPEG-DASH video stream with multiple resolutions", format: "MPD", index: 3},
             },
             CDA: {
                 '1080p': {video: 'H264 MPEG-4 AVC, 1920x1080, 16:9', index: 1},
