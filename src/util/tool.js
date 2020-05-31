@@ -53,17 +53,10 @@ var Tool = (function(Tool) {
     };
 
     Tool.mapDescription = function(data){
-        var defaults = config.description.defaults;
+        var defaults = $.extend({}, config.description.defaults);
         var sourceDescriptions = config.description.sources[data.source] || {};
         var descriptionVariant = sourceDescriptions[data.key] || {};
-        var output = {
-            video: descriptionVariant.video ? descriptionVariant.video : data.video,
-            index: descriptionVariant.index ? descriptionVariant.index : 99,
-            audio: data.audio ? data.audio : defaults.audio,
-            language: data.language ? data.language: defaults.language,
-            url: data.url
-        };
-        return $.extend(true, data, output);
+        return $.extend(true, defaults, data, descriptionVariant);
     };
 
     return Tool;

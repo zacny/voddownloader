@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        6.15.7
+// @version        7.0.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -117,17 +117,10 @@
 	    };
 	
 	    Tool.mapDescription = function(data){
-	        var defaults = config.description.defaults;
+	        var defaults = $.extend({}, config.description.defaults);
 	        var sourceDescriptions = config.description.sources[data.source] || {};
 	        var descriptionVariant = sourceDescriptions[data.key] || {};
-	        var output = {
-	            video: descriptionVariant.video ? descriptionVariant.video : data.video,
-	            index: descriptionVariant.index ? descriptionVariant.index : 99,
-	            audio: data.audio ? data.audio : defaults.audio,
-	            language: data.language ? data.language: defaults.language,
-	            url: data.url
-	        };
-	        return $.extend(true, data, output);
+	        return $.extend(true, defaults, data, descriptionVariant);
 	    };
 	
 	    return Tool;
@@ -198,6 +191,7 @@
 	    },
 	    description: {
 	        defaults: {
+	            index: 99,
 	            language: 'polski',
 	            audio:  'MPEG ACC'
 	        },
@@ -245,7 +239,9 @@
 	                '300': {video: 'H264 MPEG-4 AVC,  357 kb/s, 384x216, 25fps, 16:9', index: 4}
 	            },
 	            NINATEKA: {
-	                def: {video: 'H264 MPEG-4 AVC,  900 kb/s, 640x360, 25fps, 16:9', index: 1}
+	                'video/mp4': {video: 'H264 MPEG-4 AVC,  900 kb/s, 640x360, 25fps, 16:9', index: 1},
+	                'application/x-mpegURL': {description: "H264 MPEG-4 video stream with multiple resolutions", format: "HLS", index: 2},
+	                'application/dash+xml': {description: "MPEG-DASH video stream with multiple resolutions", format: "MPD", index: 3},
 	            },
 	            CDA: {
 	                '1080p': {video: 'H264 MPEG-4 AVC, 1920x1080, 16:9', index: 1},
@@ -761,13 +757,13 @@
 	            var disabled = cardHeader.find('h6.text-muted');
 	            if(disabled.length){
 	                disabled.addClass('cursor-normal');
-	                return;
 	            }
-	
-	            $(w.document.body).find('#' + key).click(function() {
-	                var id = $(this).attr('id');
-	                $(w.document.body).find('div[aria-labelledby="' + id + '"]').toggle();
-	            });
+	            else {
+	                $(w.document.body).find('#' + key).click(function() {
+	                    var id = $(this).attr('id');
+	                    $(w.document.body).find('div[aria-labelledby="' + id + '"]').toggle();
+	                });
+	            }
 	        }
 	    };
 	
@@ -1017,10 +1013,20 @@
 	                    icon: 'fa-file-alt', label: 'Napisy', collapse: false, items: [],
 	                    info: [
 	                        {name: 'description', desc: 'opis'},
-	                        {name: 'format', desc: 'format'},
+	                        {name: 'format', desc: 'format'}
 	                    ],
 	                    actions: [
 	                        {label: 'Pobierz', icon: 'fa-download'}
+	                    ]
+	                },
+	                streams: {
+	                    icon: 'fa-stream', label: 'Strumienie', collapse: false, items: [],
+	                    info: [
+	                        {name: 'description', desc: 'opis'},
+	                        {name: 'format', desc: 'format'}
+	                    ],
+	                    actions: [
+	                        {label: 'Kopiuj', icon: 'fa-clone'}
 	                    ]
 	                }
 	            }
@@ -1038,10 +1044,12 @@
 	            data.cards['subtitles'].items.sort(function (a, b) {
 	                return ('' + a.format).localeCompare(b.format);
 	            });
+	            data.cards['streams'].items.sort(function (a, b) {
+	                return ('' + a.format).localeCompare(b.format);
+	            });
 	        },
 	        aggregate: function(data){
-	            var aggregatedData = {};
-	            $.extend(true, aggregatedData, service.cardsData);
+	            var aggregatedData = $.extend(true, {}, service.cardsData);
 	            var chains = service.chainSelector();
 	            chains.forEach(function(chain){
 	                var extend = data[chain][data[chain].length - 1].after;
@@ -1984,20 +1992,33 @@
 	        }
 	    });
 	
-	    var grabVideoData = function(results){
-	        var items = [];
+	    var grabVideoData = function(sources){
+	        var videoItems = [];
+	        var streamItems = [];
 	        var title = $('meta[name="title"]').attr('content').trim();
-	        if(results && results.length > 0){
-	            $.each(results, function(index, value ) {
-	                items.push(Tool.mapDescription({
-	                    source: 'NINATEKA',
-	                    key: 'def',
-	                    url: value
-	                }));
+	        if(sources && sources.length > 0){
+	            $.each(sources, function(i, v ) {
+	                if(sources[i].type && sources[i].type.match(/mp4/g)){
+	                    videoItems.push(Tool.mapDescription({
+	                        source: 'NINATEKA',
+	                        key: v.type,
+	                        url: v.src
+	                    }));
+	                }
+	                else if(sources[i].type && (sources[i].type.match(/dash\+xml/g) || sources[i].type.match(/mpegURL/g))){
+	                    streamItems.push(Tool.mapDescription({
+	                        source: 'NINATEKA',
+	                        key: v.type,
+	                        url: v.src
+	                    }));
+	                }
 	            });
 	            return {
 	                title: title.length > 0 ? title : 'brak danych',
-	                cards: {videos: {items: items}}
+	                cards: {
+	                    videos: {items: videoItems},
+	                    streams: {items: streamItems}
+	                }
 	            }
 	        }
 	        throw new Exception(config.error.noSource, window.location.href);
@@ -2016,21 +2037,7 @@
 	                }
 	            }
 	        }
-	        return getMp4Source(sources);
-	    };
-	
-	    var getMp4Source = function(sources){
-	        var results = [];
-	        for(var i = 0; i < sources.length; i++){
-	            if(sources[i].type && sources[i].type.match(/mp4/g)){
-	                results.push(sources[i].src);
-	            }
-	        }
-	        if(results.length > 0){
-	            return results
-	        }
-	
-	        throw new Exception(config.error.noSource, window.location.href);
+	        return sources;
 	    };
 	
 	    this.setup = function(){

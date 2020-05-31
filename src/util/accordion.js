@@ -130,13 +130,13 @@ var Accordion = (function(Accordion) {
             var disabled = cardHeader.find('h6.text-muted');
             if(disabled.length){
                 disabled.addClass('cursor-normal');
-                return;
             }
-
-            $(w.document.body).find('#' + key).click(function() {
-                var id = $(this).attr('id');
-                $(w.document.body).find('div[aria-labelledby="' + id + '"]').toggle();
-            });
+            else {
+                $(w.document.body).find('#' + key).click(function() {
+                    var id = $(this).attr('id');
+                    $(w.document.body).find('div[aria-labelledby="' + id + '"]').toggle();
+                });
+            }
         }
     };
 
