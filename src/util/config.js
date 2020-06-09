@@ -123,7 +123,9 @@ const config = {
                 '360p': {video: 'H264 MPEG-4 AVC, 640x360, 16:9', index: 4},
             },
             TRWAM: {
-                '360p': {video: 'H264 MPEG-4 AVC, 640x360, 16:9', index: 1}
+                '3': {video: 'H264 MPEG-4 AVC, 640x360, 16:9', index: 1},
+                '2': {description: "H264 MPEG-4 video stream with multiple resolutions", format: "HLS", index: 2},
+                '9': {description: "MPEG-DASH video stream with multiple resolutions", format: "MPD", index: 3},
             }
         }
     }

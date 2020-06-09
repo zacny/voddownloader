@@ -22,7 +22,7 @@ var TV_TRWAM = (function() {
                     urlTemplate: 'https://api-trwam.app.insysgo.pl/v1/Player/AcquireContent?platformCodename=www&' +
                         'codename=#codename',
                     after: function(output) {
-                        return grabVideoData(output);
+                        return grabData(output);
                     }
                 })
             ]
@@ -54,36 +54,49 @@ var TV_TRWAM = (function() {
         };
     };
 
-    var resolveKey = function(value){
-        var match = value.Url.match(/\/[\w]+_([\d]+p)\.mp4$/);
-        if(match && match[1]) {
-            return match[1];
-        }
-
-        return value.VideoBitrate;
-    };
-
-    var grabVideoData = function(data){
-        var items = [];
+    var grabData = function(data){
         var streams = (((data || {}).MediaFiles || [])[0] || {}).Formats || [];
-        if(streams){
-            $.each(streams, function( index, value ) {
-                if(value.Type === 3){
-                    var key = resolveKey(value);
-                    items.push(Tool.mapDescription({
-                        source: 'TRWAM',
-                        key: key,
-                        video: key,
-                        url: value.Url
-                    }));
-                }
-            });
+        var videoItems = grabVideoData(streams);
+        var streamItems = grabStreamData(streams);
+        if(videoItems.length > 0 || streamItems.length > 0){
             return {
-                cards: {videos: {items: items}}
+                cards: {
+                    videos: {items: videoItems},
+                    streams: {items: streamItems}
+                }
             }
         }
         throw new Exception(config.error.noSource, window.location.href);
     };
+
+    var grabVideoData = function(streams){
+        var items = [];
+        $.each(streams, function( index, value ) {
+            if(value.Type === 3){
+                items.push(Tool.mapDescription({
+                    source: 'TRWAM',
+                    key: value.Type,
+                    url: value.Url
+                }));
+            }
+        });
+        return items;
+    };
+
+    var grabStreamData = function(streams){
+        var items = [];
+        var types = [2, 9];
+        $.each(streams, function( index, value ) {
+            if($.inArray(value.Type, types) > -1){
+                items.push(Tool.mapDescription({
+                    source: 'TRWAM',
+                    key: value.Type,
+                    url: value.Url
+                }));
+            }
+        });
+        return items;
+    }
 
     this.setup = function(){
         Common.run(properties);
