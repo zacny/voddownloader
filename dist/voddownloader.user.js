@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.1.0
+// @version        7.1.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1498,7 +1498,7 @@
 	        var regexp = new RegExp('https:\/\/player\.pl(.*)');
 	        var match = regexp.exec(window.location.href);
 	        if(match[1]) {
-	            window.sessionStorage.setItem(config.storage.topWindowLocation, 'https://vod.pl' + match[1]);
+	            window.sessionStorage.setItem(config.storage.topWindowLocation, 'https://player.pl' + match[1]);
 	        }
 	    };
 	
