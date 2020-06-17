@@ -103,12 +103,12 @@ var TVN = (function() {
         var regexp = new RegExp('https:\/\/player\.pl(.*)');
         var match = regexp.exec(window.location.href);
         if(match[1]) {
-            window.sessionStorage.setItem(config.storage.topWindowLocation, 'https://player.pl' + match[1]);
+            window.sessionStorage.setItem(config.storage.topWindowLocation, 'https://vod.pl' + match[1]);
         }
     };
 
     this.setup = function(){
-        if(!Tool.isTopWindow()) {
+        if(!Tool.isTopWindow() && $('#app').length) {
             inVodFrame();
         }
 
