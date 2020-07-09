@@ -4,7 +4,7 @@ var CDA = (function() {
             selector: '.pb-player-content'
         },
         injection: {
-            class: 'right'
+            class: 'right_margin'
         },
         chains: {
             videos: [

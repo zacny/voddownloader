@@ -4,9 +4,6 @@ var WP = (function() {
             anchor: 'body',
             selector: 'div.npp-container'
         },
-        injection: {
-            class: 'small_padding'
-        },
         chains: {
             videos: [
                 new Step({

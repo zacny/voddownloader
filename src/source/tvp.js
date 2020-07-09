@@ -34,7 +34,7 @@ var TVP = (function() {
              *      cyfrowa.tvp.pl          www.tvp.info
              *      (subdomeny).tvp.pl
              */
-            selector: '#JS-TVPlayer2-Wrapper, #player2, .news-video__overlay, .player-video-container, #tvplayer'
+            selector: '#JS-TVPlayer2-Wrapper, #player2, .player-video-container, #tvplayer'
         },
         chains: {
             videos: [

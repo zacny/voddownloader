@@ -4,6 +4,9 @@ var VOD_IPLA = (function() {
             anchor: 'body',
             selector: '#player-wrapper, #playerContainer'
         },
+        injection: {
+            class: 'left_margin'
+        },
         chainSelector: function(){
             return ['videos', 'subtitles'];
         },

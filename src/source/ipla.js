@@ -4,9 +4,6 @@ var IPLA = (function() {
             anchor: 'app-root',
             selector: 'div.player-wrapper, div.promo-box:visible, div.player-error-presentation:visible'
         },
-        injection: {
-            class: 'small_padding'
-        },
         chainSelector: function(){
             return ['videos', 'subtitles'];
         },

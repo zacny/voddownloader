@@ -4,7 +4,7 @@ var VOD = (function() {
             selector: '#v_videoPlayer'
         },
         injection: {
-            class: 'right'
+            class: 'right_margin'
         },
         chains: {
             videos: [

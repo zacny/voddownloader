@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.1.1
+// @version        7.2.0
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1307,7 +1307,7 @@
 	
 	    var properties = new Configurator({
 	        observer: {
-	            selector: '#JS-TVPlayer2-Wrapper, #player2, .news-video__overlay, .player-video-container, #tvplayer'
+	            selector: '#JS-TVPlayer2-Wrapper, #player2, .player-video-container, #tvplayer'
 	        },
 	        chains: {
 	            videos: [
@@ -1517,9 +1517,6 @@
 	            anchor: 'app-root',
 	            selector: 'div.player-wrapper, div.promo-box:visible, div.player-error-presentation:visible'
 	        },
-	        injection: {
-	            class: 'small_padding'
-	        },
 	        chainSelector: function(){
 	            return ['videos', 'subtitles'];
 	        },
@@ -1645,7 +1642,7 @@
 	            selector: '#v_videoPlayer'
 	        },
 	        injection: {
-	            class: 'right'
+	            class: 'right_margin'
 	        },
 	        chains: {
 	            videos: [
@@ -1760,6 +1757,9 @@
 	            anchor: 'body',
 	            selector: '#player-wrapper, #playerContainer'
 	        },
+	        injection: {
+	            class: 'left_margin'
+	        },
 	        chainSelector: function(){
 	            return ['videos', 'subtitles'];
 	        },
@@ -1857,9 +1857,6 @@
 	            anchor: 'body',
 	            selector: 'div.npp-container'
 	        },
-	        injection: {
-	            class: 'small_padding'
-	        },
 	        chains: {
 	            videos: [
 	                new Step({
@@ -1920,7 +1917,7 @@
 	            selector: '.pb-player-content'
 	        },
 	        injection: {
-	            class: 'right'
+	            class: 'right_margin'
 	        },
 	        chains: {
 	            videos: [
@@ -1976,9 +1973,6 @@
 	    var properties = new Configurator({
 	        observer: {
 	            selector: '#videoPlayer, #player'
-	        },
-	        injection: {
-	            class: 'small_padding'
 	        },
 	        chains: {
 	            videos: [
@@ -2144,6 +2138,9 @@
 	            anchor: '#ipott',
 	            mode: 'removed',
 	            selector: 'div[data-name="playerWindowPlace"]'
+	        },
+	        injection: {
+	            class: 'left_margin'
 	        },
 	        chains: {
 	            videos: [

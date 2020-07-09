@@ -3,9 +3,6 @@ var NINATEKA = (function() {
         observer: {
             selector: '#videoPlayer, #player'
         },
-        injection: {
-            class: 'small_padding'
-        },
         chains: {
             videos: [
                 new Step({
