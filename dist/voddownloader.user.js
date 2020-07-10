@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.2.0
+// @version        7.2.1
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1077,10 +1077,13 @@
 	            });
 	        },
 	        inject: function(){
-	            var icon = $('<i>').addClass('fas fa-video')
+	            var icon1 = $('<i>').addClass('fa fa-circle fa-stack-2x video_button_circle');
+	            var icon2 = $('<i>').addClass('fa fa-video fa-stack-1x fa-inverse');
+	            var span = $('<span>').addClass('fa-stack fa-1x').append(icon1).append(icon2);
 	            var div = $('<div>')
 	                .attr('id', service.injection.id).attr('title', 'informacje o wideo')
-	                .append(icon).addClass('video_button').addClass(service.injection.class);
+	                .append(span).addClass('video_button')
+	                .addClass(service.injection.class);
 	            $(service.observer.selector).hover(() => div.show(), () => div.hide());
 	            return div;
 	        },
