@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.2.1
+// @version        7.2.2
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1298,9 +1298,12 @@
 	
 	        return urlParameterParser();
 	    };
-	
 	    var urlParameterParser = function(){
-	        var id = Tool.getUrlParameter('object_id', window.location.href);
+	        var ids = [
+	            Tool.getUrlParameter('ID', window.location.href),
+	            Tool.getUrlParameter('object_id', window.location.href)
+	        ];
+	        var id = ids.find(nonNull);
 	        if(id){
 	            return id;
 	        }
@@ -1308,9 +1311,13 @@
 	        throw new Exception(config.error.id, window.location.href);
 	    };
 	
+	    var nonNull = function (id) {
+	        return id !== null;
+	    };
+	
 	    var properties = new Configurator({
 	        observer: {
-	            selector: '#JS-TVPlayer2-Wrapper, #player2, .player-video-container, #tvplayer'
+	            selector: '#JS-TVPlayer2-Wrapper, .player-video-container, #tvplayer, #Player'
 	        },
 	        chains: {
 	            videos: [

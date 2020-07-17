@@ -1,4 +1,7 @@
 var TVP = (function() {
+    /**
+     *  vod.tvp.pl, cyfrowa.tvp.pl
+     */
     var dataAttributeParser = function() {
         var src = $(properties.observer.selector).attr('data-video-id');
         if(src !== undefined){
@@ -10,6 +13,9 @@ var TVP = (function() {
         return urlForwardParser();
     };
 
+    /**
+     *  sport.tvp.pl, polonia.tvp.pl, (subdomeny).tvp.pl
+     */
     var urlForwardParser = function() {
         var urlMatch = window.location.href.match(/^https?:\/\/.*\.tvp\..*\/(\d{6,})\/.*$/);
         if(urlMatch && urlMatch[1]){
@@ -18,9 +24,15 @@ var TVP = (function() {
 
         return urlParameterParser();
     };
-
+    /**
+     *  www.tvp.info, wiadomosci.tvp.pl, (subdomeny).tvp.pl, www.tvpparlament.pl
+     */
     var urlParameterParser = function(){
-        var id = Tool.getUrlParameter('object_id', window.location.href);
+        var ids = [
+            Tool.getUrlParameter('ID', window.location.href),
+            Tool.getUrlParameter('object_id', window.location.href)
+        ];
+        var id = ids.find(nonNull);
         if(id){
             return id;
         }
@@ -28,13 +40,17 @@ var TVP = (function() {
         throw new Exception(config.error.id, window.location.href);
     };
 
+    var nonNull = function (id) {
+        return id !== null;
+    };
+
     var properties = new Configurator({
         observer: {
-            /**     vod.tvp.pl              tvp regionalne      sport.tvp.pl       polonia.tvp.pl    tvpparlament.pl
-             *      cyfrowa.tvp.pl          www.tvp.info
-             *      (subdomeny).tvp.pl
+            /**       vod.tvp.pl           sport.tvp.pl       www.tvpparlament.pl  www.tvp.info
+             *        cyfrowa.tvp.pl       polonia.tvp.pl                          wiadomosci.tvp.pl
+             *                             (subdomeny).tvp.pl                      (subdomeny).tvp.pl
              */
-            selector: '#JS-TVPlayer2-Wrapper, #player2, .player-video-container, #tvplayer'
+            selector: '#JS-TVPlayer2-Wrapper, .player-video-container, #tvplayer, #Player'
         },
         chains: {
             videos: [
