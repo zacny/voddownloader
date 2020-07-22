@@ -44,7 +44,7 @@ const config = {
         noSource: {
             caption: 'Nie udało się odnaleźć metadanych tego materiału.',
             template: Tool.template`Materiał ze strony ${0} nie posiada zdefiniowanych metadanych potrzebnych do \
-                działania skryptu lub są one nieprawdłowe.\n
+                działania skryptu lub są one nieprawidłowe.\n
                 Może to oznaczać, że nie jest to materiał publicznie dostępny, nie posiada zdefiniowanych źródeł lub nie \
                 mogą one zostać wyświetlone w przeglądarce bez dodatkowego oprogramowania albo jest to materiał \
                 umieszczony w płatnej strefie.`,
