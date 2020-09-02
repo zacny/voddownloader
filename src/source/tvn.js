@@ -89,7 +89,7 @@ var TVN = (function() {
     };
 
     var getTitle = function(data){
-        var episode = data.item.episode ? 'E'+Tool.pad(data.item.episode, 2) : '';
+        var episode = data.item.episode ? 'E'+Tool.pad(data.item.episode, 3) : '';
         var season = data.item.season != null ? 'S'+Tool.pad(data.item.season, 2) : '';
         var serie_title = data.item.serie_title != null ? data.item.serie_title : '';
         var episodeTitle = data.item.title ? ' ' + data.item.title : '';

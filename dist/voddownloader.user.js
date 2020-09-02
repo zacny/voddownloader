@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.2.2
+// @version        7.2.3
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -171,7 +171,7 @@
 	        noSource: {
 	            caption: 'Nie udało się odnaleźć metadanych tego materiału.',
 	            template: Tool.template`Materiał ze strony ${0} nie posiada zdefiniowanych metadanych potrzebnych do \
-	                działania skryptu lub są one nieprawdłowe.\n
+	                działania skryptu lub są one nieprawidłowe.\n
 	                Może to oznaczać, że nie jest to materiał publicznie dostępny, nie posiada zdefiniowanych źródeł lub nie \
 	                mogą one zostać wyświetlone w przeglądarce bez dodatkowego oprogramowania albo jest to materiał \
 	                umieszczony w płatnej strefie.`,
@@ -1494,7 +1494,7 @@
 	    };
 	
 	    var getTitle = function(data){
-	        var episode = data.item.episode ? 'E'+Tool.pad(data.item.episode, 2) : '';
+	        var episode = data.item.episode ? 'E'+Tool.pad(data.item.episode, 3) : '';
 	        var season = data.item.season != null ? 'S'+Tool.pad(data.item.season, 2) : '';
 	        var serie_title = data.item.serie_title != null ? data.item.serie_title : '';
 	        var episodeTitle = data.item.title ? ' ' + data.item.title : '';
