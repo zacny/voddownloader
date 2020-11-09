@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.2.3
+// @version        7.2.4
 // @updateURL      https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://raw.githubusercontent.com/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -193,7 +193,7 @@
 	        defaults: {
 	            index: 99,
 	            language: 'polski',
-	            audio:  'MPEG ACC'
+	            audio:  'MPEG AAC'
 	        },
 	        sources: {
 	            IPLA: {
@@ -228,9 +228,10 @@
 	                '5420000': {video: 'H264 MPEG-4 AVC, 9875 kb/s, 1280x720, 25fps, 16:9', index: 2},
 	                '2850000': {video: 'H264 MPEG-4 AVC, 4661 kb/s, 960x540, 25fps, 16:9', index: 3},
 	                '1750000': {video: 'H264 MPEG-4 AVC, 1782 kb/s, 800x450, 25fps, 16:9', index: 4},
-	                '1250000': {video: 'H264 MPEG-4 AVC, 1255 kb/s, 640x360, 25fps, 16:9', index: 5},
-	                '820000': {video: 'H264 MPEG-4 AVC, 809 kb/s, 480x270, 25fps, 16:9', index: 6},
-	                '590000': {video: 'H264 MPEG-4 AVC, 581 kb/s, 398x224, 25fps, 199:112', index: 7}
+	                '1500000': {video: 'H264 MPEG-4 AVC, 1487 kb/s, 720x404, 25fps, 16:9', index: 5},
+	                '1250000': {video: 'H264 MPEG-4 AVC, 1255 kb/s, 640x360, 25fps, 16:9', index: 6},
+	                '820000': {video: 'H264 MPEG-4 AVC, 809 kb/s, 480x270, 25fps, 16:9', index: 7},
+	                '590000': {video: 'H264 MPEG-4 AVC, 581 kb/s, 398x224, 25fps, 199:112', index: 8}
 	            },
 	            ARTE: {
 	                '2200': {video: 'H264 MPEG-4 AVC,  2438 kb/s, 1280x720, 25fps, 16:9', index: 1},
