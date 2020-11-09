@@ -66,7 +66,7 @@ const config = {
         defaults: {
             index: 99,
             language: 'polski',
-            audio:  'MPEG ACC'
+            audio:  'MPEG AAC'
         },
         sources: {
             IPLA: {
