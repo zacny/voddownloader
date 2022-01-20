@@ -1,8 +1,7 @@
 var IPLA = (function() {
     var properties = new Configurator({
         observer: {
-            anchor: 'app-root',
-            selector: 'div.player-wrapper, div.promo-box:visible, div.player-error-presentation:visible'
+            selector: '#__next'
         },
         chainSelector: function(){
             return ['videos', 'subtitles'];

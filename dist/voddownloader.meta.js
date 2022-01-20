@@ -15,7 +15,7 @@
 // @include        /^https?://.*\.tvp.(pl|info)/sess/TVPlayer2/embed.*$/
 // @include        /^https?://((?!wiadomosci).)*\.tvp\.pl/\d{6,}/.*$/
 // @include        https://www.tvpparlament.pl/sess/*
-// @include        https://www.ipla.tv/*
+// @include        https://polsatgo.pl/*/ogladaj*
 // @include        https://player.pl/*
 // @include        https://*.cda.pl/*
 // @include        https://vod.pl/*

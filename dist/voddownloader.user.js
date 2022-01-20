@@ -15,7 +15,7 @@
 // @include        /^https?://.*\.tvp.(pl|info)/sess/TVPlayer2/embed.*$/
 // @include        /^https?://((?!wiadomosci).)*\.tvp\.pl/\d{6,}/.*$/
 // @include        https://www.tvpparlament.pl/sess/*
-// @include        https://www.ipla.tv/*
+// @include        https://polsatgo.pl/*/ogladaj*
 // @include        https://player.pl/*
 // @include        https://*.cda.pl/*
 // @include        https://vod.pl/*
@@ -1525,8 +1525,7 @@
 	var IPLA = (function() {
 	    var properties = new Configurator({
 	        observer: {
-	            anchor: 'app-root',
-	            selector: 'div.player-wrapper, div.promo-box:visible, div.player-error-presentation:visible'
+	            selector: '#__next'
 	        },
 	        chainSelector: function(){
 	            return ['videos', 'subtitles'];
@@ -2317,7 +2316,7 @@
 	                '^https:\/\/.*\.redcdn\.pl\/file\/o2\/redefine\/partner\/'
 	            )
 	        },
-	        {objectName: 'IPLA', urlPattern: new RegExp('^https:\/\/w{3}\.ipla\.tv\/')},
+	        {objectName: 'IPLA', urlPattern: new RegExp('^https:\/\/polsatgo\.pl\/')},
 	        {objectName: 'WP', urlPattern: new RegExp('^https:\/\/wideo\.wp\.pl\/')},
 	        {objectName: 'NINATEKA', urlPattern: new RegExp('^https:\/\/ninateka.pl\/')},
 	        {objectName: 'ARTE', urlPattern: new RegExp('^https:\/\/w{3}\.arte\.tv\/.*\/videos\/')},

@@ -15,7 +15,7 @@ var Starter = (function(Starter) {
                 '^https:\/\/.*\.redcdn\.pl\/file\/o2\/redefine\/partner\/'
             )
         },
-        {objectName: 'IPLA', urlPattern: new RegExp('^https:\/\/w{3}\.ipla\.tv\/')},
+        {objectName: 'IPLA', urlPattern: new RegExp('^https:\/\/polsatgo\.pl\/')},
         {objectName: 'WP', urlPattern: new RegExp('^https:\/\/wideo\.wp\.pl\/')},
         {objectName: 'NINATEKA', urlPattern: new RegExp('^https:\/\/ninateka.pl\/')},
         {objectName: 'ARTE', urlPattern: new RegExp('^https:\/\/w{3}\.arte\.tv\/.*\/videos\/')},

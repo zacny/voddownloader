@@ -67,7 +67,7 @@
         "/^https?://.*\\.tvp.(pl|info)/sess/TVPlayer2/embed.*$/",
         "/^https?://((?!wiadomosci).)*\\.tvp\\.pl/\\d{6,}/.*$/",
         "https://www.tvpparlament.pl/sess/*",
-        "https://www.ipla.tv/*",
+        "https://polsatgo.pl/*/ogladaj*",
         "https://player.pl/*",
         "https://*.cda.pl/*",
         "https://vod.pl/*",
