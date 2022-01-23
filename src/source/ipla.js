@@ -88,16 +88,16 @@ var IPLA = (function() {
     };
 
     var matchingHexId = function(input){
-        var match = input.match(/[0-9a-f]{32}/);
-        if(match && match[0]) {
-            return match[0];
+        var match = input.match(/([0-9a-f]{32})\/ogladaj/);
+        if(match && match[1]) {
+            return match[1];
         }
 
         return null;
     };
 
     var matchingDecId = function(input) {
-        var match = input.match(/([\d]+)?(\?.*)$/);
+        var match = input.match(/(\d+)\/ogladaj/);
         if(match && match[1]) {
             return match[1];
         }

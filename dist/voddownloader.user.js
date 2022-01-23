@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.2.6
+// @version        7.2.7
 // @updateURL      https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -16,6 +16,7 @@
 // @include        /^https?://((?!wiadomosci).)*\.tvp\.pl/\d{6,}/.*$/
 // @include        https://www.tvpparlament.pl/sess/*
 // @include        https://polsatgo.pl/*/ogladaj*
+// @include        https://polsatboxgo.pl/*/ogladaj*
 // @include        https://player.pl/*
 // @include        https://*.cda.pl/*
 // @include        https://vod.pl/*
@@ -1612,16 +1613,16 @@
 	    };
 	
 	    var matchingHexId = function(input){
-	        var match = input.match(/[0-9a-f]{32}/);
-	        if(match && match[0]) {
-	            return match[0];
+	        var match = input.match(/([0-9a-f]{32})\/ogladaj/);
+	        if(match && match[1]) {
+	            return match[1];
 	        }
 	
 	        return null;
 	    };
 	
 	    var matchingDecId = function(input) {
-	        var match = input.match(/([\d]+)?(\?.*)$/);
+	        var match = input.match(/(\d+)\/ogladaj/);
 	        if(match && match[1]) {
 	            return match[1];
 	        }
@@ -2311,12 +2312,18 @@
 	        {objectName: 'TVN', urlPattern: new RegExp('^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\/')},
 	        {objectName: 'CDA', urlPattern: new RegExp('^https:\/\/.*\.cda\.pl\/')},
 	        {objectName: 'VOD', urlPattern: new RegExp('^https:\/\/vod.pl\/')},
-	        {objectName: 'VOD_IPLA', urlPattern: new RegExp(
+	        {objectName: 'VOD_IPLA', urlPattern:
+	            new RegExp(
 	                '^https:\/\/partner\.ipla\.tv\/embed\/|' +
 	                '^https:\/\/.*\.redcdn\.pl\/file\/o2\/redefine\/partner\/'
 	            )
 	        },
-	        {objectName: 'IPLA', urlPattern: new RegExp('^https:\/\/polsatgo\.pl\/')},
+	        {objectName: 'IPLA', urlPattern:
+	            new RegExp(
+	                '^https:\/\/polsatboxgo\.pl\/|' +
+	                '^https:\/\/polsatgo\.pl\/'
+	            )
+	        },
 	        {objectName: 'WP', urlPattern: new RegExp('^https:\/\/wideo\.wp\.pl\/')},
 	        {objectName: 'NINATEKA', urlPattern: new RegExp('^https:\/\/ninateka.pl\/')},
 	        {objectName: 'ARTE', urlPattern: new RegExp('^https:\/\/w{3}\.arte\.tv\/.*\/videos\/')},

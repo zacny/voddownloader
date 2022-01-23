@@ -10,12 +10,18 @@ var Starter = (function(Starter) {
         {objectName: 'TVN', urlPattern: new RegExp('^https:\/\/(?:w{3}\.)?(?:tvn)?player\.pl\/')},
         {objectName: 'CDA', urlPattern: new RegExp('^https:\/\/.*\.cda\.pl\/')},
         {objectName: 'VOD', urlPattern: new RegExp('^https:\/\/vod.pl\/')},
-        {objectName: 'VOD_IPLA', urlPattern: new RegExp(
+        {objectName: 'VOD_IPLA', urlPattern:
+            new RegExp(
                 '^https:\/\/partner\.ipla\.tv\/embed\/|' +
                 '^https:\/\/.*\.redcdn\.pl\/file\/o2\/redefine\/partner\/'
             )
         },
-        {objectName: 'IPLA', urlPattern: new RegExp('^https:\/\/polsatgo\.pl\/')},
+        {objectName: 'IPLA', urlPattern:
+            new RegExp(
+                '^https:\/\/polsatboxgo\.pl\/|' +
+                '^https:\/\/polsatgo\.pl\/'
+            )
+        },
         {objectName: 'WP', urlPattern: new RegExp('^https:\/\/wideo\.wp\.pl\/')},
         {objectName: 'NINATEKA', urlPattern: new RegExp('^https:\/\/ninateka.pl\/')},
         {objectName: 'ARTE', urlPattern: new RegExp('^https:\/\/w{3}\.arte\.tv\/.*\/videos\/')},

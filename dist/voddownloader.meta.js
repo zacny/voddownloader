@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.2.6
+// @version        7.2.7
 // @updateURL      https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -16,6 +16,7 @@
 // @include        /^https?://((?!wiadomosci).)*\.tvp\.pl/\d{6,}/.*$/
 // @include        https://www.tvpparlament.pl/sess/*
 // @include        https://polsatgo.pl/*/ogladaj*
+// @include        https://polsatboxgo.pl/*/ogladaj*
 // @include        https://player.pl/*
 // @include        https://*.cda.pl/*
 // @include        https://vod.pl/*
