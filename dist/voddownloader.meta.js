@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.2.7
+// @version        7.3.1
 // @updateURL      https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.2.7
+// @version        7.3.1
 // @updateURL      https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1281,12 +1281,10 @@
 	}(Common || {}));
 	
 	var TVP = (function() {
-	    var dataAttributeParser = function() {
-	        var src = $(properties.observer.selector).attr('data-video-id');
-	        if(src !== undefined){
-	            return {
-	                videoId: src.split("/").pop()
-	            };
+	    var urlVideoParser = function() {
+	        var urlMatch = window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{6,})$/);
+	        if(urlMatch && urlMatch[1]){
+	            return urlMatch[1];
 	        }
 	
 	        return urlForwardParser();
@@ -1319,14 +1317,15 @@
 	
 	    var properties = new Configurator({
 	        observer: {
-	            selector: '#JS-TVPlayer2-Wrapper, .player-video-container, #tvplayer, #Player'
+	            selector: 'div.playerContainerWrapper, #JS-TVPlayer2-Wrapper, .player-video-container,' +
+	                ' #tvplayer, #Player'
 	        },
 	        chains: {
 	            videos: [
 	                new Step({
 	                    urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
 	                    before: function (input) {
-	                        return dataAttributeParser();
+	                        return urlVideoParser();
 	                    },
 	                    after: function (input, result) {
 	                        return getRealVideoId(input, result.before.videoId);
@@ -1401,7 +1400,16 @@
 	
 	
 	    this.setup = function(){
-	        Common.run(properties);
+	        if(window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{6,})$/)){
+	            setTimeout(function(){
+	                if($('div.tp3-state-error').length)
+	                    $('div.tp3-state-error').css("display","none");
+	                Common.run(properties);
+	            }, 4000);
+	        }
+	        else {
+	            Common.run(properties);
+	        }
 	    };
 	});
 	

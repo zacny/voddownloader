@@ -2,12 +2,10 @@ var TVP = (function() {
     /**
      *  vod.tvp.pl, cyfrowa.tvp.pl
      */
-    var dataAttributeParser = function() {
-        var src = $(properties.observer.selector).attr('data-video-id');
-        if(src !== undefined){
-            return {
-                videoId: src.split("/").pop()
-            };
+    var urlVideoParser = function() {
+        var urlMatch = window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{6,})$/);
+        if(urlMatch && urlMatch[1]){
+            return urlMatch[1];
         }
 
         return urlForwardParser();
@@ -50,14 +48,15 @@ var TVP = (function() {
              *        cyfrowa.tvp.pl       polonia.tvp.pl                          wiadomosci.tvp.pl
              *                             (subdomeny).tvp.pl                      (subdomeny).tvp.pl
              */
-            selector: '#JS-TVPlayer2-Wrapper, .player-video-container, #tvplayer, #Player'
+            selector: 'div.playerContainerWrapper, #JS-TVPlayer2-Wrapper, .player-video-container,' +
+                ' #tvplayer, #Player'
         },
         chains: {
             videos: [
                 new Step({
                     urlTemplate: 'https://tvp.pl/pub/stat/videofileinfo?video_id=#videoId',
                     before: function (input) {
-                        return dataAttributeParser();
+                        return urlVideoParser();
                     },
                     after: function (input, result) {
                         return getRealVideoId(input, result.before.videoId);
@@ -132,6 +131,15 @@ var TVP = (function() {
 
 
     this.setup = function(){
-        Common.run(properties);
+        if(window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{6,})$/)){
+            setTimeout(function(){
+                if($('div.tp3-state-error').length)
+                    $('div.tp3-state-error').css("display","none");
+                Common.run(properties);
+            }, 4000);
+        }
+        else {
+            Common.run(properties);
+        }
     };
 });
