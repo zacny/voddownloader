@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name           Skrypt umożliwiający pobieranie materiałów ze znanych serwisów VOD.
-// @version        7.3.1
+// @version        7.3.2
 // @updateURL      https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.meta.js
 // @downloadURL    https://gitcdn.link/cdn/zacny/voddownloader/master/dist/voddownloader.user.js
 // @description    Skrypt służący do pobierania materiałów ze znanych serwisów VOD.
@@ -1282,7 +1282,7 @@
 	
 	var TVP = (function() {
 	    var urlVideoParser = function() {
-	        var urlMatch = window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{6,})$/);
+	        var urlMatch = window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{5,})$/);
 	        if(urlMatch && urlMatch[1]){
 	            return urlMatch[1];
 	        }
@@ -1400,7 +1400,7 @@
 	
 	
 	    this.setup = function(){
-	        if(window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{6,})$/)){
+	        if(window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{5,})$/)){
 	            setTimeout(function(){
 	                if($('div.tp3-state-error').length)
 	                    $('div.tp3-state-error').css("display","none");

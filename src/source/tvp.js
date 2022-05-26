@@ -3,7 +3,7 @@ var TVP = (function() {
      *  vod.tvp.pl, cyfrowa.tvp.pl
      */
     var urlVideoParser = function() {
-        var urlMatch = window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{6,})$/);
+        var urlMatch = window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{5,})$/);
         if(urlMatch && urlMatch[1]){
             return urlMatch[1];
         }
@@ -131,7 +131,7 @@ var TVP = (function() {
 
 
     this.setup = function(){
-        if(window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{6,})$/)){
+        if(window.location.href.match(/^https?:\/\/.*\.tvp\.pl\/video\/[a-zA-Z0-9\-]*,[a-zA-Z0-9\-]*,(\d{5,})$/)){
             setTimeout(function(){
                 if($('div.tp3-state-error').length)
                     $('div.tp3-state-error').css("display","none");
