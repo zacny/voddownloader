@@ -49,10 +49,10 @@
 // @require        https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js
 // @require        https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js
-// @require        https://gitcdn.link/cdn/zacny/voddownloader/master/lib/js/mdb-with-waves-patch.js
-// @require        https://gitcdn.link/cdn/kapetan/jquery-observe/master/jquery-observe.js
-// @resource       buttons_css https://gitcdn.link/cdn/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
-// @resource       content_css https://gitcdn.link/cdn/zacny/voddownloader/master/lib/css/voddownloader-content.css
+// @require        https://raw.githubusercontent.com/zacny/voddownloader/master/lib/js/mdb-with-waves-patch.js
+// @require        https://raw.githubusercontent.com/kapetan/jquery-observe/master/jquery-observe.js
+// @resource       buttons_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-buttons.css
+// @resource       content_css https://raw.githubusercontent.com/zacny/voddownloader/master/lib/css/voddownloader-content.css
 // ==/UserScript==
 
 (function vodDownloader($, platform, Waves) {
